@@ -124,11 +124,11 @@ class CMakeBuild(build_ext):
 
 
 setup(
-    name="squirrel-lang-pybinding",
+    name="squirrel-lang",
     version=__version__,
     author="shabbywu",
     author_email="shabbywu@qq.com",
-    url="https://github.com/shabbywu/squirrel-lang-pybinding",
+    url="https://github.com/shabbywu/squirrel-py",
     description="squirrel-lang - squirrel-lang vm machine, run squirrel-lang with python.",
     long_description="""squirrel-lang - squirrel-lang vm machine, run squirrel-lang with python.
 """,
