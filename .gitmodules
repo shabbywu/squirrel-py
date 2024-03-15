@@ -1,0 +1,6 @@
+[submodule "libs/SQUIRREL32"]
+	path = libs/SQUIRREL32
+	url = https://github.com/shabbywu/squirrel.git
+[submodule "libs/pybind11"]
+	path = libs/pybind11
+	url = https://github.com/pybind/pybind11.git
