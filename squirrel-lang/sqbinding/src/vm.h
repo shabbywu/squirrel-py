@@ -55,7 +55,9 @@ public:
         this->vm = vm;
     }
     ~StaticVM() {
+        #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release StaticVM" << std::endl;
+        #endif
     }
 
     void DumpStack(SQInteger stackbase, bool dumpall);

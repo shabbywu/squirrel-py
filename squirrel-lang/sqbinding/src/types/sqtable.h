@@ -48,12 +48,13 @@ public:
     }
 
     void release() {
+        #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release _SQTable_" << std::endl;
+        #endif
         if(releaseOnDestroy) {
             pTable->Release();
         } else {
             this -> pTable -> _uiRef--;
-            std::cout << "GC::Release _SQTable_._uiRef"  << this -> pTable -> _uiRef << std::endl;
         }
     }
 

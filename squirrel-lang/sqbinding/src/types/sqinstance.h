@@ -35,7 +35,9 @@ public:
     }
 
     void release() {
+        #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release _SQInstance_" << std::endl;
+        #endif
         this -> pInstance -> _uiRef--;
     }
 

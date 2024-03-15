@@ -48,7 +48,9 @@ public:
     }
 
     void release() {
+        #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release _SQArray_" << std::endl;
+        #endif
         if(releaseOnDestroy) {
             pArray->Release();
         } else {
