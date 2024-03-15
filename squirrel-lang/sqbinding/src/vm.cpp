@@ -141,6 +141,9 @@ public:
         vm = open_sqvm(size, libsToLoad);
     }
     ~GenericVM() {
+        #ifdef TRACE_CONTAINER_GC
+        std::cout << "GC::Release GenericVM" << std::endl;
+        #endif
         sq_collectgarbage(vm);
         sq_settop(vm, 0);
         py::module::import("gc").attr("collect")();
@@ -163,7 +166,7 @@ void register_squirrel_vm(py::module_ &m) {
         .def("set_roottable", &StaticVM::setroottable, py::arg("roottable"), py::keep_alive<1, 2>())
         ;
 
-    py::class_<GenericVM, std::shared_ptr<GenericVM>>(m, "SQVM")
+    py::class_<GenericVM, std::shared_ptr<StaticVM>>(m, "SQVM")
         .def(py::init<int>(), py::arg("size") = 1024)
         .def_readonly("vm", &GenericVM::vm)
         .def("dumpstack", &GenericVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
