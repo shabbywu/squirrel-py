@@ -31,7 +31,7 @@ history.
 Installation
 ------------
 
- - ~~`pip install squirrel-lang`~~ WIP
+ - `pip install squirrel-lang`
 
 
 License
