@@ -11,7 +11,7 @@ endif()
 
 project ("squirrel-lang-pybinding")
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-O2 -fno-strict-aliasing)
+add_compile_options(-O2 -fno-strict-aliasing -fPIC)
 
 # 静态编译所有库
 if (MSVC)
