@@ -139,4 +139,5 @@ setup(
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     python_requires=">=3.7",
+    install_requires=[],
 )
