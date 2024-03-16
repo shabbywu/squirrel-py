@@ -26,7 +26,7 @@ jobs:
       with:
         submodules: 'true'
 
-    - uses: actions/setup-python@v4
+    - uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
 
@@ -37,38 +37,38 @@ jobs:
       run: pip install --verbose .
 
     - name: Test
-      run: python tests/test.py
+      run: python tests/test_vm.py
 
-  # build-mingw64:
-  #   runs-on: windows-latest
-  #   defaults:
-  #     run:
-  #       shell: msys2 {0}
-  #   steps:
-  #   - uses: msys2/setup-msys2@v2
-  #     with:
-  #       update: true
-  #       install: >-
-  #         mingw-w64-x86_64-gcc
-  #         mingw-w64-x86_64-python-pip
-  #         mingw-w64-x86_64-python-wheel
+  build-mingw64:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+    - uses: msys2/setup-msys2@v2
+      with:
+        update: true
+        install: >-
+          mingw-w64-x86_64-gcc
+          mingw-w64-x86_64-python-pip
+          mingw-w64-x86_64-python-wheel
 
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: 'true'
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
 
-  #   - name: Install pybind11
-  #     # This is required because --no-build-isolation disable dependences
-  #     # installation
-  #     run: pip install pybind11
+    - name: Install pybind11
+      # This is required because --no-build-isolation disable dependences
+      # installation
+      run: pip install pybind11
 
-  #   - name: Build and install
-  #     # --no-build-isolation is required because the vanilla setuptool does not
-  #     # support Mingw64.See patches here:
-  #     # https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-setuptools
-  #     # Without those patches build_ext fails with:
-  #     # error: --plat-name must be one of ('win32', 'win-amd64', 'win-arm32', 'win-arm64')
-  #     run: pip install --no-build-isolation .
+    - name: Build and install
+      # --no-build-isolation is required because the vanilla setuptool does not
+      # support Mingw64.See patches here:
+      # https://github.com/msys2/MINGW-packages/tree/master/mingw-w64-python-setuptools
+      # Without those patches build_ext fails with:
+      # error: --plat-name must be one of ('win32', 'win-amd64', 'win-arm32', 'win-arm64')
+      run: pip install --no-build-isolation .
 
-  #   - name: Test
-  #     run: python tests/test.py
+    - name: Test
+      run: python tests/test_vm.py

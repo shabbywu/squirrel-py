@@ -6,5 +6,5 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-test-command = "python {project}/tests/test.py"
+test-command = "python {project}/tests/test_vm.py"
 test-skip = "*universal2:arm64"
