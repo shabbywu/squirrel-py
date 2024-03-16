@@ -135,7 +135,7 @@ setup(
     packages=["squirrel"],
     package_dir={"": "squirrel-lang"},
     extras_require={"test": "pytest"},
-    ext_modules=[CMakeExtension("squirrel")],
+    ext_modules=[CMakeExtension("_squirrel")],
     cmdclass={"build_ext": CMakeBuild},
     zip_safe=False,
     python_requires=">=3.7",
