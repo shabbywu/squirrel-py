@@ -176,14 +176,9 @@ void register_squirrel_vm(py::module_ &m) {
         .def("stack_top", &GenericVM::StackTop, py::return_value_policy::take_ownership)
         // base api
         .def_property("top", &GenericVM::gettop, &GenericVM::settop)
-        .def("get_roottable", &StaticVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::reference)
-        .def("set_roottable", &StaticVM::setroottable, py::arg("roottable"), py::keep_alive<1, 2>())
+        .def("get_roottable", &GenericVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::reference)
+        .def("set_roottable", &GenericVM::setroottable, py::arg("roottable"), py::keep_alive<1, 2>())
         ;
 
     m.def("compile", &compile, py::arg("sourcecode").none(false), py::arg("sourcename") = "__main__");
-
-    m.def("register_bloblib", [](StaticVM* self) {
-        sq_pushroottable(self->vm);
-        sqstd_register_bloblib(self->vm);
-    }, py::arg("vm"));
 }
