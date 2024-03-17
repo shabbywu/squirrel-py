@@ -14,5 +14,5 @@ include_directories(${CMAKE_SOURCE_DIR}/libs/pybind11/include)
 
 add_library(sqbinding STATIC ${SQBINDING_SOURCE})
 target_link_libraries(sqbinding PUBLIC pybind11::pybind11 squirrel_static sqstdlib_static)
-target_compile_options(sqbinding PRIVATE -fPIC)
+target_compile_options(sqbinding PUBLIC -fPIC)
 set_property(TARGET sqbinding PROPERTY CXX_STANDARD 17)
