@@ -11,9 +11,7 @@ endif()
 
 project ("squirrel-lang-pybinding")
 set(CMAKE_CXX_STANDARD 17)
-add_compile_options(-O2 -fno-strict-aliasing -fPIC)
-
-
+add_compile_options(-O2 -fno-strict-aliasing)
 
 set(SQ_DISABLE_INTERPRETER "ON")
 set(DISABLE_DYNAMIC "ON")
