@@ -3,7 +3,6 @@
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
-class SQVM;
 namespace py = pybind11;
 
 
