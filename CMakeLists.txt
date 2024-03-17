@@ -29,6 +29,5 @@ endif()
 target_compile_options(squirrel_static PRIVATE -fPIC)
 target_compile_options(sqstdlib_static PRIVATE -fPIC)
 
-
 add_subdirectory(libs/pybind11)
 add_subdirectory(squirrel-lang)
