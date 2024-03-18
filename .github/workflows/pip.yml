@@ -16,9 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # platform: [windows-latest, macos-latest, ubuntu-latest]
-        # TODO: 支持 ubuntu-latest 需要修复 linux 的 import 时报错 symbol 不存在的问题后
-        platform: [windows-latest, macos-latest]
+        platform: [windows-latest, macos-latest, ubuntu-latest]
         python-version: ["3.7", "3.11"]
 
     runs-on: ${{ matrix.platform }}
