@@ -75,6 +75,7 @@ public:
     }
     PyValue __getitem__(PyValue key);
     PyValue __setitem__(PyValue key, PyValue val);
+    void __delitem__(PyValue key);
     py::list keys();
 };
 

@@ -48,7 +48,6 @@ void printCompileError(HSQUIRRELVM, const SQChar * desc, const SQChar * source, 
 class StaticVM {
 public:
     HSQUIRRELVM vm;
-    std::shared_ptr<_SQTable_> roottable;
 
     StaticVM() {};
     StaticVM(HSQUIRRELVM vm) {
@@ -61,7 +60,7 @@ public:
     }
 
     void DumpStack(SQInteger stackbase, bool dumpall);
-    
+
     SQInteger gettop();
     void settop(SQInteger top);
     std::shared_ptr<_SQTable_> getroottable();

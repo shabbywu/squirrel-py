@@ -37,7 +37,7 @@ jobs:
       run: pip install --verbose .
 
     - name: Test
-      run: python tests/test_vm.py
+      run: make test
 
   # build-mingw64:
   #   runs-on: windows-latest
@@ -71,4 +71,4 @@ jobs:
   #     run: pip install --no-build-isolation .
 
   #   - name: Test
-  #     run: python tests/test_vm.py
+  #     run: make test

@@ -43,6 +43,12 @@ PyValue _SQTable_::__setitem__(PyValue key, PyValue val) {
     return set(key, val);
 }
 
+void _SQTable_::__delitem__(PyValue key) {
+    SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
+    pTable->Remove(sqkey);
+}
+
+
 py::list _SQTable_::keys() {
     SQInteger idx = 0;
     py::list keys;
@@ -58,4 +64,3 @@ py::list _SQTable_::keys() {
 void _SQTable_::bindFunc(std::string funcname, py::function func) {
     set(funcname, func);
 }
-

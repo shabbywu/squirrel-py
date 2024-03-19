@@ -50,12 +50,11 @@ from squirrel import SQVM
 vm = SQVM()
 vm.execute("""
 sq <- {
-  function say () {
+function say () {
     return "hello world"
-  }  
+}
 }
 """)
 sq = vm.get_roottable()["sq"]
-print(sq["say"]())
+assert str(sq.say()) == "hello world"
 ```
-

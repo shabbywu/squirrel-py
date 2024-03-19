@@ -74,10 +74,7 @@ void StaticVM::settop(SQInteger top) {
 }
 
 std::shared_ptr<_SQTable_> StaticVM::getroottable() {
-    if (roottable == NULL) {
-        roottable = std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
-    }
-    return roottable;
+    return std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
 }
 
 void StaticVM::setroottable(std::shared_ptr<_SQTable_> roottable) {
@@ -175,8 +172,8 @@ void register_squirrel_vm(py::module_ &m) {
         .def("bindfunc", &GenericVM::bindFunc, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &GenericVM::StackTop, py::return_value_policy::take_ownership)
         // base api
-        .def_property("top", &GenericVM::gettop, &GenericVM::settop)
-        .def("get_roottable", &GenericVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::reference)
+        .def_property("top", &GenericVM::gettop, &GenericVM::settop, py::return_value_policy::reference_internal)
+        .def("get_roottable", &GenericVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::move)
         .def("set_roottable", &GenericVM::setroottable, py::arg("roottable"), py::keep_alive<1, 2>())
         ;
 
