@@ -28,10 +28,10 @@ PyValue _SQTable_::set(PyValue key, PyValue val) {
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
     if (pTable->Set(sqkey, sqval)) {
         return val;
-    } else if (pTable->NewSlot(sqkey, sqval)) {
+    } else {
+        pTable->NewSlot(sqkey, sqval);
         return val;
     }
-    throw std::runtime_error("can't set key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));
 }
 
 

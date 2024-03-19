@@ -23,9 +23,7 @@ def test_crud():
     del sq["flag"]
     with pytest.raises(RuntimeError, match="the index 'flag' does not exist"):
         assert sq.test_get() == 1
-
     sq["flag"] = 2
     assert sq.test_get() == 2
-
     sq["flag"] = "test"
     assert str(sq.test_get()) == "test"

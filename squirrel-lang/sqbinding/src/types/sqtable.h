@@ -14,14 +14,10 @@ public:
 
     // create a table in vm stack
     _SQTable_ (HSQUIRRELVM vm) {
-        SQObjectPtr obj;
-        sq_newtable(vm);
-        sq_getstackobj(vm,-1, &obj);
-        sq_addref(vm, &obj);
-        sq_pop(vm,1);
-        pTable = _table(obj);
-        releaseOnDestroy = true;
-        this->vm = vm;
+        this -> pTable = SQTable::Create(_ss(vm), 4);
+        this -> pTable -> _uiRef++;
+        this -> vm = vm;
+        this -> releaseOnDestroy = true;
     }
 
     // link to a existed table in vm stack
@@ -48,13 +44,16 @@ public:
     }
 
     void release() {
+        __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQTable_" << std::endl;
+        std::cout << "GC::Release _SQTable_ uiRef--" << std::endl;
         #endif
-        if(releaseOnDestroy) {
+        this -> pTable -> _uiRef--;
+        if(releaseOnDestroy && this-> pTable -> _uiRef == 0) {
+            #ifdef TRACE_CONTAINER_GC
+            std::cout << "GC::Release _SQTable_ release" << std::endl;
+            #endif
             pTable->Release();
-        } else {
-            this -> pTable -> _uiRef--;
         }
     }
 

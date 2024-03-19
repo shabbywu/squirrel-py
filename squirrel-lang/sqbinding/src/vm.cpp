@@ -74,11 +74,15 @@ void StaticVM::settop(SQInteger top) {
 }
 
 std::shared_ptr<_SQTable_> StaticVM::getroottable() {
-    return std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
+    if (roottable == NULL) {
+        roottable = std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
+    }
+    return roottable;
 }
 
 void StaticVM::setroottable(std::shared_ptr<_SQTable_> roottable) {
     vm->_roottable = roottable.get();
+    roottable = NULL;
 }
 
 
@@ -136,11 +140,17 @@ public:
             throw py::value_error("stacksize can't less than 10");
         }
         vm = open_sqvm(size, libsToLoad);
+        vmlock::register_vm_handle(vm);
     }
     ~GenericVM() {
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release GenericVM" << std::endl;
+        std::cout << "GC::Release GenericVM step1" << std::endl;
         #endif
+        roottable = NULL;
+        #ifdef TRACE_CONTAINER_GC
+        std::cout << "GC::Release GenericVM step2" << std::endl;
+        #endif
+        vmlock::unregister_vm_handle(vm);
         sq_collectgarbage(vm);
         sq_settop(vm, 0);
         py::module::import("gc").attr("collect")();

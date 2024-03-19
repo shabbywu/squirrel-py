@@ -48,6 +48,7 @@ public:
     }
 
     void release() {
+        __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release _SQArray_" << std::endl;
         #endif

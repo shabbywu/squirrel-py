@@ -4,7 +4,7 @@
 
 #include "sqarray.h"
 #include "sqtable.h"
-#include "dict.h"
+#include "pydict.h"
 #include "sqstr.h"
 #include "sqfunction.h"
 #include "sqclass.h"

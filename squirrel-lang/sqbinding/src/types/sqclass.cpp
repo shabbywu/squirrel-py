@@ -23,10 +23,8 @@ PyValue _SQClass_::getAttributes(PyValue key) {
 PyValue _SQClass_::set(PyValue key, PyValue val) {
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    if (_class(obj)->NewSlot(_ss(vm), sqkey, sqval, 0)) {
-        return val;
-    }
-    throw std::runtime_error("can't set key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));
+    _class(obj)->NewSlot(_ss(vm), sqkey, sqval, 0);
+    return val;
 }
 
 PyValue _SQClass_::setAttributes(PyValue key, PyValue val) {
@@ -34,10 +32,10 @@ PyValue _SQClass_::setAttributes(PyValue key, PyValue val) {
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
     if (_class(obj)->SetAttributes(sqkey, sqval)) {
         return val;
-    } else if (_class(obj)->NewSlot(_ss(vm), sqkey, sqval, 0)) {
+    } else {
+        _class(obj)->NewSlot(_ss(vm), sqkey, sqval, 0);
         return val;
     }
-    throw std::runtime_error("can't set attribute key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));
 }
 
 PyValue _SQClass_::__getitem__(PyValue key) {

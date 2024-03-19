@@ -3,7 +3,7 @@
 
 #include "definition.h"
 #include "sqiterator.h"
-#include "dict.h"
+#include "pydict.h"
 
 
 class _SQInstance_ : public std::enable_shared_from_this<_SQInstance_>  {
@@ -35,6 +35,7 @@ public:
     }
 
     void release() {
+        __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release _SQInstance_" << std::endl;
         #endif

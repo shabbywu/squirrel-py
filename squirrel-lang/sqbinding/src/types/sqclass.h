@@ -3,7 +3,7 @@
 
 #include "definition.h"
 #include "sqiterator.h"
-#include "dict.h"
+#include "pydict.h"
 
 
 class _SQClass_: public _SQObjectPtr_ {

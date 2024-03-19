@@ -29,6 +29,7 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm) {
 
 
 PyValue _SQClosure_::__call__(py::args args) {
+    SQObjectPtr obj(pClosure);
     SQObjectPtr result;
     SQInteger top = sq_gettop(vm);
     sq_pushobject(vm, obj);
@@ -66,6 +67,7 @@ PyValue _SQClosure_::__call__(py::args args) {
 
 
 PyValue _SQNativeClosure_::__call__(py::args args) {
+    SQObjectPtr obj(pNativeClosure);
     SQObjectPtr result;
     SQInteger top = sq_gettop(vm);
     sq_pushobject(vm, obj);

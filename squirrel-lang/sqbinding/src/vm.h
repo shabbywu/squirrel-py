@@ -48,10 +48,12 @@ void printCompileError(HSQUIRRELVM, const SQChar * desc, const SQChar * source, 
 class StaticVM {
 public:
     HSQUIRRELVM vm;
+    std::shared_ptr<_SQTable_> roottable;
 
     StaticVM() {};
     StaticVM(HSQUIRRELVM vm) {
         this->vm = vm;
+        vmlock::register_vm_handle(vm);
     }
     ~StaticVM() {
         #ifdef TRACE_CONTAINER_GC

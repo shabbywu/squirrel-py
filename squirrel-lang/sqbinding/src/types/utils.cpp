@@ -61,7 +61,11 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
     case tagSQObjectType::OT_BOOL:
         return PyValue(py::bool_(_integer(object)));
     case tagSQObjectType::OT_STRING:
+        #ifdef USE__SQString__
         return PyValue(std::make_shared<_SQString_>(_SQString_(_string(object), vm)));
+        #else
+        return std::string(_stringval(object));
+        #endif
     case tagSQObjectType::OT_ARRAY:
         return PyValue(std::make_shared<_SQArray_>(_SQArray_(_array(object), vm)));
     case tagSQObjectType::OT_TABLE:
@@ -175,7 +179,12 @@ PyValue pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_topyvalue(v, object, py::dict)
     __try_cast_pyobject_topyvalue(v, object, py::function)
     __try_cast_pyobject_topyvalue(v, object, py::type)
+
+    #ifdef USE__SQString__
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQString_>)
+    #else
+    __try_cast_pyobject_topyvalue(v, object, std::string)
+    #endif
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQArray_>)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<ArrayIterator>)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQTable_>)

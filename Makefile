@@ -2,7 +2,7 @@
 
 ##@ Build
 .PHONY: build
-build: ## Build cpp
+build: ## Build packege
 	python setup.py build
 
 
@@ -22,7 +22,13 @@ endif
 
 ##@ Test
 .PHONY: test
-test: ## Build cpp
+test: ## Run pytest
+	pytest tests
+
+
+.PHONY: test-debug
+test-debug: ## Run pytest with debug params
+	CMAKE_ARGS="-DTRACE_CONTAINER_GC=1" pip install .
 	pytest tests
 
 
