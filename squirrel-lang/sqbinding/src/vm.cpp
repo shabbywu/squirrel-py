@@ -1,8 +1,8 @@
 #include "vm.h"
 #include "compiler.h"
-#include "types/must.h"
+#include "types/sqcontainer.h"
 #include "types/object.h"
-#include "types/iterator.h"
+#include "types/sqiterator.h"
 
 
 static const unsigned char LIB_IO   = 0x01;                                              ///< Input/Output library

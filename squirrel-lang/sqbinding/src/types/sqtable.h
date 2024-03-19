@@ -2,7 +2,7 @@
 #define _SQBINDING_TABLE_H_
 
 #include "definition.h"
-#include "iterator.h"
+#include "sqiterator.h"
 #include "object.h"
 
 

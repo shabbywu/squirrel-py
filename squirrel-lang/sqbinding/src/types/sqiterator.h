@@ -22,7 +22,7 @@ class TableIterator {
     public:
         _SQTable_* obj;
         SQInteger idx = 0;
-        
+
         TableIterator(_SQTable_ *obj);
         PyValue __next__();
 };

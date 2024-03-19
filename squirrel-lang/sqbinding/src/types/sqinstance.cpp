@@ -1,5 +1,5 @@
 #include "definition.h"
-#include "must.h"
+#include "sqcontainer.h"
 
 
 PyValue _SQInstance_::get(PyValue key) {
@@ -28,16 +28,16 @@ PyValue _SQInstance_::set(PyValue key, PyValue val) {
     if (pInstance->Set(sqkey, sqval)) {
         return val;
     } else {
-		SQObjectPtr res;
-		SQObjectPtr closure;
+        SQObjectPtr res;
+        SQObjectPtr closure;
         if (pInstance -> _delegate && pInstance -> _delegate->Get((*_ss(vm)->_metamethods)[MT_NEWSLOT],closure)) {
             SQObjectPtr p(pInstance);
-			vm->Push(p);
+            vm->Push(p);
             vm->Push(sqkey);
             vm->Push(sqval);
-			if(vm->CallMetaMethod(closure, MT_NEWSLOT, 3, res)) {
-				return val;
-			}
+            if(vm->CallMetaMethod(closure, MT_NEWSLOT, 3, res)) {
+                return val;
+            }
         }
     }
     throw std::runtime_error("can't set key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));

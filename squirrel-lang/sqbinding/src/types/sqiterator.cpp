@@ -1,6 +1,6 @@
 #include "definition.h"
-#include "iterator.h"
-#include "must.h"
+#include "sqiterator.h"
+#include "sqcontainer.h"
 
 
 TableIterator::TableIterator(_SQTable_ *obj) {

@@ -2,7 +2,7 @@
 #define _SQBINDING_CLASS_H_
 
 #include "definition.h"
-#include "iterator.h"
+#include "sqiterator.h"
 #include "dict.h"
 
 

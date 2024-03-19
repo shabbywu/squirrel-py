@@ -2,7 +2,7 @@
 #define _SQBINDING_DICT_H_
 
 #include "definition.h"
-#include "iterator.h"
+#include "sqiterator.h"
 #include "object.h"
 
 
@@ -43,7 +43,7 @@ public:
         auto _delegate = _SQTable_(_table(obj), vm);
         _delegate.bindFunc("_get", _get);
         _delegate.bindFunc("_set", _set);
-        _delegate.bindFunc("_newslot", _newslot);        
+        _delegate.bindFunc("_newslot", _newslot);
     }
 
     ~SQPythonDict() {
@@ -68,7 +68,7 @@ public:
 
         SQUserPointer ptr = sq_newuserdata(vm, sizeof(delegate));
         std::memcpy(ptr, &delegate, sizeof(delegate));
-        
+
         // get userdata in stack top
         SQUserData* ud = _userdata(vm->Top());
         sq_newslot(vm, -3, SQFalse);

@@ -2,7 +2,7 @@
 #define _SQBINDING_INSTANCE_H_
 
 #include "definition.h"
-#include "iterator.h"
+#include "sqiterator.h"
 #include "dict.h"
 
 
@@ -56,7 +56,7 @@ public:
     std::string __str__() {
         return string_format("OT_INSTANCE: [{%p}]", pInstance);
     }
-    
+
     std::string __repr__() {
         return "SQInstance(" + __str__() + ")";
     }
