@@ -1,5 +1,5 @@
-#ifndef _SQBINDING_LIST_H_
-#define _SQBINDING_LIST_H_
+#ifndef _SQBINDING_ARRAY_H_
+#define _SQBINDING_ARRAY_H_
 
 #include "definition.h"
 #include "sqiterator.h"

@@ -4,10 +4,13 @@
 
 #include "sqarray.h"
 #include "sqtable.h"
-#include "pydict.h"
 #include "sqstr.h"
 #include "sqfunction.h"
 #include "sqclass.h"
 #include "sqinstance.h"
+
+#include "pydict.h"
+#include "pylist.h"
+#include "pyobject.h"
 
 #endif

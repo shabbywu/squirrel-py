@@ -1,5 +1,5 @@
-#ifndef _SQBINDING_DICT_H_
-#define _SQBINDING_DICT_H_
+#ifndef _SQBINDING_LIST_H_
+#define _SQBINDING_LIST_H_
 
 #include "definition.h"
 #include "sqiterator.h"
@@ -17,11 +17,11 @@ namespace py = pybind11;
 
 
 
-class SQPythonDict {
+class SQPythonList {
 public:
     static int typetag;
     HSQUIRRELVM vm;
-    py::dict _val;
+    py::list _val;
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
 
@@ -30,9 +30,9 @@ public:
     py::cpp_function _newslot;
     py::cpp_function _delslot;
 
-    SQPythonDict(py::dict dict, HSQUIRRELVM vm) {
+    SQPythonList(py::list list, HSQUIRRELVM vm) {
         this->vm = vm;
-        this->_val = dict;
+        this->_val = list;
 
         _get = py::cpp_function([this](TYPE_KEY key) -> py::object {
             return this->_val.attr("__getitem__")(key);
@@ -54,37 +54,37 @@ public:
         _delegate->bindFunc("_delslot", _delslot);
     }
 
-    ~SQPythonDict() {
+    ~SQPythonList() {
         release();
     }
 
     void release() {
         _delegate = NULL;
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release SQPythonDict" << std::endl;
+        std::cout << "GC::Release SQPythonList" << std::endl;
         #endif
     }
 
-    static SQUserData* Create(py::dict dict, HSQUIRRELVM vm) {
-        // new userdata to store pythondict
-        SQPythonDict* pycontainer = new SQPythonDict(dict, vm);
+    static SQUserData* Create(py::list list, HSQUIRRELVM vm) {
+        // new userdata to store pythonlist
+        SQPythonList* pycontainer = new SQPythonList(list, vm);
 
-        SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonDict));
-        std::memcpy(ptr, pycontainer, sizeof(SQPythonDict));
+        SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonList));
+        std::memcpy(ptr, pycontainer, sizeof(SQPythonList));
 
         // get userdata in stack top
         SQUserData* ud = _userdata(vm->Top());
         ud->SetDelegate(pycontainer->_delegate->pTable);
-        ud->_hook = release_SQPythonDict;
-        // ud->_typetag = &SQPythonDict::typetag;
+        ud->_hook = release_SQPythonList;
+        // ud->_typetag = &SQPythonList::typetag;
         return ud;
     }
 
-    static SQInteger release_SQPythonDict(SQUserPointer ptr, SQInteger size) {
+    static SQInteger release_SQPythonList(SQUserPointer ptr, SQInteger size) {
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release callback release_SQPythonDict" << std::endl;
+        std::cout << "GC::Release callback release_SQPythonList" << std::endl;
         #endif
-        SQPythonDict* ref = (SQPythonDict*)(ptr);
+        SQPythonList* ref = (SQPythonList*)(ptr);
         ref->release();
         return 1;
     }

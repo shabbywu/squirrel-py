@@ -1,5 +1,5 @@
 #include "definition.h"
-#include "sqcontainer.h"
+#include "container.h"
 #include "sqiterator.h"
 #include "object.h"
 #include "sqfunction.h"
@@ -117,13 +117,17 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
         std::string s = std::get<std::string>(value);
         return SQObjectPtr(SQString::Create(_ss(vm), s.c_str(), s.size()));
     } else if (std::holds_alternative<py::list>(value)) {
-        // TODO: 实现 SQPythonList 封装
-        // return SQObjectPtr();
+        return SQObjectPtr(SQPythonList::Create(std::get<py::list>(value), vm));
     } else if (std::holds_alternative<py::dict>(value)) {
         return SQObjectPtr(SQPythonDict::Create(std::get<py::dict>(value), vm));
     } else if (std::holds_alternative<py::function>(value)) {
+        py::type T_func = py::type::of(std::get<py::function>(value));
+        if (T_func.attr("__module__").cast<std::string>() != "builtins") {
+            // handle callable object
+            return SQObjectPtr(SQPythonObject::Create(std::get<py::function>(value), vm));
+        }
+        // handle builtins.function && builtins.method
         // TODO: 修改成直接调用 SQNativeClosure::Create (避免依赖 vm)
-
         py::function func = std::get<py::function>(value);
         // store py::function to userdata
         SQUserPointer ptr = sq_newuserdata(vm, sizeof(func));
@@ -136,9 +140,6 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
     } else if (std::holds_alternative<py::type>(value)) {
         // TODO: 支持复杂的类型代理
         // return SQObjectPtr();
-    } else if (std::holds_alternative<py::object>(value)) {
-        // TODO: 支持复杂的类型代理
-        // return SQObjectPtr();
     }
     __try_cast_pyvalue_tosqobject(value, _SQString_)
     __try_cast_cppwrapper_tosqobject(value, _SQArray_, pArray)
@@ -148,6 +149,10 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
 
     __try_cast_pyvalue_tosqobject(value, _SQClosure_)
     __try_cast_pyvalue_tosqobject(value, _SQNativeClosure_)
+
+    if (std::holds_alternative<py::object>(value)) {
+        return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));
+    }
 
     std::cout << "varient index=" << value.index() << std::endl;
     throw py::value_error("can't cast this value to SQObjectPtr, index=" + value.index());

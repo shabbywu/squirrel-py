@@ -1,6 +1,6 @@
 #include "vm.h"
 #include "compiler.h"
-#include "types/sqcontainer.h"
+#include "types/container.h"
 #include "types/object.h"
 #include "types/sqiterator.h"
 

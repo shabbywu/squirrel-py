@@ -26,4 +26,6 @@ class _SQNativeClosure_;
 class TableIterator;
 class ArrayIterator;
 class SQPythonDict;
+class SQPythonList;
+class SQPythonObject;
 #endif

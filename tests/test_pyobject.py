@@ -4,26 +4,29 @@ from squirrel import SQVM
 from squirrel import SQTable
 
 
+class Dummy:
+    def __init__(self, a, b):
+        self.a = a
+        self.b = b
+
+    def __call__(self, table: SQTable):
+        return "call dummy"
+
+
 def test_set_from_squirrel():
     vm = SQVM()
-    d = {}
-    vm.get_roottable()["pydict"] = d
+    d = Dummy(a=1, b=2.2)
+    vm.get_roottable()["pyobject"] = d
     vm.execute(
         """
-    pydict.say = function () {
-        return "hello world"
-    }
-    pydict.foo = "foo"
-    pydict.table = {}
-    pydict.int_ = 1
-    pydict.float_ = 1.2
+    call <- pyobject()
+    pyobject.a = 2
+    pyobject.b = 3.3
     """
     )
-    assert str(d["say"]()) == "hello world"
-    assert str(d["foo"]) == "foo"
-    assert type(d["table"]) is SQTable
-    assert d["int_"] == 1
-    assert math.isclose(d["float_"], 1.2, rel_tol=1e-6)
+    assert str(vm.get_roottable().call) == "call dummy"
+    assert d.a == 2
+    assert math.isclose(d.b, 3.3, rel_tol=1e-6)
 
 
 def test_read_from_squirrel():
