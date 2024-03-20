@@ -54,8 +54,7 @@ public:
             return this->_val.attr("__call__")(*args);
         });
 
-        _typeof = py::cpp_function([this](TYPE_KEY key) -> std::string {
-            // auto type_ = this->_val.get_type();
+        _typeof = py::cpp_function([this]() -> std::string {
             py::type type_ = py::type::of(this->_val);
             return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
         });
@@ -67,6 +66,7 @@ public:
         _delegate->bindFunc("_delslot", _delslot);
         _delegate->bindFunc("_call", _call);
         _delegate->bindFunc("_typeof", _typeof);
+
     }
 
     ~SQPythonObject() {

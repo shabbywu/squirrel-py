@@ -6,8 +6,8 @@ from squirrel import SQTable
 
 def test_set_from_squirrel():
     vm = SQVM()
-    d = {}
-    vm.get_roottable()["pydict"] = d
+    pydict = {}
+    vm.get_roottable()["pydict"] = pydict
     vm.execute(
         """
     pydict.say = function () {
@@ -19,11 +19,11 @@ def test_set_from_squirrel():
     pydict.float_ = 1.2
     """
     )
-    assert str(d["say"]()) == "hello world"
-    assert str(d["foo"]) == "foo"
-    assert type(d["table"]) is SQTable
-    assert d["int_"] == 1
-    assert math.isclose(d["float_"], 1.2, rel_tol=1e-6)
+    assert str(pydict["say"]()) == "hello world"
+    assert str(pydict["foo"]) == "foo"
+    assert type(pydict["table"]) is SQTable
+    assert pydict["int_"] == 1
+    assert math.isclose(pydict["float_"], 1.2, rel_tol=1e-6)
 
 
 def test_read_from_squirrel():
@@ -36,7 +36,7 @@ def test_read_from_squirrel():
         assert res
 
     vm = SQVM()
-    vm.get_roottable()["d"] = {
+    vm.get_roottable()["pydict"] = {
         "say": lambda: "hello world",
         "foo": "foo",
         "dict": {"flag": "flag"},
@@ -45,10 +45,10 @@ def test_read_from_squirrel():
         "dummy": Dummy(a=1, b=2.2),
     }
     vm.get_roottable().bindfunc("assert", _assert)
-    vm.execute('assert(d.say() == "hello world")')
-    vm.execute('assert(d.foo == "foo")')
-    vm.execute('assert(d.dict.flag == "flag")')
-    vm.execute("assert(d.int_ == 1)")
-    vm.execute("assert(d.float_ == 1.2)")
-    vm.execute("assert(d.dummy.a == 1)")
-    vm.execute("assert(d.dummy.b == 2.2)")
+    vm.execute('assert(pydict.say() == "hello world")')
+    vm.execute('assert(pydict.foo == "foo")')
+    vm.execute('assert(pydict.dict.flag == "flag")')
+    vm.execute("assert(pydict.int_ == 1)")
+    vm.execute("assert(pydict.float_ == 1.2)")
+    vm.execute("assert(pydict.dummy.a == 1)")
+    vm.execute("assert(pydict.dummy.b == 2.2)")

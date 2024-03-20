@@ -1,5 +1,4 @@
 import math
-from dataclasses import dataclass
 from squirrel import SQVM
 from squirrel import SQTable
 
@@ -19,39 +18,26 @@ def test_set_from_squirrel():
     vm.get_roottable()["pyobject"] = d
     vm.execute(
         """
-    call <- pyobject()
+    pyobject.say = function () {
+        return "hello world"
+    }
     pyobject.a = 2
     pyobject.b = 3.3
     """
     )
-    assert str(vm.get_roottable().call) == "call dummy"
+    assert str(d.say()) == "hello world"
     assert d.a == 2
     assert math.isclose(d.b, 3.3, rel_tol=1e-6)
 
 
 def test_read_from_squirrel():
-    @dataclass
-    class Dummy:
-        a: int
-        b: float
-
     def _assert(res):
         assert res
 
     vm = SQVM()
-    vm.get_roottable()["d"] = {
-        "say": lambda: "hello world",
-        "foo": "foo",
-        "dict": {"flag": "flag"},
-        "int_": 1,
-        "float_": 1.2,
-        "dummy": Dummy(a=1, b=2.2),
-    }
+    vm.get_roottable()["pyobject"] = Dummy(a=1, b=1.2)
     vm.get_roottable().bindfunc("assert", _assert)
-    vm.execute('assert(d.say() == "hello world")')
-    vm.execute('assert(d.foo == "foo")')
-    vm.execute('assert(d.dict.flag == "flag")')
-    vm.execute("assert(d.int_ == 1)")
-    vm.execute("assert(d.float_ == 1.2)")
-    vm.execute("assert(d.dummy.a == 1)")
-    vm.execute("assert(d.dummy.b == 2.2)")
+    vm.execute('assert(pyobject() == "call dummy")')
+    vm.execute("assert(pyobject.a == 1)")
+    vm.execute("assert(pyobject.b == 1.2)")
+    vm.execute('assert(typeof(pyobject) == "test_pyobject.Dummy")')

@@ -30,6 +30,10 @@ public:
     py::cpp_function _newslot;
     py::cpp_function _delslot;
 
+    py::cpp_function clear;
+    py::cpp_function pop;
+    py::cpp_function len;
+
     SQPythonDict(py::dict dict, HSQUIRRELVM vm) {
         this->vm = vm;
         this->_val = dict;
@@ -47,11 +51,25 @@ public:
             this->_val.attr("__delitem__")(key);
         });
 
+        pop = py::cpp_function([this](TYPE_KEY key, PyValue value) -> PyValue {
+            return this->_val.attr("pop")(key, value);
+        });
+        len = py::cpp_function([this]() -> PyValue {
+            return this->_val.attr("__len__")();
+        });
+        clear = py::cpp_function([this]() {
+            this->_val.attr("clear")();
+        });
+
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
         _delegate->bindFunc("_get", _get);
         _delegate->bindFunc("_set", _set);
         _delegate->bindFunc("_newslot", _newslot);
         _delegate->bindFunc("_delslot", _delslot);
+
+        _delegate->bindFunc("clear", clear);
+        _delegate->bindFunc("pop", pop);
+        _delegate->bindFunc("len", len);
     }
 
     ~SQPythonDict() {
