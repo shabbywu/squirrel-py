@@ -42,6 +42,9 @@ namespace vmlock {
         } else {
             _vm_handles->attr("pop")(k);
         }
+        if (_vm_handles->size() == 0) {
+            _vm_handles.release();
+        }
     }
     static bool contain_vm_handle(HSQUIRRELVM vm) {
         if (_vm_handles == NULL) {return false;}
