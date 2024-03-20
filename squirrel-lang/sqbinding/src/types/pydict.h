@@ -66,9 +66,7 @@ public:
 
     static SQUserData* Create(py::dict dict, HSQUIRRELVM vm) {
         // new userdata to store pythondict
-        std::cout << "before SQPythonDict" << std::endl;
         SQPythonDict* pycontainer = new SQPythonDict(dict, vm);
-        std::cout << "after SQPythonDict" << std::endl;
 
         SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonDict));
         std::memcpy(ptr, pycontainer, sizeof(SQPythonDict));
