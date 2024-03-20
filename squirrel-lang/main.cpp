@@ -14,9 +14,9 @@ void register_squirrel_vm(py::module_ &m);
 PYBIND11_MODULE(_squirrel, m) {
     register_squirrel_vm(m);
 
-    py::module mTypes = m.def_submodule("_types", "types for sq");
+    py::module mTypes = m.def_submodule("types", "types for sq");
     register_squirrel_type(mTypes);
-    
+
     py::module mLowLevel = m.def_submodule("sqapi", "low level api for sq");
     register_squirrel_api(mLowLevel);
 

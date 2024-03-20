@@ -13,7 +13,7 @@
 
 namespace py = pybind11;
 
-typedef std::variant<py::none, py::int_, float, py::bool_, std::string, py::list, py::dict, py::function, py::type, std::shared_ptr<_SQString_>, std::shared_ptr<_SQArray_>, std::shared_ptr<_SQTable_>, std::shared_ptr<_SQClosure_>, std::shared_ptr<_SQNativeClosure_>, std::shared_ptr<_SQClass_>, std::shared_ptr<_SQInstance_>, std::shared_ptr<ArrayIterator>, std::shared_ptr<TableIterator>, py::object> PyValue;
+typedef std::variant<py::none, py::int_, py::float_, py::bool_, std::string, py::list, py::dict, py::function, py::type, std::shared_ptr<_SQString_>, std::shared_ptr<_SQArray_>, std::shared_ptr<_SQTable_>, std::shared_ptr<_SQClosure_>, std::shared_ptr<_SQNativeClosure_>, std::shared_ptr<_SQClass_>, std::shared_ptr<_SQInstance_>, std::shared_ptr<ArrayIterator>, std::shared_ptr<TableIterator>, py::object> PyValue;
 
 
 namespace vmlock {

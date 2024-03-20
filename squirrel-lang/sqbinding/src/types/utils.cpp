@@ -57,7 +57,7 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
     case tagSQObjectType::OT_INTEGER:
         return PyValue(py::int_(_integer(object)));
     case tagSQObjectType::OT_FLOAT:
-        return PyValue(_float(object));
+        return PyValue(py::float_(_float(object)));
     case tagSQObjectType::OT_BOOL:
         return PyValue(py::bool_(_integer(object)));
     case tagSQObjectType::OT_STRING:
@@ -109,8 +109,8 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
         return SQObjectPtr();
     } else if (std::holds_alternative<py::int_>(value)) {
         return SQObjectPtr((SQInteger)std::get<py::int_>(value));
-    } else if (std::holds_alternative<float>(value)) {
-        return SQObjectPtr((SQFloat)std::get<float>(value));
+    } else if (std::holds_alternative<py::float_>(value)) {
+        return SQObjectPtr((SQFloat)std::get<py::float_>(value));
     } else if (std::holds_alternative<py::bool_>(value)) {
         return SQObjectPtr(bool(std::get<py::bool_>(value)));
     } else if (std::holds_alternative<std::string>(value)) {
@@ -167,7 +167,7 @@ PyValue pyobject_topyvalue(py::object object) {
         v = py::cast<py::int_>(object);
     }
     if (py::isinstance<py::float_>(object)) {
-        v = float(py::cast<py::float_>(object));
+        v = py::cast<py::float_>(object);
     }
     if (py::isinstance<py::str>(object)) {
         v = (std::string)py::cast<py::str>(object);
