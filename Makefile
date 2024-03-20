@@ -28,7 +28,7 @@ test: ## Run pytest
 
 .PHONY: test-debug
 test-debug: ## Run pytest with debug params
-	CMAKE_ARGS="-DTRACE_CONTAINER_GC=1" pip install .
+	CMAKE_ARGS="-DTRACE_CONTAINER_GC=1" pip install ".[test]"
 	pytest tests
 
 .PHONY: help

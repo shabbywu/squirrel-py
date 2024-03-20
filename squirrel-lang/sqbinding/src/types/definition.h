@@ -6,6 +6,7 @@
 #include <pybind11/stl.h>
 
 #include <variant>
+#include <map>
 #include <string>
 #include <iostream>
 
@@ -16,46 +17,35 @@ typedef std::variant<py::none, py::int_, float, py::bool_, std::string, py::list
 
 
 namespace vmlock {
-    static std::unique_ptr<py::dict> _vm_handles;
+    static std::map<uintptr_t, int> _vm_handles;
     static void register_vm_handle(HSQUIRRELVM vm) {
-        if (_vm_handles == NULL) {
-            _vm_handles = std::make_unique<py::dict>(py::dict());
-        }
-        auto k = py::cast(reinterpret_cast<uintptr_t>(vm));
-        if (!_vm_handles->contains(k)) {
-            _vm_handles->operator[](k) = 1;
+        auto k = reinterpret_cast<uintptr_t>(vm);
+        if (!_vm_handles.contains(k)) {
+            _vm_handles[k] = 1;
             return;
         }
-        _vm_handles->operator[](k) = _vm_handles->operator[](k).cast<py::int_>() + py::int_(1);
+        _vm_handles[k] = _vm_handles[k] + 1;
     }
     static void unregister_vm_handle(HSQUIRRELVM vm) {
-        if (_vm_handles == NULL) {
+        auto k = reinterpret_cast<uintptr_t>(vm);
+        if (!_vm_handles.contains(k)) {
             return;
         }
-        auto k = py::cast(reinterpret_cast<uintptr_t>(vm));
-        if (!_vm_handles->contains(k)) {
-            return;
-        }
-        auto v = _vm_handles->operator[](k).cast<py::int_>()  - py::int_(1);
-        if (v > py::int_(0)) {
-             _vm_handles->operator[](k) = v;
+        auto v = _vm_handles[k] - 1;
+        if (v > 0) {
+             _vm_handles[k] = v;
         } else {
-            _vm_handles->attr("pop")(k);
-        }
-        if (_vm_handles->size() == 0) {
-            _vm_handles.release();
+            _vm_handles.erase(k);
         }
     }
     static bool contain_vm_handle(HSQUIRRELVM vm) {
-        if (_vm_handles == NULL) {return false;}
-        auto k = py::cast(reinterpret_cast<uintptr_t>(vm));
-        if (!_vm_handles->contains(k)) {return false;}
-        return _vm_handles->operator[](k).cast<py::int_>() > py::int_(0);
+        auto k = reinterpret_cast<uintptr_t>(vm);
+        if (!_vm_handles.contains(k)) {return false;}
+        return _vm_handles[k] > 0;
     }
     #ifdef TRACE_CONTAINER_GC
     static void print_vm_handles() {
-        if (_vm_handles == NULL) {return ;}
-        for(auto iter = _vm_handles->begin(); iter != _vm_handles->end(); iter ++) {
+        for(auto iter = _vm_handles.begin(); iter != _vm_handles.end(); iter ++) {
             std::cout << "key: " << iter->first << " value: " << iter->second << std::endl;
         }
     }
