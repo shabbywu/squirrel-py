@@ -14,13 +14,6 @@
 #include "types/definition.h"
 
 
-namespace hooks {
-    namespace vm {
-        HSQUIRRELVM get_singleton();
-    }
-}
-
-
 namespace py = pybind11;
 void printStdout(HSQUIRRELVM vm, const SQChar *format,...) {
     va_list vl;
