@@ -159,6 +159,19 @@ public:
 };
 
 
+std::shared_ptr<StaticVM> static_vm;
+void set_static_vm(HSQUIRRELVM vm) {
+    if (static_vm == NULL) {
+        static_vm = std::make_shared<StaticVM>(StaticVM(vm));
+    }
+}
+
+std::shared_ptr<StaticVM> get_static_vm() {
+    return static_vm;
+}
+
+
+
 void register_squirrel_vm(py::module_ &m) {
     py::class_<StaticVM, std::shared_ptr<StaticVM>>(m, "StaticVM")
         .def_readonly("vm", &StaticVM::vm)
@@ -188,4 +201,6 @@ void register_squirrel_vm(py::module_ &m) {
         ;
 
     m.def("compile", &compile, py::arg("sourcecode").none(false), py::arg("sourcename") = "__main__");
+    m.def("get_static_vm", &get_static_vm);
 }
+

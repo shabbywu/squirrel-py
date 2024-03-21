@@ -52,6 +52,7 @@ public:
         #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release StaticVM" << std::endl;
         #endif
+        vmlock::unregister_vm_handle(vm);
     }
 
     void DumpStack(SQInteger stackbase, bool dumpall);
@@ -85,4 +86,5 @@ public:
 
 
 void register_squirrel_vm(py::module_ &m);
+void set_static_vm(HSQUIRRELVM vm);
 #endif
