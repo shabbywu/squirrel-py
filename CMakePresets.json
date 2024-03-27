@@ -1,0 +1,62 @@
+{
+    "version": 5,
+    "configurePresets": [
+        {
+            "name": "default",
+            "binaryDir": "${sourceDir}/build/${hostSystemName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release",
+                "DISABLE_DYNAMIC": "True"
+            },
+            "condition": {
+              "type": "notEquals",
+              "lhs": "${hostSystemName}",
+              "rhs": "Windows"
+            }
+        },
+        {
+            "name": "windows-x86",
+            "inherits": "default",
+            "displayName": "Windows-X86 Release",
+            "description": "This build is only available on Windows",
+            "architecture": "Win32",
+            "generator": "Visual Studio 17 2022",
+            "cacheVariables": {
+                "VCPKG_TARGET_ARCHITECTURE": "x86",
+                "CMAKE_BUILD_TYPE": "Release",
+                "DISABLE_DYNAMIC": "True"
+          },
+          "environment": {
+            "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/.vcpkg/triplets"
+          },
+            "condition": {
+              "type": "equals",
+              "lhs": "${hostSystemName}",
+              "rhs": "Windows"
+            }
+        }
+    ],
+    "buildPresets": [
+      {
+        "name": "default",
+        "configurePreset": "default",
+        "configuration": "Release",
+        "condition": {
+          "type": "notEquals",
+          "lhs": "${hostSystemName}",
+          "rhs": "Windows"
+        }
+      },
+      {
+        "name": "windows-x86",
+        "inherits": "default",
+        "configurePreset": "windows-x86",
+        "configuration": "Release",
+        "condition": {
+          "type": "equals",
+          "lhs": "${hostSystemName}",
+          "rhs": "Windows"
+        }
+      }
+    ]
+}

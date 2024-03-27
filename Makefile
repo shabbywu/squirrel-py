@@ -10,15 +10,14 @@ build: ## Build packege
 ifeq ($(OS),Windows_NT)
 cmake-build:
 	mkdir -p build
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CONFIGURATION_TYPES="Release" -DPHYSFS_BUILD_SHARED=False -DPHYSFS_BUILD_STATIC=True -DDISABLE_DYNAMIC=True -B build -A Win32 .
-	cmake --build build --config Release -v
+	cmake --preset=windows-x86
+	cmake --build --preset=windows-x86
 else
 cmake-build:
 	mkdir -p build
-	cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CONFIGURATION_TYPES="Release" -DPHYSFS_BUILD_SHARED=False -DPHYSFS_BUILD_STATIC=True -DDISABLE_DYNAMIC=True -DPYTHON_EXECUTABLE=`which python` -B build .
-	cmake --build build --config Release -v
+	cmake --preset=default
+	cmake --build --preset=default
 endif
-
 
 ##@ Test
 .PHONY: test
