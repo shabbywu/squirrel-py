@@ -202,5 +202,6 @@ void register_squirrel_vm(py::module_ &m) {
 
     m.def("compile", &compile, py::arg("sourcecode").none(false), py::arg("sourcename") = "__main__");
     m.def("get_static_vm", &get_static_vm);
-}
 
+    m.attr("SQUIRREL_VERSION") = SQUIRREL_VERSION;
+}
