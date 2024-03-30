@@ -8,7 +8,6 @@ PyValue _SQInstance_::get(PyValue key) {
     SQObjectPtr sqval;
     if (pInstance->Get(sqkey, sqval)) {
         auto v = sqobject_topython(sqval, vm);
-        std::cout << "get sqval: " << sqobject_to_string(sqval) << std::endl;
         if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
             auto c = std::get<std::shared_ptr<_SQClosure_>>(v);
             auto p = SQObjectPtr(pInstance);
@@ -27,11 +26,9 @@ PyValue _SQInstance_::get(PyValue key) {
 PyValue _SQInstance_::set(PyValue key, PyValue val) {
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    std::cout << "before pInstance->Set" << std::endl;
     if (pInstance->Set(sqkey, sqval)) {
         return val;
     } else {
-        std::cout << "set sqval: " << sqobject_to_string(sqval) << std::endl;
         _SQTable_ _delegate = {pInstance -> _delegate, vm};
         return _delegate.set(key, val);
     }

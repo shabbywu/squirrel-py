@@ -49,6 +49,14 @@ public:
         this -> pthis = pthis;
     }
     PyValue __call__(py::args args);
+
+    std::string __str__() {
+        return string_format("OT_CLOSURE: [addr={%p}, ref=%d]", pClosure, pClosure->_uiRef);
+    }
+
+    std::string __repr__() {
+        return "SQClosure(" + __str__() + ")";
+    }
 };
 
 class _SQNativeClosure_  {
@@ -94,7 +102,13 @@ public:
         this -> pthis = pthis;
     }
     PyValue __call__(py::args args);
+
+    std::string __str__() {
+        return string_format("OT_NATIVECLOSURE: [addr={%p}, ref=%d]", pNativeClosure, pNativeClosure->_uiRef);
+    }
+
+    std::string __repr__() {
+        return "SQNativeClosure(" + __str__() + ")";
+    }
 };
-
-
 #endif

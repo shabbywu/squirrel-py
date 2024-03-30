@@ -55,7 +55,7 @@ public:
     py::list keys();
 
     std::string __str__() {
-        return string_format("OT_INSTANCE: [{%p}]", pInstance);
+        return string_format("OT_INSTANCE: [addr={%p}, ref=%d]", pInstance, pInstance->_uiRef);
     }
 
     std::string __repr__() {
