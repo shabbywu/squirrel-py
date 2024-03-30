@@ -6,16 +6,41 @@
 #include "pydict.h"
 
 
-class _SQClass_: public _SQObjectPtr_ {
+class _SQClass_ : public std::enable_shared_from_this<_SQClass_>  {
 public:
+    SQClass* pClass;
+    HSQUIRRELVM vm;
 
     // link to a existed table in vm stack
-    _SQClass_ (SQObjectPtr& pclass, HSQUIRRELVM vm, bool releaseOnDestroy = true) : _SQObjectPtr_(pclass, vm, releaseOnDestroy) {
+
+    _SQClass_ (SQClass* pClass, HSQUIRRELVM vm) : pClass(pClass), vm(vm) {
+        pClass->_uiRef ++;
     }
 
-    _SQClass_ (SQClass* pclass, HSQUIRRELVM vm) : _SQObjectPtr_(vm, false) {
-        obj = SQObjectPtr(pclass);
+    _SQClass_(const _SQClass_& rhs) {
+        this -> pClass = rhs.pClass;
+        this -> pClass -> _uiRef++;
+        this -> vm = rhs.vm;
     }
+    _SQClass_& operator=(const _SQClass_& rhs) {
+        release();
+        this -> pClass = rhs.pClass;
+        this -> pClass -> _uiRef++;
+        this -> vm = rhs.vm;
+    };
+
+    ~_SQClass_() {
+        release();
+    }
+
+    void release() {
+        __check_vmlock(vm)
+        #ifdef TRACE_CONTAINER_GC
+        std::cout << "GC::Release _SQClass_" << std::endl;
+        #endif
+        this -> pClass -> _uiRef--;
+    }
+
 
     PyValue get(PyValue key);
     PyValue set(PyValue key, PyValue val);
@@ -26,10 +51,20 @@ public:
 
     // Python Interface
     SQInteger __len__() {
-        return _table(obj)->CountUsed();
+        return 0;
+        // return pClass->CountUsed();
     }
     PyValue __getitem__(PyValue key);
     PyValue __setitem__(PyValue key, PyValue val);
     py::list keys();
+
+
+    std::string __str__() {
+        return string_format("OT_CLASS: [{%p}]", pClass);
+    }
+
+    std::string __repr__() {
+        return "SQClass(" + __str__() + ")";
+    }
 };
 #endif

@@ -144,11 +144,10 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
     __try_cast_pyvalue_tosqobject(value, _SQString_)
     __try_cast_cppwrapper_tosqobject(value, _SQArray_, pArray)
     __try_cast_cppwrapper_tosqobject(value, _SQTable_, pTable)
-        // __try_cast_cppwrapper_tosqobject(value, _SQClass_)
+    __try_cast_cppwrapper_tosqobject(value, _SQClass_, pClass)
     __try_cast_cppwrapper_tosqobject(value, _SQInstance_, pInstance)
-
-    __try_cast_pyvalue_tosqobject(value, _SQClosure_)
-    __try_cast_pyvalue_tosqobject(value, _SQNativeClosure_)
+    __try_cast_cppwrapper_tosqobject(value, _SQClosure_, pClosure)
+    __try_cast_cppwrapper_tosqobject(value, _SQNativeClosure_, pNativeClosure)
 
     if (std::holds_alternative<py::object>(value)) {
         return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));

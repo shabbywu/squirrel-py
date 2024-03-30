@@ -10,7 +10,6 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm);
 class _SQClosure_  {
 public:
     HSQUIRRELVM vm;
-    SQObjectPtr obj;
     SQClosure* pClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
@@ -56,7 +55,6 @@ class _SQNativeClosure_  {
 public:
 
     HSQUIRRELVM vm;
-    SQObjectPtr obj;
     SQNativeClosure* pNativeClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 

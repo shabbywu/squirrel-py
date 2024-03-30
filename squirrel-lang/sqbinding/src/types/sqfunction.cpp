@@ -67,6 +67,8 @@ PyValue _SQClosure_::__call__(py::args args) {
 
 
 PyValue _SQNativeClosure_::__call__(py::args args) {
+    std::cout << "calling: ";
+    std::cout << sqobject_to_string(pNativeClosure->_name) << std::endl;
     SQObjectPtr obj(pNativeClosure);
     SQObjectPtr result;
     SQInteger top = sq_gettop(vm);
