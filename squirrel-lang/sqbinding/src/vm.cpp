@@ -162,7 +162,9 @@ public:
 std::shared_ptr<StaticVM> static_vm;
 void set_static_vm(HSQUIRRELVM vm) {
     if (static_vm == NULL) {
-        static_vm = std::make_shared<StaticVM>(StaticVM(vm));
+        static_vm = std::shared_ptr<StaticVM>(new StaticVM(vm), [](StaticVM* static_vm) {
+            delete(static_vm);
+        });
     }
 }
 

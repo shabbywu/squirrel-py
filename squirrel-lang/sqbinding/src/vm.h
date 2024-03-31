@@ -48,11 +48,26 @@ public:
         this->vm = vm;
         vmlock::register_vm_handle(vm);
     }
-    ~StaticVM() {
+
+    StaticVM(const StaticVM& rhs) {
+        this -> vm = rhs.vm;
+        vmlock::register_vm_handle(vm);
+    }
+    StaticVM& operator=(const StaticVM& rhs) {
+        release();
+        this -> vm = rhs.vm;
+        vmlock::register_vm_handle(vm);
+    };
+
+    void release() {
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release StaticVM" << std::endl;
+        std::cout << "GC::Release StaticVM: " << vm << std::endl;
         #endif
         vmlock::unregister_vm_handle(vm);
+    }
+
+    ~StaticVM() {
+        release();
     }
 
     void DumpStack(SQInteger stackbase, bool dumpall);

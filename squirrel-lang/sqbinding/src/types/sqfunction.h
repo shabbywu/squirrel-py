@@ -93,7 +93,7 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQNativeClosure_ uiRef--" << std::endl;
+        std::cout << "GC::Release _SQNativeClosure_ uiRef--=" << this -> pNativeClosure -> _uiRef -1 << std::endl;
         #endif
         this -> pNativeClosure -> _uiRef--;
     }

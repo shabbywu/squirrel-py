@@ -17,47 +17,17 @@ typedef std::variant<py::none, std::shared_ptr<_SQString_>, std::shared_ptr<_SQA
 
 
 namespace vmlock {
-    static std::map<uintptr_t, int> _vm_handles;
-    static void register_vm_handle(HSQUIRRELVM vm) {
-        auto k = reinterpret_cast<uintptr_t>(vm);
-        if (!_vm_handles.contains(k)) {
-            _vm_handles[k] = 1;
-            return;
-        }
-        _vm_handles[k] = _vm_handles[k] + 1;
-    }
-    static void unregister_vm_handle(HSQUIRRELVM vm) {
-        auto k = reinterpret_cast<uintptr_t>(vm);
-        if (!_vm_handles.contains(k)) {
-            return;
-        }
-        auto v = _vm_handles[k] - 1;
-        if (v > 0) {
-             _vm_handles[k] = v;
-        } else {
-            _vm_handles.erase(k);
-        }
-    }
-    static bool contain_vm_handle(HSQUIRRELVM vm) {
-        auto k = reinterpret_cast<uintptr_t>(vm);
-        if (!_vm_handles.contains(k)) {return false;}
-        return _vm_handles[k] > 0;
-    }
-    #ifdef TRACE_CONTAINER_GC
-    static void print_vm_handles() {
-        for(auto iter = _vm_handles.begin(); iter != _vm_handles.end(); iter ++) {
-            std::cout << "key: " << iter->first << " value: " << iter->second << std::endl;
-        }
-    }
-    #endif
+    void register_vm_handle(HSQUIRRELVM vm);
+    void unregister_vm_handle(HSQUIRRELVM vm);
+    bool contain_vm_handle(HSQUIRRELVM vm);
+
 }
 
 
 #ifdef TRACE_CONTAINER_GC
 #define __check_vmlock(vm)\
 if (!vmlock::contain_vm_handle(vm)) {\
-    std::cout << "GC::Release error, vm is closed" << std::endl;\
-    vmlock::print_vm_handles();\
+    std::cout << "GC::Release error, vm<" << vm << ">" << " is closed>" << std::endl;\
     return;\
 }
 #else
@@ -66,6 +36,7 @@ if (!vmlock::contain_vm_handle(vm)) {\
     return;\
 }
 #endif
+
 
 
 template<typename ... Args>
