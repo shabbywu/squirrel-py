@@ -42,7 +42,6 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
     // push args into stack
     for (auto var_ : args) {
         auto var = pyvalue_tosqobject(std::move(var_.cast<PyValue>()), vm);
-        std::cout << "var: " << sqobject_to_string(var) << std::endl;
         sq_pushobject(vm, std::move(var));
     }
 
@@ -64,7 +63,7 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
     }
     sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
-    return v;
+    return std::move(v);
 }
 
 
@@ -82,7 +81,6 @@ PyValue _SQClosure_::__call__(py::args args) {
     // push args into stack
     for (auto var_ : args) {
         auto var = pyvalue_tosqobject(std::move(var_.cast<PyValue>()), vm);
-        std::cout << "var: " << sqobject_to_string(var) << std::endl;
         sq_pushobject(vm, std::move(var));
     }
 
@@ -103,5 +101,46 @@ PyValue _SQClosure_::__call__(py::args args) {
         result = ref;
     }
     sq_settop(vm, top);
-    return sqobject_topython(result, vm);
+    auto v = sqobject_topython(result, vm);
+    return std::move(v);
+}
+
+
+PyValue _SQNativeClosure_::get(PyValue key) {
+    SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
+    SQObjectPtr sqval;
+    SQObjectPtr self = {pNativeClosure};
+    if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
+        auto v = sqobject_topython(sqval, vm);
+        if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
+            auto& c = std::get<std::shared_ptr<_SQClosure_>>(v);
+            c->bindThis(self);
+        }
+        if (std::holds_alternative<std::shared_ptr<_SQNativeClosure_>>(v)) {
+            auto& c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
+            c->bindThis(self);
+        }
+        return std::move(v);
+    }
+    throw py::key_error(sqobject_to_string(sqkey));
+}
+
+
+PyValue _SQClosure_::get(PyValue key) {
+    SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
+    SQObjectPtr sqval;
+    SQObjectPtr self = {pClosure};
+    if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
+        auto v = sqobject_topython(sqval, vm);
+        if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
+            auto& c = std::get<std::shared_ptr<_SQClosure_>>(v);
+            c->bindThis(self);
+        }
+        if (std::holds_alternative<std::shared_ptr<_SQNativeClosure_>>(v)) {
+            auto& c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
+            c->bindThis(self);
+        }
+        return std::move(v);
+    }
+    throw py::key_error(sqobject_to_string(sqkey));
 }

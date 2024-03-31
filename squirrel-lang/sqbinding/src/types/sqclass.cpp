@@ -5,19 +5,18 @@
 PyValue _SQClass_::get(PyValue key) {
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval;
-    if (pClass->Get(sqkey, sqval)) {
+    SQObjectPtr self = {pClass};
+    if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
         auto v = sqobject_topython(sqval, vm);
         if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
-            auto c = std::get<std::shared_ptr<_SQClosure_>>(v);
-            auto p = SQObjectPtr(pClass);
-            c->bindThis(p);
+            auto& c = std::get<std::shared_ptr<_SQClosure_>>(v);
+            c->bindThis(self);
         }
         if (std::holds_alternative<std::shared_ptr<_SQNativeClosure_>>(v)) {
-            auto c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
-            auto p = SQObjectPtr(pClass);
-            c->bindThis(p);
+            auto& c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
+            c->bindThis(self);
         }
-        return v;
+        return std::move(v);
     }
     throw py::key_error(sqobject_to_string(sqkey));
 }
@@ -50,15 +49,15 @@ PyValue _SQClass_::setAttributes(PyValue key, PyValue val) {
 }
 
 PyValue _SQClass_::__getitem__(PyValue key) {
-    return get(key);
+    return std::move(get(key));
 }
 
 PyValue _SQClass_::__setitem__(PyValue key, PyValue val) {
-    return set(key, val);
+    return std::move(set(key, val));
 }
 
 py::list _SQClass_::keys() {
-    return _SQTable_(pClass->_members, vm).keys();
+    return std::move(_SQTable_(pClass->_members, vm).keys());
 }
 
 void _SQClass_::bindFunc(std::string funcname, py::function func) {

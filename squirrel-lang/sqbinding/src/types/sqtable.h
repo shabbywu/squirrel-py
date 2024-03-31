@@ -46,7 +46,7 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQTable_ uiRef--" << std::endl;
+        std::cout << "GC::Release _SQTable_ uiRef--=" << this -> pTable -> _uiRef - 1 << std::endl;
         #endif
         this -> pTable -> _uiRef--;
         if(releaseOnDestroy && this-> pTable -> _uiRef == 0) {

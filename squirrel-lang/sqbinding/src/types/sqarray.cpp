@@ -3,16 +3,20 @@
 
 
 PyValue _SQArray_::__getitem__(int idx) {
+    SQObjectPtr sqkey = idx;
     SQObjectPtr sqval;
-    if (pArray->Get(idx, sqval)) {
+    SQObjectPtr self = {pArray};
+    if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
         return sqobject_topython(sqval, vm);
     }
     throw py::index_error(string_format("%d", idx).c_str());
 }
 
 PyValue _SQArray_::__setitem__(int idx, PyValue val) {
+    SQObjectPtr sqkey = idx;
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    if (pArray->Set(idx, sqval)) {
+    SQObjectPtr self = {pArray};
+    if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
         return val;
     }
     throw std::runtime_error(string_format("can't set idx=%d", idx) + " to value=" + sqobject_to_string(sqval));

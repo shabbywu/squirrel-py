@@ -37,7 +37,7 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQInstance_" << std::endl;
+        std::cout << "GC::Release _SQInstance_ uiRef--=" << this -> pInstance -> _uiRef - 1 << std::endl;
         #endif
         this -> pInstance -> _uiRef--;
     }

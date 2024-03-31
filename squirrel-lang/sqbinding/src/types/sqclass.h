@@ -10,6 +10,7 @@ class _SQClass_ : public std::enable_shared_from_this<_SQClass_>  {
 public:
     SQClass* pClass;
     HSQUIRRELVM vm;
+    bool releaseOnDestroy = false;
 
     // link to a existed table in vm stack
 
@@ -36,9 +37,15 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQClass_" << std::endl;
+        std::cout << "GC::Release _SQClass_ uiRef--=" << this -> pClass -> _uiRef - 1 << std::endl;
         #endif
         this -> pClass -> _uiRef--;
+        if(releaseOnDestroy && this-> pClass -> _uiRef == 0) {
+            #ifdef TRACE_CONTAINER_GC
+            std::cout << "GC::Release _SQClass_ release" << std::endl;
+            #endif
+            pClass->Release();
+        }
     }
 
 
