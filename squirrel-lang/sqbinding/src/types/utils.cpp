@@ -67,20 +67,20 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
         return std::string(_stringval(object));
         #endif
     case tagSQObjectType::OT_ARRAY:
-        return PyValue(std::make_shared<_SQArray_>(_SQArray_(_array(object), vm)));
+        return std::move(std::shared_ptr<_SQArray_>(new _SQArray_{_array(object), vm}));
     case tagSQObjectType::OT_TABLE:
-        return PyValue(std::make_shared<_SQTable_>(_SQTable_(_table(object), vm)));
+        return std::move(std::shared_ptr<_SQTable_>(new _SQTable_{_table(object), vm}));
     case tagSQObjectType::OT_CLASS:
-        return PyValue(std::make_shared<_SQClass_>(_SQClass_(_class(object), vm)));
+        return std::move(std::shared_ptr<_SQClass_>(new _SQClass_{_class(object), vm}));
     case tagSQObjectType::OT_INSTANCE:
-        return std::make_shared<_SQInstance_>(_SQInstance_(_instance(object), vm));
+        return std::move(std::shared_ptr<_SQInstance_>(new _SQInstance_{_instance(object), vm}));
     case tagSQObjectType::OT_CLOSURE:
-        return PyValue(std::make_shared<_SQClosure_>(_SQClosure_(_closure(object), vm)));
+        return std::move(std::shared_ptr<_SQClosure_>(new _SQClosure_{_closure(object), vm}));
     case tagSQObjectType::OT_NATIVECLOSURE:
-        return PyValue(std::make_shared<_SQNativeClosure_>(_SQNativeClosure_(_nativeclosure(object), vm)));
+        return std::move(std::shared_ptr<_SQNativeClosure_>(new _SQNativeClosure_{_nativeclosure(object), vm}));
     default:
         std::cout << "cast unknown obj to python: " << sqobject_to_string(object) << std::endl;
-        return PyValue(py::none());
+        return py::none();
     }
 }
 
@@ -149,9 +149,9 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
     __try_cast_cppwrapper_tosqobject(value, _SQClosure_, pClosure)
     __try_cast_cppwrapper_tosqobject(value, _SQNativeClosure_, pNativeClosure)
 
-    // if (std::holds_alternative<py::object>(value)) {
-    //     return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));
-    // }
+    if (std::holds_alternative<py::object>(value)) {
+        return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));
+    }
 
     std::cout << "varient index=" << value.index() << std::endl;
     throw py::value_error("can't cast this value to SQObjectPtr, index=" + value.index());

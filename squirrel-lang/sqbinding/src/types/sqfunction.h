@@ -9,7 +9,7 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm);
 
 class _SQClosure_  {
 public:
-    HSQUIRRELVM vm;
+    HSQUIRRELVM vm = nullptr;
     SQClosure* pClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
@@ -18,6 +18,7 @@ public:
         this -> pClosure = pClosure;
         this -> pClosure -> _uiRef++;
         this -> vm = vm;
+
     }
 
     _SQClosure_(const _SQClosure_& rhs) {
@@ -61,30 +62,24 @@ public:
 
 class _SQNativeClosure_  {
 public:
-
-    HSQUIRRELVM vm;
+    HSQUIRRELVM vm = nullptr;
     SQNativeClosure* pNativeClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
     // link to a existed table in vm stack
     _SQNativeClosure_ (SQNativeClosure* pNativeClosure, HSQUIRRELVM vm) {
         this -> pNativeClosure = pNativeClosure;
-        this -> pNativeClosure -> _uiRef++;
         this -> vm = vm;
+        pNativeClosure->_uiRef ++;
     }
 
     _SQNativeClosure_(const _SQNativeClosure_& rhs) {
-        this -> pNativeClosure = rhs.pNativeClosure;
-        this -> pNativeClosure -> _uiRef++;
-        this -> vm = rhs.vm;
+        _SQNativeClosure_(rhs.pNativeClosure, rhs.vm);
     }
     _SQNativeClosure_& operator=(const _SQNativeClosure_& rhs) {
         release();
-        this -> pNativeClosure = rhs.pNativeClosure;
-        this -> pNativeClosure -> _uiRef++;
-        this -> vm = rhs.vm;
+        _SQNativeClosure_(rhs.pNativeClosure, rhs.vm);
     };
-
 
     ~_SQNativeClosure_() {
         release();
@@ -93,9 +88,9 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQNativeClosure_ uiRef--=" << this -> pNativeClosure -> _uiRef -1 << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pNativeClosure -> _uiRef -1 << std::endl;
         #endif
-        this -> pNativeClosure -> _uiRef--;
+        pNativeClosure->_uiRef --;
     }
 
     // Python Interface

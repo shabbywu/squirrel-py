@@ -9,7 +9,7 @@
 class _SQClass_ : public std::enable_shared_from_this<_SQClass_>  {
 public:
     SQClass* pClass;
-    HSQUIRRELVM vm;
+    HSQUIRRELVM vm = nullptr;
     bool releaseOnDestroy = false;
 
     // link to a existed table in vm stack

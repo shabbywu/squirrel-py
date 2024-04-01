@@ -9,7 +9,7 @@
 class _SQTable_ : public std::enable_shared_from_this<_SQTable_> {
 public:
     SQTable* pTable;
-    HSQUIRRELVM vm;
+    HSQUIRRELVM vm = nullptr;
     bool releaseOnDestroy = false;
 
     // create a table in vm stack
@@ -46,7 +46,7 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQTable_ uiRef--=" << this -> pTable -> _uiRef - 1 << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pTable -> _uiRef -1 << std::endl;
         #endif
         this -> pTable -> _uiRef--;
         if(releaseOnDestroy && this-> pTable -> _uiRef == 0) {
@@ -76,6 +76,14 @@ public:
     PyValue __setitem__(PyValue key, PyValue val);
     void __delitem__(PyValue key);
     py::list keys();
+
+    std::string __str__() {
+        return string_format("OT_TABLE: [addr={%p}, ref=%d]", pTable, pTable->_uiRef);
+    }
+
+    std::string __repr__() {
+        return "SQTable(" + __str__() + ")";
+    }
 };
 
 #endif

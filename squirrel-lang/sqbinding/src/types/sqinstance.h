@@ -9,25 +9,21 @@
 class _SQInstance_ : public std::enable_shared_from_this<_SQInstance_>  {
 public:
     SQInstance* pInstance;
-    HSQUIRRELVM vm;
+    HSQUIRRELVM vm = nullptr;
 
     // link to a existed pInstance in vm stack
     _SQInstance_ (SQInstance* pInstance, HSQUIRRELVM vm) {
         this->pInstance = pInstance;
-        this->pInstance -> _uiRef++;
         this->vm = vm;
+        pInstance->_uiRef ++;
     }
 
     _SQInstance_(const _SQInstance_& rhs) {
-        this -> pInstance = rhs.pInstance;
-        this -> pInstance -> _uiRef++;
-        this -> vm = rhs.vm;
+        _SQInstance_(rhs.pInstance, rhs.vm);
     }
     _SQInstance_& operator=(const _SQInstance_& rhs) {
         release();
-        this -> pInstance = rhs.pInstance;
-        this -> pInstance -> _uiRef++;
-        this -> vm = rhs.vm;
+        _SQInstance_(rhs.pInstance, rhs.vm);
     };
 
     ~_SQInstance_() {
@@ -37,9 +33,9 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQInstance_ uiRef--=" << this -> pInstance -> _uiRef - 1 << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pInstance -> _uiRef -1 << std::endl;
         #endif
-        this -> pInstance -> _uiRef--;
+        pInstance->_uiRef --;
     }
 
     PyValue get(PyValue key);

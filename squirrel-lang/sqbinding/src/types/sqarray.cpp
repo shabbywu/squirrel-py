@@ -3,7 +3,7 @@
 
 
 PyValue _SQArray_::__getitem__(int idx) {
-    SQObjectPtr sqkey = idx;
+    SQObjectPtr sqkey = (SQInteger)idx;
     SQObjectPtr sqval;
     SQObjectPtr self = {pArray};
     if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
@@ -13,7 +13,7 @@ PyValue _SQArray_::__getitem__(int idx) {
 }
 
 PyValue _SQArray_::__setitem__(int idx, PyValue val) {
-    SQObjectPtr sqkey = idx;
+    SQObjectPtr sqkey = (SQInteger)idx;
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
     SQObjectPtr self = {pArray};
     if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {

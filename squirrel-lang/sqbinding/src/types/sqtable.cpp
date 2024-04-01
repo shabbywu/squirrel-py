@@ -36,7 +36,8 @@ PyValue _SQTable_::set(PyValue key, PyValue val) {
 
 
 PyValue _SQTable_::__getitem__(PyValue key) {
-    return std::move(get(key));
+    auto v = std::move(get(key));
+    return std::move(v);
 }
 
 PyValue _SQTable_::__setitem__(PyValue key, PyValue val) {
