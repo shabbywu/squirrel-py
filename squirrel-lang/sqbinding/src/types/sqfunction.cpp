@@ -60,7 +60,6 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
         SQObject ref;
         sq_getstackobj(vm, -1, &ref);
         result = ref;
-        sq_addref(vm, &result);
     }
     sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
@@ -100,7 +99,6 @@ PyValue _SQClosure_::__call__(py::args args) {
         SQObject ref;
         sq_getstackobj(vm, -1, &ref);
         result = ref;
-        sq_addref(vm, &result);
     }
     sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
