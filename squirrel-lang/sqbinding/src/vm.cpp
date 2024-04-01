@@ -143,7 +143,8 @@ public:
         vm = open_sqvm(size, libsToLoad);
         vmlock::register_vm_handle(vm);
     }
-    ~GenericVM() {
+
+    virtual void release() {
         #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release GenericVM step1" << std::endl;
         #endif
@@ -156,6 +157,10 @@ public:
         sq_settop(vm, 0);
         py::module::import("gc").attr("collect")();
         sq_close(vm);
+    }
+
+    ~GenericVM() {
+        release();
     }
 };
 

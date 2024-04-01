@@ -60,7 +60,7 @@ public:
         vmlock::register_vm_handle(vm);
     };
 
-    void release() {
+    virtual void release() {
         #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release StaticVM: " << vm << std::endl;
         #endif
