@@ -8,26 +8,28 @@
 
 class _SQClass_ : public std::enable_shared_from_this<_SQClass_>  {
 public:
+    SQObjectPtr handler;
     SQClass* pClass;
     HSQUIRRELVM vm = nullptr;
     bool releaseOnDestroy = false;
 
     // link to a existed table in vm stack
-
-    _SQClass_ (SQClass* pClass, HSQUIRRELVM vm) : pClass(pClass), vm(vm) {
-        pClass->_uiRef ++;
+    _SQClass_ (SQClass* pClass, HSQUIRRELVM vm) : pClass(pClass), vm(vm), handler(pClass) {
+        sq_addref(vm, &handler);
     }
 
     _SQClass_(const _SQClass_& rhs) {
-        this -> pClass = rhs.pClass;
-        this -> pClass -> _uiRef++;
-        this -> vm = rhs.vm;
+        pClass = rhs.pClass;
+        vm = rhs.vm;
+        handler = pClass;
+        sq_addref(vm, &handler);
     }
     _SQClass_& operator=(const _SQClass_& rhs) {
         release();
-        this -> pClass = rhs.pClass;
-        this -> pClass -> _uiRef++;
-        this -> vm = rhs.vm;
+        pClass = rhs.pClass;
+        vm = rhs.vm;
+        handler = pClass;
+        sq_addref(vm, &handler);
     };
 
     ~_SQClass_() {
@@ -37,15 +39,10 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQClass_ uiRef--=" << this -> pClass -> _uiRef - 1 << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << pClass -> _uiRef -2 << std::endl;
         #endif
-        this -> pClass -> _uiRef--;
-        if(releaseOnDestroy && this-> pClass -> _uiRef == 0) {
-            #ifdef TRACE_CONTAINER_GC
-            std::cout << "GC::Release _SQClass_ release" << std::endl;
-            #endif
-            pClass->Release();
-        }
+        sq_release(vm, &handler);
+        handler.Null();
     }
 
 
@@ -67,7 +64,7 @@ public:
 
 
     std::string __str__() {
-        return string_format("OT_CLASS: [{%p}]", pClass);
+        return string_format("OT_CLASS: [addr={%p}, ref=%d]", pClass, pClass->_uiRef);
     }
 
     std::string __repr__() {

@@ -8,35 +8,35 @@
 
 class _SQTable_ : public std::enable_shared_from_this<_SQTable_> {
 public:
+    SQObjectPtr handler;
     SQTable* pTable;
     HSQUIRRELVM vm = nullptr;
-    bool releaseOnDestroy = false;
 
     // create a table in vm stack
-    _SQTable_ (HSQUIRRELVM vm) {
-        this -> pTable = SQTable::Create(_ss(vm), 4);
-        this -> pTable -> _uiRef++;
-        this -> vm = vm;
-        this -> releaseOnDestroy = true;
+    _SQTable_ (HSQUIRRELVM vm): vm(vm) {
+        pTable = SQTable::Create(_ss(vm), 4);
+        handler = pTable;
+        sq_addref(vm, &handler);
     }
 
     // link to a existed table in vm stack
-    _SQTable_ (SQTable* pTable, HSQUIRRELVM vm) {
-        this -> pTable = pTable;
-        this -> pTable -> _uiRef++;
-        this -> vm = vm;
+    _SQTable_ (SQTable* pTable, HSQUIRRELVM vm) : pTable(pTable), vm(vm), handler(pTable) {
+        sq_addref(vm, &handler);
     }
 
     _SQTable_(const _SQTable_& rhs) {
-        this -> pTable = rhs.pTable;
-        this -> pTable -> _uiRef++;
-        this -> vm = rhs.vm;
+        pTable = rhs.pTable;
+        vm = rhs.vm;
+        handler = pTable;
+        sq_addref(vm, &handler);
     }
+
     _SQTable_& operator=(const _SQTable_& rhs) {
         release();
-        this -> pTable = rhs.pTable;
-        this -> pTable -> _uiRef++;
-        this -> vm = rhs.vm;
+        pTable = rhs.pTable;
+        vm = rhs.vm;
+        handler = pTable;
+        sq_addref(vm, &handler);
     };
 
     ~_SQTable_() {
@@ -46,15 +46,10 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pTable -> _uiRef -1 << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << pTable -> _uiRef -2 << std::endl;
         #endif
-        this -> pTable -> _uiRef--;
-        if(releaseOnDestroy && this-> pTable -> _uiRef == 0) {
-            #ifdef TRACE_CONTAINER_GC
-            std::cout << "GC::Release _SQTable_ release" << std::endl;
-            #endif
-            pTable->Release();
-        }
+        sq_release(vm, &handler);
+        handler.Null();
     }
 
     PyValue get(PyValue key);

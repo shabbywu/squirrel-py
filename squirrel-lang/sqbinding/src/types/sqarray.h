@@ -8,39 +8,35 @@
 
 class _SQArray_ : public std::enable_shared_from_this<_SQArray_> {
 public:
+    SQObjectPtr handler;
     SQArray* pArray;
     HSQUIRRELVM vm;
     bool releaseOnDestroy = false;
 
     // create a array in vm stack
-    _SQArray_ (HSQUIRRELVM vm) {
-        SQObjectPtr obj;
-        sq_newarray(vm, 0);
-        sq_getstackobj(vm,-1,&obj);
-        sq_addref(vm, &obj);
-        sq_pop(vm,1);
-        pArray = _array(obj);
-        releaseOnDestroy = true;
-        this->vm = vm;
+    _SQArray_ (HSQUIRRELVM vm): vm(vm) {
+        pArray = SQArray::Create(_ss(vm), 4);
+        handler = pArray;
+        sq_addref(vm, &handler);
     }
 
     // link to a existed table in vm stack
-    _SQArray_ (SQArray* pArray, HSQUIRRELVM vm) {
-        this->pArray = pArray;
-        this -> pArray -> _uiRef++;
-        this->vm = vm;
+    _SQArray_ (SQArray* pArray, HSQUIRRELVM vm): pArray(pArray), vm(vm), handler(pArray) {
+        sq_addref(vm, &handler);
     }
 
     _SQArray_(const _SQArray_& rhs) {
-        this -> pArray = rhs.pArray;
-        this -> pArray -> _uiRef++;
-        this -> vm = rhs.vm;
+        pArray = rhs.pArray;
+        vm = rhs.vm;
+        handler = pArray;
+        sq_addref(vm, &handler);
     }
     _SQArray_& operator=(const _SQArray_& rhs) {
         release();
-        this -> pArray = rhs.pArray;
-        this -> pArray -> _uiRef++;
-        this -> vm = rhs.vm;
+        pArray = rhs.pArray;
+        vm = rhs.vm;
+        handler = pArray;
+        sq_addref(vm, &handler);
     };
 
     ~_SQArray_() {
@@ -50,13 +46,10 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQArray_" << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << pArray -> _uiRef -2 << std::endl;
         #endif
-        if(releaseOnDestroy) {
-            pArray->Release();
-        } else {
-            this -> pArray -> _uiRef--;
-        }
+        sq_release(vm, &handler);
+        handler.Null();
     }
 
     // Python Interface
@@ -69,6 +62,15 @@ public:
     }
     SQInteger __len__() {
         return pArray->Size();
+    }
+
+
+    std::string __str__() {
+        return string_format("OT_ARRAY: [addr={%p}, ref=%d]", pArray, pArray->_uiRef);
+    }
+
+    std::string __repr__() {
+        return "SQArray(" + __str__() + ")";
     }
 };
 #endif

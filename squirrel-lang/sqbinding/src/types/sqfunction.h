@@ -9,28 +9,28 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm);
 
 class _SQClosure_  {
 public:
+    SQObjectPtr handler;
     HSQUIRRELVM vm = nullptr;
     SQClosure* pClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
     // link to a existed table in vm stack
-    _SQClosure_ (SQClosure* pClosure, HSQUIRRELVM vm) {
-        this -> pClosure = pClosure;
-        this -> pClosure -> _uiRef++;
-        this -> vm = vm;
-
+    _SQClosure_ (SQClosure* pClosure, HSQUIRRELVM vm): pClosure(pClosure), vm(vm), handler(pClosure) {
+        sq_addref(vm, &handler);
     }
 
     _SQClosure_(const _SQClosure_& rhs) {
-        this -> pClosure = rhs.pClosure;
-        this -> pClosure -> _uiRef++;
-        this -> vm = rhs.vm;
+        pClosure = rhs.pClosure;
+        vm = rhs.vm;
+        handler = pClosure;
+        sq_addref(vm, &handler);
     }
     _SQClosure_& operator=(const _SQClosure_& rhs) {
         release();
-        this -> pClosure = rhs.pClosure;
-        this -> pClosure -> _uiRef++;
-        this -> vm = rhs.vm;
+        pClosure = rhs.pClosure;
+        vm = rhs.vm;
+        handler = pClosure;
+        sq_addref(vm, &handler);
     };
 
 
@@ -41,9 +41,10 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release _SQClosure_ uiRef--" << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << pClosure -> _uiRef -2 << std::endl;
         #endif
-        this -> pClosure -> _uiRef--;
+        sq_release(vm, &handler);
+        handler.Null();
     }
 
     // Python Interface
@@ -62,23 +63,28 @@ public:
 
 class _SQNativeClosure_  {
 public:
+    SQObjectPtr handler;
     HSQUIRRELVM vm = nullptr;
     SQNativeClosure* pNativeClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
     // link to a existed table in vm stack
-    _SQNativeClosure_ (SQNativeClosure* pNativeClosure, HSQUIRRELVM vm) {
-        this -> pNativeClosure = pNativeClosure;
-        this -> vm = vm;
-        pNativeClosure->_uiRef ++;
+    _SQNativeClosure_ (SQNativeClosure* pNativeClosure, HSQUIRRELVM vm): pNativeClosure(pNativeClosure), vm(vm), handler(pNativeClosure)  {
+        sq_addref(vm, &handler);
     }
 
     _SQNativeClosure_(const _SQNativeClosure_& rhs) {
-        _SQNativeClosure_(rhs.pNativeClosure, rhs.vm);
+        pNativeClosure = rhs.pNativeClosure;
+        vm = rhs.vm;
+        handler = pNativeClosure;
+        sq_addref(vm, &handler);
     }
     _SQNativeClosure_& operator=(const _SQNativeClosure_& rhs) {
         release();
-        _SQNativeClosure_(rhs.pNativeClosure, rhs.vm);
+        pNativeClosure = rhs.pNativeClosure;
+        vm = rhs.vm;
+        handler = pNativeClosure;
+        sq_addref(vm, &handler);
     };
 
     ~_SQNativeClosure_() {
@@ -88,9 +94,10 @@ public:
     void release() {
         __check_vmlock(vm)
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pNativeClosure -> _uiRef -1 << std::endl;
+        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pNativeClosure -> _uiRef -2 << std::endl;
         #endif
-        pNativeClosure->_uiRef --;
+        sq_release(vm, &handler);
+        handler.Null();
     }
 
     // Python Interface

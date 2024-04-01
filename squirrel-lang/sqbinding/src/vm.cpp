@@ -77,7 +77,7 @@ std::shared_ptr<_SQTable_> StaticVM::getroottable() {
     if (roottable == NULL) {
         roottable = std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
     }
-    return std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
+    return roottable;
 }
 
 void StaticVM::setroottable(std::shared_ptr<_SQTable_> roottable) {

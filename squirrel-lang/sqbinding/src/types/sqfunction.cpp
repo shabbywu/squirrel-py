@@ -19,11 +19,11 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm) {
         args.append(sqobject_topython(arg, vm));
     }
 
-    py::object result = (*func)(*args);
-    if(result.is_none()) {
+    PyValue result = (*func)(*args).cast<PyValue>();
+    if (std::holds_alternative<py::none>(result)){
         return 0;
     }
-    sq_pushobject(vm, pyvalue_tosqobject(pyobject_topyvalue(result), vm));
+    sq_pushobject(vm, pyvalue_tosqobject(result, vm));
     return 1;
 }
 
@@ -60,6 +60,7 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
         SQObject ref;
         sq_getstackobj(vm, -1, &ref);
         result = ref;
+        sq_addref(vm, &result);
     }
     sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
@@ -99,6 +100,7 @@ PyValue _SQClosure_::__call__(py::args args) {
         SQObject ref;
         sq_getstackobj(vm, -1, &ref);
         result = ref;
+        sq_addref(vm, &result);
     }
     sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
