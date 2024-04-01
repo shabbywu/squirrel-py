@@ -36,8 +36,8 @@ public:
         this->vm = vm;
         this->_val = object;
 
-        _get = py::cpp_function([this](TYPE_KEY key) -> py::object {
-            return this->_val.attr("__getattribute__")(key);
+        _get = py::cpp_function([this](TYPE_KEY key) -> PyValue {
+            return this->_val[py::str(key)].cast<PyValue>();
         });
         _set = py::cpp_function([this](TYPE_KEY key, PyValue value) -> SQBool {
             this->_val.attr("__setattr__")(key, value);

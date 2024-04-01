@@ -149,9 +149,9 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
     __try_cast_cppwrapper_tosqobject(value, _SQClosure_, pClosure)
     __try_cast_cppwrapper_tosqobject(value, _SQNativeClosure_, pNativeClosure)
 
-    if (std::holds_alternative<py::object>(value)) {
-        return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));
-    }
+    // if (std::holds_alternative<py::object>(value)) {
+    //     return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));
+    // }
 
     std::cout << "varient index=" << value.index() << std::endl;
     throw py::value_error("can't cast this value to SQObjectPtr, index=" + value.index());
@@ -161,6 +161,12 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
 #define __try_cast_pyobject_topyvalue(v, object, type) \
 if (py::isinstance<type>(object)) {\
     v = py::cast<type>(object); \
+}
+
+
+#define __try_cast_pyobject_to_ptr(v, object, type) \
+if (py::isinstance<type>(object)) {\
+    v = std::make_shared<type>(py::cast<type>(object)); \
 }
 
 
@@ -190,13 +196,20 @@ PyValue pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_topyvalue(v, object, std::string)
     #endif
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQArray_>)
+    __try_cast_pyobject_to_ptr(v, object, _SQArray_)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<ArrayIterator>)
+    __try_cast_pyobject_to_ptr(v, object, ArrayIterator)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQTable_>)
+    __try_cast_pyobject_to_ptr(v, object, _SQTable_)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<TableIterator>)
+    __try_cast_pyobject_to_ptr(v, object, TableIterator)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQClass_>)
+    __try_cast_pyobject_to_ptr(v, object, _SQClass_)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQInstance_>)
+    __try_cast_pyobject_to_ptr(v, object, _SQInstance_)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQClosure_>)
+    __try_cast_pyobject_to_ptr(v, object, _SQClosure_)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQNativeClosure_>)
-
+    __try_cast_pyobject_to_ptr(v, object, _SQNativeClosure_)
     return v;
 }

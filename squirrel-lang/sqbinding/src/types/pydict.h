@@ -38,8 +38,8 @@ public:
         this->vm = vm;
         this->_val = dict;
 
-        _get = py::cpp_function([this](TYPE_KEY key) -> py::object {
-            return this->_val.attr("__getitem__")(key);
+        _get = py::cpp_function([this](TYPE_KEY key) -> PyValue {
+            return this->_val[py::str(key)].cast<PyValue>();
         });
         _set = py::cpp_function([this](TYPE_KEY key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
@@ -55,10 +55,10 @@ public:
             return this->_val.attr("pop")(key, value);
         });
         len = py::cpp_function([this]() -> PyValue {
-            return this->_val.attr("__len__")();
+            return py::int_(this->_val.size());
         });
         clear = py::cpp_function([this]() {
-            this->_val.attr("clear")();
+            this->_val.clear();
         });
 
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));

@@ -11,6 +11,7 @@
 #include <cstring>
 #include <memory.h>
 #include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
 #include "types/definition.h"
 
 
@@ -78,8 +79,8 @@ public:
     void setroottable(std::shared_ptr<_SQTable_> roottable);
     void pushrootable();
 
-    void ExecuteString(std::string sourcecode);
-    void ExecuteBytecode(std::string bytecode);
+    PyValue ExecuteString(std::string sourcecode, PyValue env = py::none());
+    PyValue ExecuteBytecode(std::string bytecode, PyValue env = py::none());
 
     _SQObjectPtr_* StackTop();
     void bindFunc(std::string funcname, py::function func);

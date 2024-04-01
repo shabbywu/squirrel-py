@@ -27,8 +27,8 @@ public:
         this->vm = vm;
         this->_val = list;
 
-        _get = py::cpp_function([this](py::int_ key) -> py::object {
-            return this->_val.attr("__getitem__")(key);
+        _get = py::cpp_function([this](py::int_ key) -> PyValue {
+            return this->_val[key].cast<PyValue>();
         });
         _set = py::cpp_function([this](py::int_ key, PyValue value){
             this->_val.attr("__setitem__")(key, value);

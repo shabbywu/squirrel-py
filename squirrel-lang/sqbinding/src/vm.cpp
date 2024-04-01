@@ -86,32 +86,33 @@ void StaticVM::setroottable(std::shared_ptr<_SQTable_> roottable) {
 }
 
 
-void StaticVM::ExecuteString(std::string sourcecode) {
+PyValue StaticVM::ExecuteString(std::string sourcecode, PyValue env) {
     SQInteger oldtop = sq_gettop(vm);
 
+    std::cout << "code: " << sourcecode << std::endl;
     if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
+        std::cout << "invalid sourcecode, failed to compile" << std::endl;
         throw py::value_error("invalid sourcecode, failed to compile");
     }
-    sq_pushroottable(vm);
-    SQRESULT result = sq_call(vm, 1, false, true);
-    sq_settop(vm, oldtop);
-    if (SQ_FAILED(result)) {
-        throw std::runtime_error(GetLastError());
+
+    auto func = std::get<std::shared_ptr<_SQClosure_>>(sqobject_topython(vm->PopGet(), vm));
+    if (!std::holds_alternative<py::none>(env)) {
+        func->pthis = pyvalue_tosqobject(env, vm);
     }
+    return func->__call__(py::list());
 }
 
-void StaticVM::ExecuteBytecode(std::string bytecode) {
+PyValue StaticVM::ExecuteBytecode(std::string bytecode, PyValue env) {
     auto reader = StringReaderCtx(bytecode);
     SQInteger oldtop = sq_gettop(vm);
     if (!SQ_SUCCEEDED(sq_readclosure(vm, read_string, &reader))) {
         throw std::runtime_error(GetLastError());
     }
-    sq_pushroottable(vm);
-    SQRESULT result = sq_call(vm, 1, false, true);
-    sq_settop(vm, oldtop);
-    if (SQ_FAILED(result)) {
-        throw std::runtime_error(GetLastError());
+    auto func = std::get<std::shared_ptr<_SQClosure_>>(sqobject_topython(vm->PopGet(), vm));
+    if (!std::holds_alternative<py::none>(env)) {
+        func->pthis = pyvalue_tosqobject(env, vm);
     }
+    return func->__call__(py::list());
 }
 
 _SQObjectPtr_* StaticVM::StackTop() {
@@ -178,8 +179,8 @@ void register_squirrel_vm(py::module_ &m) {
     py::class_<StaticVM, std::shared_ptr<StaticVM>>(m, "StaticVM")
         .def_readonly("vm", &StaticVM::vm)
         .def("dumpstack", &StaticVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
-        .def("execute", &StaticVM::ExecuteString, py::arg("sourcecode"))
-        .def("execute_bytecode", &StaticVM::ExecuteBytecode, py::arg("bytecode"))
+        .def("execute", &StaticVM::ExecuteString, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
+        .def("execute_bytecode", &StaticVM::ExecuteBytecode, py::arg("bytecode"), py::arg("env").none(true) = py::none())
         .def("bindfunc", &StaticVM::bindFunc, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &StaticVM::StackTop, py::return_value_policy::reference_internal)
         // base api
@@ -192,8 +193,8 @@ void register_squirrel_vm(py::module_ &m) {
         .def(py::init<int>(), py::arg("size") = 1024)
         .def_readonly("vm", &GenericVM::vm)
         .def("dumpstack", &GenericVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
-        .def("execute", &GenericVM::ExecuteString, py::arg("sourcecode"))
-        .def("execute_bytecode", &GenericVM::ExecuteBytecode, py::arg("bytecode"))
+        .def("execute", &GenericVM::ExecuteString, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
+        .def("execute_bytecode", &GenericVM::ExecuteBytecode, py::arg("bytecode"), py::arg("env").none(true) = py::none())
         .def("bindfunc", &GenericVM::bindFunc, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &GenericVM::StackTop, py::return_value_policy::take_ownership)
         // base api
