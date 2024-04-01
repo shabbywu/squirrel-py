@@ -187,6 +187,9 @@ void register_squirrel_vm(py::module_ &m) {
         .def_property("top", &StaticVM::gettop, &StaticVM::settop, py::return_value_policy::reference_internal)
         .def("get_roottable", &StaticVM::getroottable, py::keep_alive<0, 1>())
         .def("set_roottable", &StaticVM::setroottable, py::arg("roottable"), py::keep_alive<1, 2>())
+        .def("collectgarbage", [](StaticVM* vm) -> int {
+            return sq_collectgarbage(vm->vm);
+        })
         ;
 
     py::class_<GenericVM, std::shared_ptr<GenericVM>>(m, "SQVM")
@@ -201,6 +204,9 @@ void register_squirrel_vm(py::module_ &m) {
         .def_property("top", &GenericVM::gettop, &GenericVM::settop, py::return_value_policy::reference_internal)
         .def("get_roottable", &GenericVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::move)
         .def("set_roottable", &GenericVM::setroottable, py::arg("roottable"), py::keep_alive<1, 2>())
+        .def("collectgarbage", [](GenericVM* vm) -> int {
+            return sq_collectgarbage(vm->vm);
+        })
         ;
 
     m.def("compile", &compile, py::arg("sourcecode").none(false), py::arg("sourcename") = "__main__");
