@@ -158,10 +158,6 @@ public:
         py::module::import("gc").attr("collect")();
         sq_close(vm);
     }
-
-    ~GenericVM() {
-        release();
-    }
 };
 
 
