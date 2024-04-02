@@ -71,6 +71,7 @@ public:
 
     _SQNativeClosure_(std::shared_ptr<py::function> func, HSQUIRRELVM vm): vm(vm) {
         pNativeClosure = SQNativeClosure::Create(_ss(vm), PythonNativeCall, 1);
+        pNativeClosure->_nparamscheck = 0;
         SQUserPointer ptr = sq_newuserdata(vm, sizeof(py::function));
         std::memcpy(ptr, func.get(), sizeof(py::function));
         pNativeClosure->_outervalues[0] = vm->PopGet();

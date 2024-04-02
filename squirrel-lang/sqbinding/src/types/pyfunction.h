@@ -43,8 +43,8 @@ public:
             this->_val.attr("__delattr__")(key);
         });
 
-        cppfunction_handlers["_call"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> py::object {
-            return this->_val.attr("__call__")(*args);
+        cppfunction_handlers["_call"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
+            return this->_val.attr("__call__")(*args).cast<PyValue>();
         });
         cppfunction_handlers["_typeof"] = std::make_shared<py::cpp_function>([this]() -> std::string {
             py::type type_ = py::type::of(this->_val);
