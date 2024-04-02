@@ -22,36 +22,37 @@ public:
     py::object _val;
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
-    std::map<std::string, py::cpp_function> cppfunction_handlers;
+    std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
     std::map<std::string, std::shared_ptr<_SQNativeClosure_>> nativeclosure_handlers;
 
     SQPythonObject(py::object object, HSQUIRRELVM vm) {
         this->vm = vm;
         this->_val = object;
 
-        cppfunction_handlers["_get"] = py::cpp_function([this](TYPE_KEY key) -> PyValue {
+        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) -> PyValue {
             return this->_val.attr("__getattribute__")(key).cast<PyValue>();
         });
-        cppfunction_handlers["_set"] = py::cpp_function([this](TYPE_KEY key, PyValue value) -> SQBool {
+
+        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value) -> SQBool {
             this->_val.attr("__setattr__")(key, value);
             return 0;
         });
-        cppfunction_handlers["_newslot"] = py::cpp_function([this](TYPE_KEY key, PyValue value){
+        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value){
             this->_val.attr("__setattr__")(key, value);
         });
-        cppfunction_handlers["_delslot"] = py::cpp_function([this](TYPE_KEY key) {
+        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) {
             this->_val.attr("__delattr__")(key);
         });
 
-        cppfunction_handlers["_call"] = py::cpp_function([this](PyValue env, py::args args) -> py::object {
+        cppfunction_handlers["_call"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> py::object {
             return this->_val.attr("__call__")(*args);
         });
-        cppfunction_handlers["_typeof"] = py::cpp_function([this]() -> std::string {
+        cppfunction_handlers["_typeof"] = std::make_shared<py::cpp_function>([this]() -> std::string {
             py::type type_ = py::type::of(this->_val);
             return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
         });
 
-        for(const auto& [ k, v ]: cppfunction_handlers) {
+        for(auto& [ k, v ]: cppfunction_handlers) {
             nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
         }
 

@@ -29,6 +29,7 @@ public:
         vm = rhs.vm;
         handler = pInstance;
         sq_addref(vm, &handler);
+        return *this;
     };
 
     ~_SQInstance_() {

@@ -31,6 +31,7 @@ public:
         vm = rhs.vm;
         handler = pClosure;
         sq_addref(vm, &handler);
+        return *this;
     };
 
 
@@ -68,10 +69,10 @@ public:
     SQNativeClosure* pNativeClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
-    _SQNativeClosure_(py::function func, HSQUIRRELVM vm): vm(vm) {
+    _SQNativeClosure_(std::shared_ptr<py::function> func, HSQUIRRELVM vm): vm(vm) {
         pNativeClosure = SQNativeClosure::Create(_ss(vm), PythonNativeCall, 1);
-        SQUserPointer ptr = sq_newuserdata(vm, sizeof(func));
-        std::memcpy(ptr, &func, sizeof(func));
+        SQUserPointer ptr = sq_newuserdata(vm, sizeof(py::function));
+        std::memcpy(ptr, func.get(), sizeof(py::function));
         pNativeClosure->_outervalues[0] = vm->PopGet();
         handler = pNativeClosure;
         sq_addref(vm, &handler);
@@ -94,6 +95,7 @@ public:
         vm = rhs.vm;
         handler = pNativeClosure;
         sq_addref(vm, &handler);
+        return *this;
     };
 
     ~_SQNativeClosure_() {

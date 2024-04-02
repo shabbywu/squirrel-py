@@ -37,6 +37,7 @@ public:
         vm = rhs.vm;
         handler = pArray;
         sq_addref(vm, &handler);
+        return *this;
     };
 
     ~_SQArray_() {

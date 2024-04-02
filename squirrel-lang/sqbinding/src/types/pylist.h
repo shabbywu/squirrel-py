@@ -13,33 +13,33 @@ public:
     py::list _val;
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
-    std::map<std::string, py::cpp_function> cppfunction_handlers;
+    std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
     std::map<std::string, std::shared_ptr<_SQNativeClosure_>> nativeclosure_handlers;
 
     SQPythonList(py::list list, HSQUIRRELVM vm) {
         this->vm = vm;
         this->_val = list;
 
-        cppfunction_handlers["_get"] = py::cpp_function([this](py::int_ key) -> PyValue {
+        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](py::int_ key) -> PyValue {
             return this->_val[key].cast<PyValue>();
         });
-        cppfunction_handlers["_set"] = py::cpp_function([this](py::int_ key, PyValue value){
+        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](py::int_ key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
         });
-        cppfunction_handlers["_newslot"] = py::cpp_function([this](py::int_ key, PyValue value){
+        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](py::int_ key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
         });
-        cppfunction_handlers["_delslot"] = py::cpp_function([this](py::int_ key) {
+        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](py::int_ key) {
             this->_val.attr("__delitem__")(key);
         });
 
-        cppfunction_handlers["append"] = py::cpp_function([this](PyValue value){
+        cppfunction_handlers["append"] = std::make_shared<py::cpp_function>([this](PyValue value){
             this->_val.attr("append")(value);
         });
-        cppfunction_handlers["pop"] = py::cpp_function([this](PyValue value) -> PyValue {
+        cppfunction_handlers["pop"] = std::make_shared<py::cpp_function>([this](PyValue value) -> PyValue {
             return this->_val.attr("pop")(value);
         });
-        cppfunction_handlers["len"] = py::cpp_function([this]() -> PyValue {
+        cppfunction_handlers["len"] = std::make_shared<py::cpp_function>([this]() -> PyValue {
             return this->_val.attr("__len__")();
         });
 

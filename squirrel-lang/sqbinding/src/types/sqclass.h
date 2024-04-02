@@ -30,6 +30,7 @@ public:
         vm = rhs.vm;
         handler = pClass;
         sq_addref(vm, &handler);
+        return *this;
     };
 
     ~_SQClass_() {

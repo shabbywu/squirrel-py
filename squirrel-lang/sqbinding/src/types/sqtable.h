@@ -37,6 +37,7 @@ public:
         vm = rhs.vm;
         handler = pTable;
         sq_addref(vm, &handler);
+        return *this;
     };
 
     ~_SQTable_() {
