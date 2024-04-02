@@ -49,12 +49,11 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
         const SQChar* sqErr;
         sq_getlasterror(vm);
         if (sq_gettype(vm, -1) == OT_NULL) {
-            sq_pop(vm, 1);
+            sq_settop(vm, top);
             throw std::runtime_error("unknown error");
         }
         sq_tostring(vm, -1);
         sq_getstring(vm, -1, &sqErr);
-        sq_pop(vm, 2);
         sq_settop(vm, top);
         throw std::runtime_error(std::string(sqErr));
     } else {
@@ -89,12 +88,12 @@ PyValue _SQClosure_::__call__(py::args args) {
         const SQChar* sqErr;
         sq_getlasterror(vm);
         if (sq_gettype(vm, -1) == OT_NULL) {
-            sq_pop(vm, 1);
+            sq_settop(vm, top);
             throw std::runtime_error("unknown error");
         }
         sq_tostring(vm, -1);
         sq_getstring(vm, -1, &sqErr);
-        sq_pop(vm, 2);
+        sq_settop(vm, top);
         throw std::runtime_error(std::string(sqErr));
     } else {
         SQObject ref;
