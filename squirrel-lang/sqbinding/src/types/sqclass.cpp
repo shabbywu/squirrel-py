@@ -33,7 +33,8 @@ PyValue _SQClass_::getAttributes(PyValue key) {
 PyValue _SQClass_::set(PyValue key, PyValue val) {
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    pClass->NewSlot(_ss(vm), sqkey, sqval, 0);
+    std::cout << "call class set key: " << sqobject_to_string(sqkey) << " , value: " << sqobject_to_string(sqval) << std::endl;
+    pClass->NewSlot(_ss(vm), sqkey, sqval, 1);
     return val;
 }
 

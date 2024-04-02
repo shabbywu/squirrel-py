@@ -90,9 +90,7 @@ void StaticVM::setroottable(std::shared_ptr<_SQTable_> roottable) {
 PyValue StaticVM::ExecuteString(std::string sourcecode, PyValue env) {
     SQInteger oldtop = sq_gettop(vm);
 
-    std::cout << "code: " << sourcecode << std::endl;
     if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
-        std::cout << "invalid sourcecode, failed to compile" << std::endl;
         throw py::value_error("invalid sourcecode, failed to compile");
     }
 

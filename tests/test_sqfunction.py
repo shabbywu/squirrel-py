@@ -10,7 +10,6 @@ def test_sqclosure_call():
         """
     env <- {
         prefix = "hello "
-
         function say(who) {
             return prefix + who
         }
