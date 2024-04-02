@@ -55,6 +55,7 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
         sq_tostring(vm, -1);
         sq_getstring(vm, -1, &sqErr);
         sq_pop(vm, 2);
+        sq_settop(vm, top);
         throw std::runtime_error(std::string(sqErr));
     } else {
         SQObject ref;
