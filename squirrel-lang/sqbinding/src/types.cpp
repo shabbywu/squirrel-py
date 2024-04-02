@@ -55,7 +55,7 @@ void register_squirrel_type(py::module_ &m) {
     .def("__delattr__", &_SQTable_::__delitem__, py::arg("key"))
     .def("keys", &_SQTable_::keys, py::return_value_policy::take_ownership)
     .def("__len__", &_SQTable_::__len__)
-    .def("bindfunc", &_SQTable_::bindFunc, py::arg("funcname"), py::arg("func"))
+    .def("bindfunc", static_cast<void(_SQTable_::*)(std::string, py::function)>(&_SQTable_::bindFunc), py::arg("funcname"), py::arg("func"))
     .def("get_ref_count", &_SQTable_::getRefCount)
     ;
 

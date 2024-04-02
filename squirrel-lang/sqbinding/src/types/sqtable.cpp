@@ -22,16 +22,22 @@ PyValue _SQTable_::get(PyValue key) {
 }
 
 
+void _SQTable_::set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
+    SQObjectPtr self = {pTable};
+    if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
+        return;
+    } else if (vm->NewSlot(self, sqkey, sqval, false)) {
+        return;
+    }
+    throw std::runtime_error("can't set key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));
+}
+
+
 PyValue _SQTable_::set(PyValue key, PyValue val) {
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    SQObjectPtr self = {pTable};
-    if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
-        return val;
-    } else if (vm->NewSlot(self, sqkey, sqval, false)) {
-        return val;
-    }
-    throw std::runtime_error("can't set key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));
+    set(sqkey, sqval);
+    return val;
 }
 
 
@@ -63,5 +69,9 @@ py::list _SQTable_::keys() {
 }
 
 void _SQTable_::bindFunc(std::string funcname, py::function func) {
+    set(funcname, func);
+}
+
+void _SQTable_::bindFunc(std::string funcname, std::shared_ptr<_SQNativeClosure_> func) {
     set(funcname, func);
 }

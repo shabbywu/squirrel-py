@@ -53,9 +53,12 @@ public:
     }
 
     PyValue get(PyValue key);
+    void set(SQObjectPtr& key, SQObjectPtr& val);
     PyValue set(PyValue key, PyValue val);
     // bindFunc to current table
     void bindFunc(std::string funcname, py::function func);
+    void bindFunc(std::string funcname, std::shared_ptr<_SQNativeClosure_> func);
+
     SQUnsignedInteger getRefCount() {
         return this -> pTable -> _uiRef;
     }

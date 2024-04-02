@@ -11,6 +11,7 @@
 
 #include "pydict.h"
 #include "pylist.h"
+#include "pyfunction.h"
 #include "pyobject.h"
 
 #endif

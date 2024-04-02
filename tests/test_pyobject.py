@@ -1,6 +1,5 @@
 import math
 from squirrel import SQVM
-from squirrel import SQTable
 
 
 class Dummy:
@@ -8,7 +7,7 @@ class Dummy:
         self.a = a
         self.b = b
 
-    def __call__(self, table: SQTable):
+    def __call__(self):
         return "call dummy"
 
 

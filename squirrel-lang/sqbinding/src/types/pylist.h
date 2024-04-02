@@ -9,56 +9,48 @@ namespace py = pybind11;
 
 class SQPythonList {
 public:
-    static int typetag;
     HSQUIRRELVM vm;
     py::list _val;
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
-
-    py::cpp_function _get;
-    py::cpp_function _set;
-    py::cpp_function _newslot;
-    py::cpp_function _delslot;
-    py::cpp_function append;
-    py::cpp_function pop;
-    py::cpp_function len;
+    std::map<std::string, py::cpp_function> cppfunction_handlers;
+    std::map<std::string, std::shared_ptr<_SQNativeClosure_>> nativeclosure_handlers;
 
     SQPythonList(py::list list, HSQUIRRELVM vm) {
         this->vm = vm;
         this->_val = list;
 
-        _get = py::cpp_function([this](py::int_ key) -> PyValue {
+        cppfunction_handlers["_get"] = py::cpp_function([this](py::int_ key) -> PyValue {
             return this->_val[key].cast<PyValue>();
         });
-        _set = py::cpp_function([this](py::int_ key, PyValue value){
+        cppfunction_handlers["_set"] = py::cpp_function([this](py::int_ key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
         });
-        _newslot = py::cpp_function([this](py::int_ key, PyValue value){
+        cppfunction_handlers["_newslot"] = py::cpp_function([this](py::int_ key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
         });
-        _delslot = py::cpp_function([this](py::int_ key) {
+        cppfunction_handlers["_delslot"] = py::cpp_function([this](py::int_ key) {
             this->_val.attr("__delitem__")(key);
         });
 
-        append = py::cpp_function([this](PyValue value){
+        cppfunction_handlers["append"] = py::cpp_function([this](PyValue value){
             this->_val.attr("append")(value);
         });
-        pop = py::cpp_function([this](PyValue value) -> PyValue {
+        cppfunction_handlers["pop"] = py::cpp_function([this](PyValue value) -> PyValue {
             return this->_val.attr("pop")(value);
         });
-        len = py::cpp_function([this]() -> PyValue {
+        cppfunction_handlers["len"] = py::cpp_function([this]() -> PyValue {
             return this->_val.attr("__len__")();
         });
 
-        _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
-        _delegate->bindFunc("_get", _get);
-        _delegate->bindFunc("_set", _set);
-        _delegate->bindFunc("_newslot", _newslot);
-        _delegate->bindFunc("_delslot", _delslot);
+        for(const auto& [ k, v ]: cppfunction_handlers) {
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
+        }
 
-        _delegate->bindFunc("append", append);
-        _delegate->bindFunc("pop", pop);
-        _delegate->bindFunc("len", len);
+        _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
+        for(auto pair: nativeclosure_handlers) {
+            _delegate->bindFunc(pair.first, pair.second);
+        }
     }
 
     ~SQPythonList() {
@@ -66,10 +58,10 @@ public:
     }
 
     void release() {
-        _delegate = NULL;
         #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release SQPythonList" << std::endl;
         #endif
+        _delegate = NULL;
     }
 
     static SQUserData* Create(py::list list, HSQUIRRELVM vm) {
@@ -80,10 +72,10 @@ public:
         std::memcpy(ptr, pycontainer, sizeof(SQPythonList));
 
         // get userdata in stack top
-        SQUserData* ud = _userdata(vm->Top());
+        SQUserData* ud = _userdata(vm->PopGet());
         ud->SetDelegate(pycontainer->_delegate->pTable);
         ud->_hook = release_SQPythonList;
-        // ud->_typetag = &SQPythonList::typetag;
+        ud->_typetag = &PythonTypeTag::list;
         return ud;
     }
 

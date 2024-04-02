@@ -1,5 +1,5 @@
-#ifndef _SQBINDING_FUNCTION_H_
-#define _SQBINDING_FUNCTION_H_
+#ifndef _SQBINDING_CLOSURE_H_
+#define _SQBINDING_CLOSURE_H_
 
 #include <squirrel.h>
 #include "definition.h"
@@ -67,6 +67,15 @@ public:
     HSQUIRRELVM vm = nullptr;
     SQNativeClosure* pNativeClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
+
+    _SQNativeClosure_(py::function func, HSQUIRRELVM vm): vm(vm) {
+        pNativeClosure = SQNativeClosure::Create(_ss(vm), PythonNativeCall, 1);
+        SQUserPointer ptr = sq_newuserdata(vm, sizeof(func));
+        std::memcpy(ptr, &func, sizeof(func));
+        pNativeClosure->_outervalues[0] = vm->PopGet();
+        handler = pNativeClosure;
+        sq_addref(vm, &handler);
+    }
 
     // link to a existed table in vm stack
     _SQNativeClosure_ (SQNativeClosure* pNativeClosure, HSQUIRRELVM vm): pNativeClosure(pNativeClosure), vm(vm), handler(pNativeClosure)  {

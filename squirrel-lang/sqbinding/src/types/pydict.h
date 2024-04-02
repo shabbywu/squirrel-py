@@ -4,7 +4,6 @@
 #include "definition.h"
 #include "sqiterator.h"
 
-
 #ifdef USE__SQString__
 #include "sqstr.h"
 #define TYPE_KEY _SQString_
@@ -19,57 +18,48 @@ namespace py = pybind11;
 
 class SQPythonDict {
 public:
-    static int typetag;
     HSQUIRRELVM vm;
     py::dict _val;
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
-
-    py::cpp_function _get;
-    py::cpp_function _set;
-    py::cpp_function _newslot;
-    py::cpp_function _delslot;
-
-    py::cpp_function clear;
-    py::cpp_function pop;
-    py::cpp_function len;
+    std::map<std::string, py::cpp_function> cppfunction_handlers;
+    std::map<std::string, std::shared_ptr<_SQNativeClosure_>> nativeclosure_handlers;
 
     SQPythonDict(py::dict dict, HSQUIRRELVM vm) {
         this->vm = vm;
         this->_val = dict;
 
-        _get = py::cpp_function([this](TYPE_KEY key) -> PyValue {
+        cppfunction_handlers["_get"] = py::cpp_function([this](TYPE_KEY key) -> PyValue {
             return this->_val[py::str(key)].cast<PyValue>();
         });
-        _set = py::cpp_function([this](TYPE_KEY key, PyValue value){
+        cppfunction_handlers["_set"] = py::cpp_function([this](TYPE_KEY key, PyValue value) {
             this->_val.attr("__setitem__")(key, value);
         });
-        _newslot = py::cpp_function([this](TYPE_KEY key, PyValue value){
+        cppfunction_handlers["_newslot"] = py::cpp_function([this](TYPE_KEY key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
         });
-        _delslot = py::cpp_function([this](TYPE_KEY key) {
+        cppfunction_handlers["_delslot"] = py::cpp_function([this](TYPE_KEY key) {
             this->_val.attr("__delitem__")(key);
         });
 
-        pop = py::cpp_function([this](TYPE_KEY key, PyValue value) -> PyValue {
+        cppfunction_handlers["pop"] = py::cpp_function([this](TYPE_KEY key, PyValue value) -> PyValue {
             return this->_val.attr("pop")(key, value);
         });
-        len = py::cpp_function([this]() -> PyValue {
+        cppfunction_handlers["len"] = py::cpp_function([this]() -> PyValue {
             return py::int_(this->_val.size());
         });
-        clear = py::cpp_function([this]() {
+        cppfunction_handlers["clear"] = py::cpp_function([this]() {
             this->_val.clear();
         });
 
-        _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
-        _delegate->bindFunc("_get", _get);
-        _delegate->bindFunc("_set", _set);
-        _delegate->bindFunc("_newslot", _newslot);
-        _delegate->bindFunc("_delslot", _delslot);
+        for(const auto& [ k, v ]: cppfunction_handlers) {
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
+        }
 
-        _delegate->bindFunc("clear", clear);
-        _delegate->bindFunc("pop", pop);
-        _delegate->bindFunc("len", len);
+        _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
+        for(auto pair: nativeclosure_handlers) {
+            _delegate->bindFunc(pair.first, pair.second);
+        }
     }
 
     ~SQPythonDict() {
@@ -91,10 +81,10 @@ public:
         std::memcpy(ptr, pycontainer, sizeof(SQPythonDict));
 
         // get userdata in stack top
-        SQUserData* ud = _userdata(vm->Top());
+        SQUserData* ud = _userdata(vm->PopGet());
         ud->SetDelegate(pycontainer->_delegate->pTable);
         ud->_hook = release_SQPythonDict;
-        // ud->_typetag = &SQPythonDict::typetag;
+        ud->_typetag = &PythonTypeTag::dict;
         return ud;
     }
 

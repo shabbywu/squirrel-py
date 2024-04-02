@@ -54,4 +54,13 @@ std::string sqobject_to_string(SQObjectPtr&);
 PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm);
 SQObjectPtr pyvalue_tosqobject(PyValue object, HSQUIRRELVM vm);
 PyValue pyobject_topyvalue(py::object object);
+
+namespace PythonTypeTag {
+    extern "C" {
+        static int dict;
+        static int list;
+        static int function;
+        static int object;
+    }
+}
 #endif

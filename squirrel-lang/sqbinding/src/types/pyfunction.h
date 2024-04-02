@@ -1,8 +1,10 @@
-#ifndef _SQBINDING_PYOBJECT_H_
-#define _SQBINDING_PYOBJECT_H_
+#ifndef _SQBINDING_FUNCTION_H_
+#define _SQBINDING_FUNCTION_H_
 
 #include "definition.h"
 #include "sqiterator.h"
+#include "sqfunction.h"
+
 
 #ifdef USE__SQString__
 #include "sqstr.h"
@@ -11,23 +13,21 @@
 #define TYPE_KEY std::string
 #endif
 
-
 namespace py = pybind11;
 
 
-class SQPythonObject {
+class SQPythonFunction {
 public:
-
     HSQUIRRELVM vm;
-    py::object _val;
+    py::function _val;
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
     std::map<std::string, py::cpp_function> cppfunction_handlers;
     std::map<std::string, std::shared_ptr<_SQNativeClosure_>> nativeclosure_handlers;
 
-    SQPythonObject(py::object object, HSQUIRRELVM vm) {
+    SQPythonFunction(py::function func, HSQUIRRELVM vm) {
         this->vm = vm;
-        this->_val = object;
+        this->_val = func;
 
         cppfunction_handlers["_get"] = py::cpp_function([this](TYPE_KEY key) -> PyValue {
             return this->_val.attr("__getattribute__")(key).cast<PyValue>();
@@ -61,37 +61,37 @@ public:
         }
     }
 
-    ~SQPythonObject() {
+    ~SQPythonFunction() {
         release();
     }
 
     void release() {
         _delegate = NULL;
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release SQPythonObject" << std::endl;
+        std::cout << "GC::Release SQPythonFunction" << std::endl;
         #endif
     }
 
-    static SQUserData* Create(py::object object, HSQUIRRELVM vm) {
+    static SQUserData* Create(py::function func, HSQUIRRELVM vm) {
         // new userdata to store pythonobject
-        SQPythonObject* pycontainer = new SQPythonObject(object, vm);
+        SQPythonFunction* pycontainer = new SQPythonFunction(func, vm);
 
-        SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonObject));
-        std::memcpy(ptr, pycontainer, sizeof(SQPythonObject));
+        SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonFunction));
+        std::memcpy(ptr, pycontainer, sizeof(SQPythonFunction));
 
         // get userdata in stack top
         SQUserData* ud = _userdata(vm->PopGet());
         ud->SetDelegate(pycontainer->_delegate->pTable);
-        ud->_hook = release_SQPythonObject;
-        ud->_typetag = &PythonTypeTag::object;
+        ud->_hook = release_SQPythonFunction;
+        ud->_typetag = &PythonTypeTag::function;
         return ud;
     }
 
-    static SQInteger release_SQPythonObject(SQUserPointer ptr, SQInteger size) {
+    static SQInteger release_SQPythonFunction(SQUserPointer ptr, SQInteger size) {
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release callback release_SQPythonObject" << std::endl;
+        std::cout << "GC::Release callback release_SQPythonFunction" << std::endl;
         #endif
-        SQPythonObject* ref = (SQPythonObject*)(ptr);
+        SQPythonFunction* ref = (SQPythonFunction*)(ptr);
         ref->release();
         return 1;
     }

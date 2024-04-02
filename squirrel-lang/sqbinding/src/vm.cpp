@@ -27,6 +27,7 @@ HSQUIRRELVM open_sqvm(int size, unsigned char libsToLoad) {
             sqstd_register_systemlib(vm);
         if (libsToLoad & LIB_STR)
             sqstd_register_stringlib(vm);
+        sq_poptop(vm);
         return vm;
 }
 
