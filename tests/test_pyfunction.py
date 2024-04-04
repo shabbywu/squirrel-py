@@ -71,7 +71,11 @@ def test_get_caller_stack():
     )
 
     def pycaller():
-        return get_caller()
+        caller = get_caller()
+        if caller is None:
+            return
+        return caller.func
 
     rt.caller = pycaller
-    assert vm.execute("return caller().func") == "pycaller"
+    assert vm.execute("return caller()") == "pycaller"
+    assert pycaller() is None
