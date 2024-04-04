@@ -55,6 +55,17 @@ public:
             nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
         }
 
+        try
+        {
+            auto _call = nativeclosure_handlers["_call"];
+            auto funcName = _val.attr("__name__").cast<py::str>();
+            _call->pNativeClosure->_name = pyvalue_tosqobject(funcName, vm);
+        }
+        catch(const std::exception& e)
+        {
+
+        }
+
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
         for(auto pair: nativeclosure_handlers) {
             _delegate->bindFunc(pair.first, pair.second);

@@ -54,3 +54,24 @@ def test_decorate_sqfunc():
 
     rt.env.say = say
     assert vm.execute('return env.say("world")') == "hi world"
+
+
+def test_get_caller_stack():
+    vm = SQVM()
+    rt = vm.get_roottable()
+    get_caller = vm.execute(
+        """
+    return function () {
+        # 0 -> getstackinfos
+        # 1 -> get_caller
+        # 2 -> caller
+        return getstackinfos(2)
+    }
+    """
+    )
+
+    def pycaller():
+        return get_caller()
+
+    rt.caller = pycaller
+    assert vm.execute("return caller().func") == "pycaller"
