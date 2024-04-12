@@ -4,8 +4,12 @@
 #include <squirrel.h>
 #include "definition.h"
 
-// PythonNativeCall: wrapper for python function, this function will be used to call python func in SQVM and return result to SQVM
+// PythonNativeCall: wrapper for python function, will not pass squirrel env to python object.
+// this function will be used to call python func in SQVM and return result to SQVM
 SQInteger PythonNativeCall(HSQUIRRELVM vm);
+// PythonNativeRawCall: wrapper for python function, will pass squirrel env to python object.
+// this function will be used to call python func in SQVM and return result to SQVM
+SQInteger PythonNativeRawCall(HSQUIRRELVM vm);
 
 class _SQClosure_  {
 public:
@@ -33,7 +37,6 @@ public:
         sq_addref(vm, &handler);
         return *this;
     };
-
 
     ~_SQClosure_() {
         release();
@@ -69,8 +72,8 @@ public:
     SQNativeClosure* pNativeClosure;
     SQObjectPtr pthis; // 'this' pointer for sq_call
 
-    _SQNativeClosure_(std::shared_ptr<py::function> func, HSQUIRRELVM vm): vm(vm) {
-        pNativeClosure = SQNativeClosure::Create(_ss(vm), PythonNativeCall, 1);
+    _SQNativeClosure_(std::shared_ptr<py::function> func, HSQUIRRELVM vm, bool withenv = false): vm(vm) {
+        pNativeClosure = SQNativeClosure::Create(_ss(vm), withenv ? PythonNativeRawCall : PythonNativeCall, 1);
         pNativeClosure->_nparamscheck = 0;
         SQUserPointer ptr = sq_newuserdata(vm, sizeof(py::function));
         std::memcpy(ptr, func.get(), sizeof(py::function));

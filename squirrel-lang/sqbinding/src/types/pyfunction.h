@@ -46,13 +46,18 @@ public:
         cppfunction_handlers["_call"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
             return this->_val.attr("__call__")(*args).cast<PyValue>();
         });
+        cppfunction_handlers["_rawcall"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
+            return this->_val.attr("__call__")(*args).cast<PyValue>();
+        });
+
         cppfunction_handlers["_typeof"] = std::make_shared<py::cpp_function>([this]() -> std::string {
             py::type type_ = py::type::of(this->_val);
             return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
         });
 
-        for(auto& [ k, v ]: cppfunction_handlers) {
-            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
+        for(auto& [ k, func ]: cppfunction_handlers) {
+            auto withenv = k == "_rawcall";
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{func, vm, withenv});
         }
 
         try

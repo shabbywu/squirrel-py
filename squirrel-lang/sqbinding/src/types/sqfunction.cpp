@@ -3,7 +3,7 @@
 
 namespace py = pybind11;
 
-
+// PythonNativeCall will not call python function with squirrel env
 SQInteger PythonNativeCall(HSQUIRRELVM vm) {
     py::gil_scoped_acquire acquire;
     py::function* func;
@@ -28,11 +28,38 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm) {
 }
 
 
+// PythonNativeRawCall will call python function with squirrel env
+SQInteger PythonNativeRawCall(HSQUIRRELVM vm) {
+    py::gil_scoped_acquire acquire;
+    py::function* func;
+    sq_getuserdata(vm, -1, (void**)&func, NULL);
+
+    // TODO: 处理参数
+    int nparams = sq_gettop(vm) - 2;
+    py::list args;
+    // 索引从 1 开始, 且位置 1 是 this(env)
+    // rawcall 参数从索引 1 开始
+    for (int idx = 1; idx <= 1 + nparams; idx ++) {
+        auto arg = stack_get(vm, idx);
+        args.append(sqobject_topython(arg, vm));
+    }
+
+    PyValue result = (*func)(*args).cast<PyValue>();
+    if (std::holds_alternative<py::none>(result)){
+        return 0;
+    }
+    sq_pushobject(vm, pyvalue_tosqobject(result, vm));
+    return 1;
+}
+
+
+
 PyValue _SQNativeClosure_::__call__(py::args args) {
     SQObjectPtr obj(pNativeClosure);
     SQObjectPtr result;
     SQInteger top = sq_gettop(vm);
     sq_pushobject(vm, obj);
+
     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
         sq_pushobject(vm, pthis);
     } else {

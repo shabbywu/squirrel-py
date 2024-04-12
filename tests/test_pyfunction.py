@@ -12,6 +12,19 @@ def test_call_python():
     assert vm.execute('return say("world")') == "hello world"
 
 
+def test_call_sqmetamethod():
+    vm = SQVM()
+    rt = vm.get_roottable()
+
+    def say(who):
+        return "hello " + who
+
+    rt.say = say
+    assert vm.execute("return say._call.getinfos().name") == "say"
+    assert vm.execute('return say._rawcall("world")') == "hello world"
+    assert vm.execute('return say._rawcall.acall([null, "world"])') == "hello world"
+
+
 def test_override_sqfun():
     vm = SQVM()
     rt = vm.get_roottable()
