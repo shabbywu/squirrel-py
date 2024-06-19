@@ -9,10 +9,8 @@ target_link_libraries(sqbinding PUBLIC pybind11::pybind11 squirrel_static
                                        sqstdlib_static)
 target_compile_options(sqbinding PUBLIC -fPIC)
 target_include_directories(
-  sqbinding
-  PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/${SQUIRRELLIB}/include
-         ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/${SQUIRRELLIB}/squirrel
-         ${CMAKE_CURRENT_SOURCE_DIR}/../../libs/pybind11/include)
+  sqbinding PUBLIC ${squirrel_dir}/include ${squirrel_dir}/squirrel
+                   ${squall_dir})
 
 set_property(TARGET sqbinding PROPERTY CXX_STANDARD 20)
 

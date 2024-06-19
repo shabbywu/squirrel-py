@@ -7,7 +7,6 @@ namespace py = pybind11;
 
 
 void register_squirrel_type(py::module_ &m);
-void register_squirrel_api(py::module_ &m);
 void register_squirrel_vm(py::module_ &m);
 
 
@@ -16,9 +15,6 @@ PYBIND11_MODULE(_squirrel, m) {
 
     py::module mTypes = m.def_submodule("types", "types for sq");
     register_squirrel_type(mTypes);
-
-    py::module mLowLevel = m.def_submodule("sqapi", "low level api for sq");
-    register_squirrel_api(mLowLevel);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);

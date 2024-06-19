@@ -1,4 +1,17 @@
+if(NOT DEFINED Python_EXECUTABLE)
+  find_package(
+    Python3
+    COMPONENTS Development
+    REQUIRED)
+endif()
+find_package(pybind11 CONFIG)
+
 file(GLOB MAIN_SOURCE *.cpp *.h)
+
+# 指定编译参数
+add_subdirectory(${squirrel_dir} squirrel)
+target_compile_options(squirrel_static PRIVATE -fPIC)
+target_compile_options(sqstdlib_static PRIVATE -fPIC)
 
 add_subdirectory(sqbinding)
 
@@ -9,5 +22,3 @@ set_property(TARGET _squirrel PROPERTY CXX_STANDARD 17)
 if(VERSION_INFO)
   target_compile_definitions(_squirrel PRIVATE VERSION_INFO=${VERSION_INFO})
 endif()
-target_include_directories(
-  _squirrel PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../libs/pybind11/include)

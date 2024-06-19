@@ -8,3 +8,6 @@
     path = libs/SQUIRREL305
     url = https://github.com/shabbywu/squirrel.git
     branch = sq305
+[submodule "libs/squall"]
+    path = libs/squall
+    url = https://github.com/shabbywu/squall.git
