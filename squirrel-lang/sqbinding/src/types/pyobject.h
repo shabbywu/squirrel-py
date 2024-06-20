@@ -3,13 +3,8 @@
 
 #include "definition.h"
 #include "sqiterator.h"
-
-#ifdef USE__SQString__
 #include "sqstr.h"
-#define TYPE_KEY _SQString_
-#else
-#define TYPE_KEY std::string
-#endif
+#include "pyfunction.h"
 
 
 namespace py = pybind11;
@@ -29,18 +24,18 @@ public:
         this->vm = vm;
         this->_val = object;
 
-        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) -> PyValue {
+        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) -> PyValue {
             return this->_val.attr("__getattribute__")(key).cast<PyValue>();
         });
 
-        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value) -> SQBool {
+        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value) -> SQBool {
             this->_val.attr("__setattr__")(key, value);
             return 0;
         });
-        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value){
+        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value){
             this->_val.attr("__setattr__")(key, value);
         });
-        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) {
+        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) {
             this->_val.attr("__delattr__")(key);
         });
 
@@ -53,7 +48,7 @@ public:
         });
 
         for(auto& [ k, v ]: cppfunction_handlers) {
-            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm, &PythonNativeCall});
         }
 
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));

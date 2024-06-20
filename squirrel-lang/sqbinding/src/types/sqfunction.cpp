@@ -3,61 +3,41 @@
 
 namespace py = pybind11;
 
-// PythonNativeCall will not call python function with squirrel env
-SQInteger PythonNativeCall(HSQUIRRELVM vm) {
-    py::gil_scoped_acquire acquire;
-    py::function* func;
-    sq_getuserdata(vm, -1, (void**)&func, NULL);
-
-    // TODO: 处理参数
-    int nparams = sq_gettop(vm) - 2;
-    py::list args;
-    // 索引从 1 开始, 且位置 1 是 this(env)
-    // 参数从索引 2 开始
-    for (int idx = 2; idx <= 1 + nparams; idx ++) {
-        auto arg = stack_get(vm, idx);
-        args.append(sqobject_topython(arg, vm));
+struct stack_guard {
+    stack_guard(HSQUIRRELVM v) {
+        vm = v;
+        top = sq_gettop(vm);
     }
-
-    PyValue result = (*func)(*args).cast<PyValue>();
-    if (std::holds_alternative<py::none>(result)){
-        return 0;
+    ~stack_guard() {
+        sq_settop(vm, top);
     }
-    sq_pushobject(vm, pyvalue_tosqobject(result, vm));
-    return 1;
+    private:
+        HSQUIRRELVM vm;
+        SQInteger top;
+};
+
+
+inline
+void call_setup_arg(HSQUIRRELVM vm) {}
+
+template <class Arg, class... Args> inline
+void call_setup_arg(HSQUIRRELVM vm, Arg head, Args... tail) {
+    sq_pushobject(vm, head);
+    call_setup_arg(vm, tail...);
 }
 
-
-// PythonNativeRawCall will call python function with squirrel env
-SQInteger PythonNativeRawCall(HSQUIRRELVM vm) {
-    py::gil_scoped_acquire acquire;
-    py::function* func;
-    sq_getuserdata(vm, -1, (void**)&func, NULL);
-
-    // TODO: 处理参数
-    int nparams = sq_gettop(vm) - 2;
-    py::list args;
-    // 索引从 1 开始, 且位置 1 是 this(env)
-    // rawcall 参数从索引 1 开始
-    for (int idx = 1; idx <= 1 + nparams; idx ++) {
-        auto arg = stack_get(vm, idx);
-        args.append(sqobject_topython(arg, vm));
-    }
-
-    PyValue result = (*func)(*args).cast<PyValue>();
-    if (std::holds_alternative<py::none>(result)){
-        return 0;
-    }
-    sq_pushobject(vm, pyvalue_tosqobject(result, vm));
-    return 1;
+template <class... Args> inline
+void call_setup(HSQUIRRELVM vm, const HSQOBJECT& closure, const HSQOBJECT& table, Args... args) {
+    sq_pushobject(vm, closure);
+    sq_pushobject(vm, table);
+    call_setup_arg(vm, args...);
 }
-
 
 
 PyValue _SQNativeClosure_::__call__(py::args args) {
     SQObjectPtr obj(pNativeClosure);
     SQObjectPtr result;
-    SQInteger top = sq_gettop(vm);
+    stack_guard stack_guard(vm);
     sq_pushobject(vm, obj);
 
     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
@@ -76,19 +56,16 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
         const SQChar* sqErr;
         sq_getlasterror(vm);
         if (sq_gettype(vm, -1) == OT_NULL) {
-            sq_settop(vm, top);
             throw std::runtime_error("unknown error");
         }
         sq_tostring(vm, -1);
         sq_getstring(vm, -1, &sqErr);
-        sq_settop(vm, top);
         throw std::runtime_error(std::string(sqErr));
     } else {
         SQObject ref;
         sq_getstackobj(vm, -1, &ref);
         result = ref;
     }
-    sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
     return std::move(v);
 }
@@ -97,7 +74,7 @@ PyValue _SQNativeClosure_::__call__(py::args args) {
 PyValue _SQClosure_::__call__(py::args args) {
     SQObjectPtr obj(pClosure);
     SQObjectPtr result;
-    SQInteger top = sq_gettop(vm);
+    stack_guard stack_guard(vm);
     sq_pushobject(vm, obj);
     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
         sq_pushobject(vm, pthis);
@@ -115,19 +92,16 @@ PyValue _SQClosure_::__call__(py::args args) {
         const SQChar* sqErr;
         sq_getlasterror(vm);
         if (sq_gettype(vm, -1) == OT_NULL) {
-            sq_settop(vm, top);
             throw std::runtime_error("unknown error");
         }
         sq_tostring(vm, -1);
         sq_getstring(vm, -1, &sqErr);
-        sq_settop(vm, top);
         throw std::runtime_error(std::string(sqErr));
     } else {
         SQObject ref;
         sq_getstackobj(vm, -1, &ref);
         result = ref;
     }
-    sq_settop(vm, top);
     auto v = sqobject_topython(result, vm);
     return std::move(v);
 }

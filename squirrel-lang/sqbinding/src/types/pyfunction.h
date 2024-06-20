@@ -4,16 +4,19 @@
 #include "definition.h"
 #include "sqiterator.h"
 #include "sqfunction.h"
-
-
-#ifdef USE__SQString__
 #include "sqstr.h"
-#define TYPE_KEY _SQString_
-#else
-#define TYPE_KEY std::string
-#endif
 
 namespace py = pybind11;
+
+
+// PythonNativeCall: wrapper for python function, will not pass squirrel env to python object.
+// this function will be used to call python func in SQVM and return result to SQVM
+SQInteger PythonNativeCall(HSQUIRRELVM vm);
+
+
+// PythonNativeRawCall: wrapper for python function, will pass squirrel env to python object.
+// this function will be used to call python func in SQVM and return result to SQVM
+SQInteger PythonNativeRawCall(HSQUIRRELVM vm);
 
 
 class SQPythonFunction {
@@ -29,17 +32,17 @@ public:
         this->vm = vm;
         this->_val = func;
 
-        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) -> PyValue {
+        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) -> PyValue {
             return this->_val.attr("__getattribute__")(key).cast<PyValue>();
         });
-        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value) -> SQBool {
+        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value) -> SQBool {
             this->_val.attr("__setattr__")(key, value);
             return 0;
         });
-        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value){
+        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value){
             this->_val.attr("__setattr__")(key, value);
         });
-        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) {
+        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) {
             this->_val.attr("__delattr__")(key);
         });
 
@@ -57,7 +60,7 @@ public:
 
         for(auto& [ k, func ]: cppfunction_handlers) {
             auto withenv = k == "_rawcall";
-            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{func, vm, withenv});
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{func, vm, withenv? &PythonNativeRawCall: &PythonNativeCall});
         }
 
         try
@@ -90,10 +93,8 @@ public:
 
     static SQUserData* Create(py::function func, HSQUIRRELVM vm) {
         // new userdata to store pythonobject
-        SQPythonFunction* pycontainer = new SQPythonFunction(func, vm);
-
         SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonFunction));
-        std::memcpy(ptr, pycontainer, sizeof(SQPythonFunction));
+        SQPythonFunction* pycontainer = new(ptr) SQPythonFunction(func, vm);
 
         // get userdata in stack top
         SQUserData* ud = _userdata(vm->PopGet());

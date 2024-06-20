@@ -3,14 +3,7 @@
 
 #include "definition.h"
 #include "sqiterator.h"
-
-#ifdef USE__SQString__
-#include "sqstr.h"
-#define TYPE_KEY _SQString_
-#else
-#define TYPE_KEY std::string
-#endif
-
+#include "pyfunction.h"
 
 namespace py = pybind11;
 
@@ -29,20 +22,20 @@ public:
         this->vm = vm;
         this->_val = dict;
 
-        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) -> PyValue {
+        cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) -> PyValue {
             return this->_val[py::str(key)].cast<PyValue>();
         });
-        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value) {
+        cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value) {
             this->_val.attr("__setitem__")(key, value);
         });
-        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value){
+        cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value){
             this->_val.attr("__setitem__")(key, value);
         });
-        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key) {
+        cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) {
             this->_val.attr("__delitem__")(key);
         });
 
-        cppfunction_handlers["pop"] = std::make_shared<py::cpp_function>([this](TYPE_KEY key, PyValue value) -> PyValue {
+        cppfunction_handlers["pop"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value) -> PyValue {
             return this->_val.attr("pop")(key, value);
         });
         cppfunction_handlers["len"] = std::make_shared<py::cpp_function>([this]() -> PyValue {
@@ -53,7 +46,7 @@ public:
         });
 
         for(const auto& [ k, v ]: cppfunction_handlers) {
-            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm, &PythonNativeCall});
         }
 
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));

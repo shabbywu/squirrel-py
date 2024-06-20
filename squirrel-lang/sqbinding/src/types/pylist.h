@@ -3,6 +3,7 @@
 
 #include "definition.h"
 #include "sqiterator.h"
+#include "pyfunction.h"
 
 namespace py = pybind11;
 
@@ -44,7 +45,7 @@ public:
         });
 
         for(const auto& [ k, v ]: cppfunction_handlers) {
-            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm});
+            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm, &PythonNativeCall});
         }
 
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));

@@ -34,3 +34,12 @@ public:
     }
 };
 #endif
+
+
+namespace sqbinding { namespace detail {
+    #ifdef USE__SQString__
+    typedef _SQString_ string;
+    #else
+    typedef std::string string;
+    #endif
+}}

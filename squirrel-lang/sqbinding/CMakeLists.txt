@@ -1,8 +1,14 @@
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS ON)
 
-file(GLOB SQBINDING_SOURCE "src/*.h" "src/*.cpp" "src/types/*.h"
-     "src/types/*.cpp")
+file(
+  GLOB
+  SQBINDING_SOURCE
+  "src/*.h"
+  "src/*.cpp"
+  "src/types/*.h"
+  "src/types/*.cpp"
+  "src/cpp-binding/*.cpp")
 
 add_library(sqbinding STATIC ${SQBINDING_SOURCE})
 target_link_libraries(sqbinding PUBLIC pybind11::pybind11 squirrel_static
