@@ -86,12 +86,16 @@ void register_squirrel_type(py::module_ &m) {
     .def("__repr__", &_SQString_::__repr__)
     ;
 
-    py::class_<_SQClosure_, std::shared_ptr<_SQClosure_>>(m, "SQClosure")
-    .def("__call__", &_SQClosure_::__call__, py::return_value_policy::move)
-    .def("__str__", &_SQClosure_::__str__)
-    .def("__repr__", &_SQClosure_::__repr__)
-    .def("__getattr__", &_SQClosure_::get, py::arg("key"), py::return_value_policy::move)
-    ;
+    {
+        using _SQClosure_ = sqbinding::python::SQClosure;
+        py::class_<_SQClosure_, std::shared_ptr<_SQClosure_>>(m, "SQClosure")
+        .def("__call__", &_SQClosure_::__call__, py::return_value_policy::move)
+        .def("__str__", &_SQClosure_::__str__)
+        .def("__repr__", &_SQClosure_::__repr__)
+        .def("__getattr__", &_SQClosure_::get, py::arg("key"), py::return_value_policy::move)
+        ;
+    }
+
 
     py::class_<_SQNativeClosure_, std::shared_ptr<_SQNativeClosure_>>(m, "SQNativeClosure")
     .def("__call__", &_SQNativeClosure_::__call__, py::return_value_policy::move)

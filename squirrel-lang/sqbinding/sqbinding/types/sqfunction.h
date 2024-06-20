@@ -4,59 +4,63 @@
 #include <squirrel.h>
 #include "definition.h"
 
-class _SQClosure_  {
-public:
-    SQObjectPtr handler;
-    HSQUIRRELVM vm = nullptr;
-    SQClosure* pClosure;
-    SQObjectPtr pthis; // 'this' pointer for sq_call
+namespace sqbinding {
+    namespace detail {
+        template <class T>
+        class SQClosure;
 
-    // link to a existed table in vm stack
-    _SQClosure_ (SQClosure* pClosure, HSQUIRRELVM vm): pClosure(pClosure), vm(vm), handler(pClosure) {
-        sq_addref(vm, &handler);
-    }
+        template <class Return, class... Args>
+        class SQClosure<Return (Args...)> {
+            public:
+                struct Holder {
+                    Holder(::SQClosure* pClosure, HSQUIRRELVM vm) : vm(vm) {
+                        closure = pClosure;
+                        sq_addref(vm, &closure);
+                    }
+                    ~Holder(){
+                        sq_release(vm, &closure);
+                    }
+                    HSQUIRRELVM vm;
+                    SQObjectPtr closure;
+                };
 
-    _SQClosure_(const _SQClosure_& rhs) {
-        pClosure = rhs.pClosure;
-        vm = rhs.vm;
-        handler = pClosure;
-        sq_addref(vm, &handler);
-    }
-    _SQClosure_& operator=(const _SQClosure_& rhs) {
-        release();
-        pClosure = rhs.pClosure;
-        vm = rhs.vm;
-        handler = pClosure;
-        sq_addref(vm, &handler);
-        return *this;
-    };
-
-    ~_SQClosure_() {
-        release();
+                SQClosure(::SQClosure* pClosure, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pClosure, vm)) {};
+                Return operator()(Args...);
+                ::SQClosure* pClosure() {
+                    return _closure(holder->closure);
+                }
+                std::shared_ptr<Holder> holder;
+        };
     }
 
-    void release() {
-        __check_vmlock(vm)
-        #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release " << __repr__() << " uiRef--=" << pClosure -> _uiRef -2 << std::endl;
-        #endif
-        sq_release(vm, &handler);
-        handler.Null();
-    }
+    namespace python {
+        class SQClosure: public detail::SQClosure<PyValue (py::args)> {
+            public:
+                SQClosure(::SQClosure* pClosure, HSQUIRRELVM vm): detail::SQClosure<PyValue (py::args)>(pClosure, vm) {
+                };
 
-    // Python Interface
-    void bindThis(SQObjectPtr &pthis) {
-        this -> pthis = pthis;
+                PyValue operator()(py::args args);
+
+                void bindThis(SQObjectPtr &pthis) {
+                    this -> pthis = pthis;
+                }
+                PyValue get(PyValue key);
+                PyValue __call__(py::args args) {
+                    return this->operator()(args);
+                }
+                std::string __str__() {
+                    return string_format("OT_CLOSURE: [addr={%p}, ref=%d]", pClosure(), pClosure()->_uiRef);
+                }
+                std::string __repr__() {
+                    return "SQClosure(" + __str__() + ")";
+                }
+
+                SQObjectPtr pthis; // 'this' pointer for sq_call
+        };
     }
-    PyValue get(PyValue key);
-    PyValue __call__(py::args args);
-    std::string __str__() {
-        return string_format("OT_CLOSURE: [addr={%p}, ref=%d]", pClosure, pClosure->_uiRef);
-    }
-    std::string __repr__() {
-        return "SQClosure(" + __str__() + ")";
-    }
-};
+}
+
+typedef sqbinding::python::SQClosure _SQClosure_;
 
 class _SQNativeClosure_  {
 public:
