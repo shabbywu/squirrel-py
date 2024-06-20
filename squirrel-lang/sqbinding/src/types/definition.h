@@ -55,12 +55,10 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm);
 SQObjectPtr pyvalue_tosqobject(PyValue object, HSQUIRRELVM vm);
 PyValue pyobject_topyvalue(py::object object);
 
-namespace PythonTypeTag {
-    extern "C" {
-        static int dict;
-        static int list;
-        static int function;
-        static int object;
-    }
-}
+enum class PythonTypeTags {
+    TYPE_DICT = 0b01,
+    TYPE_LIST = 0b10,
+    TYPE_FUNCTION = 0b100,
+    TYPE_OBJECT = 0b1000,
+};
 #endif

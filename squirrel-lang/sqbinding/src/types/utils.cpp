@@ -49,7 +49,7 @@ std::string sqobject_to_string(SQObjectPtr& self) {
 
 
 #define __try_cast_pyuserdata_to_python(object, typetag, cpp_type) \
-if (reinterpret_cast<uintptr_t>(_userdata(object)->_typetag) == reinterpret_cast<uintptr_t>(typetag)) {\
+if (_userdata(object)->_typetag == (void*)typetag) {\
     return ((cpp_type*)(sq_aligning(_userdata(object) + 1)))->_val;\
 }
 
@@ -85,10 +85,10 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
         return std::move(std::shared_ptr<_SQNativeClosure_>(new _SQNativeClosure_{_nativeclosure(object), vm}));
     case tagSQObjectType::OT_USERDATA:
         {
-            __try_cast_pyuserdata_to_python(object, &PythonTypeTag::list, SQPythonList)
-            __try_cast_pyuserdata_to_python(object, &PythonTypeTag::dict, SQPythonDict)
-            __try_cast_pyuserdata_to_python(object, &PythonTypeTag::function, SQPythonFunction)
-            __try_cast_pyuserdata_to_python(object, &PythonTypeTag::object, SQPythonObject)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_LIST, SQPythonList)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_DICT, SQPythonDict)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_FUNCTION, SQPythonFunction)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_OBJECT, SQPythonObject)
         }
     default:
         std::cout << "cast unknown obj to python: " << sqobject_to_string(object) << std::endl;

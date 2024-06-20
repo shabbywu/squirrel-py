@@ -84,7 +84,7 @@ public:
         SQUserData* ud = _userdata(vm->PopGet());
         ud->SetDelegate(pycontainer->_delegate->pTable);
         ud->_hook = release_SQPythonDict;
-        ud->_typetag = &PythonTypeTag::dict;
+        ud->_typetag = (void*)PythonTypeTags::TYPE_DICT;
         return ud;
     }
 

@@ -99,7 +99,7 @@ public:
         SQUserData* ud = _userdata(vm->PopGet());
         ud->SetDelegate(pycontainer->_delegate->pTable);
         ud->_hook = release_SQPythonFunction;
-        ud->_typetag = &PythonTypeTag::function;
+        ud->_typetag = (void*)PythonTypeTags::TYPE_FUNCTION;
         return ud;
     }
 
