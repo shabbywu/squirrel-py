@@ -1,5 +1,4 @@
-#ifndef _SQBINDING_CLOSURE_H_
-#define _SQBINDING_CLOSURE_H_
+#pragma once
 
 #include <squirrel.h>
 #include "definition.h"
@@ -62,67 +61,68 @@ namespace sqbinding {
 
 typedef sqbinding::python::SQClosure _SQClosure_;
 
-class _SQNativeClosure_  {
-public:
-    SQObjectPtr handler;
-    HSQUIRRELVM vm = nullptr;
-    SQNativeClosure* pNativeClosure;
-    SQObjectPtr pthis; // 'this' pointer for sq_call
 
-    _SQNativeClosure_(std::shared_ptr<py::function> func, HSQUIRRELVM vm, SQFUNCTION caller): vm(vm) {
-        pNativeClosure = SQNativeClosure::Create(_ss(vm), caller, 1);
-        pNativeClosure->_nparamscheck = 0;
-        SQUserPointer ptr = sq_newuserdata(vm, sizeof(py::function));
-        std::memcpy(ptr, func.get(), sizeof(py::function));
-        pNativeClosure->_outervalues[0] = vm->PopGet();
-        handler = pNativeClosure;
-        sq_addref(vm, &handler);
-    }
+namespace sqbinding {
+    namespace detail {
+        template <class T>
+        class SQNativeClosure;
 
-    // link to a existed table in vm stack
-    _SQNativeClosure_ (SQNativeClosure* pNativeClosure, HSQUIRRELVM vm): pNativeClosure(pNativeClosure), vm(vm), handler(pNativeClosure)  {
-        sq_addref(vm, &handler);
-    }
+        template <class Return, class... Args>
+        class SQNativeClosure<Return (Args...)> {
+            public:
+                struct Holder {
+                    Holder(::SQNativeClosure* pNativeClosure, HSQUIRRELVM vm) : vm(vm) {
+                        nativeClosure = pNativeClosure;
+                        sq_addref(vm, &nativeClosure);
+                    }
+                    ~Holder(){
+                        sq_release(vm, &nativeClosure);
+                    }
+                    HSQUIRRELVM vm;
+                    SQObjectPtr nativeClosure;
+                };
 
-    _SQNativeClosure_(const _SQNativeClosure_& rhs) {
-        pNativeClosure = rhs.pNativeClosure;
-        vm = rhs.vm;
-        handler = pNativeClosure;
-        sq_addref(vm, &handler);
-    }
-    _SQNativeClosure_& operator=(const _SQNativeClosure_& rhs) {
-        release();
-        pNativeClosure = rhs.pNativeClosure;
-        vm = rhs.vm;
-        handler = pNativeClosure;
-        sq_addref(vm, &handler);
-        return *this;
-    };
-
-    ~_SQNativeClosure_() {
-        release();
+                SQNativeClosure(::SQNativeClosure* pNativeClosure, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pNativeClosure, vm)) {};
+                Return operator()(Args...);
+                ::SQNativeClosure* pNativeClosure() {
+                    return _nativeclosure(holder->nativeClosure);
+                }
+                std::shared_ptr<Holder> holder;
+        };
     }
 
-    void release() {
-        __check_vmlock(vm)
-        #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pNativeClosure -> _uiRef -2 << std::endl;
-        #endif
-        sq_release(vm, &handler);
-        handler.Null();
-    }
+    namespace python {
+        class SQNativeClosure: public detail::SQNativeClosure<PyValue (py::args)> {
+            public:
+                SQNativeClosure(::SQNativeClosure* pNativeClosure, HSQUIRRELVM vm): detail::SQNativeClosure<PyValue (py::args)>(pNativeClosure, vm) {
+                };
 
-    // Python Interface
-    void bindThis(SQObjectPtr &pthis) {
-        this -> pthis = pthis;
+            SQNativeClosure(std::shared_ptr<py::function> func, HSQUIRRELVM vm, SQFUNCTION caller): detail::SQNativeClosure<PyValue (py::args)>(::SQNativeClosure::Create(_ss(vm), caller, 1), vm) {
+                pNativeClosure()->_nparamscheck = 0;
+                SQUserPointer ptr = sq_newuserdata(vm, sizeof(py::function));
+                std::memcpy(ptr, func.get(), sizeof(py::function));
+                pNativeClosure()->_outervalues[0] = vm->PopGet();
+            }
+
+                PyValue operator()(py::args args);
+
+                void bindThis(SQObjectPtr &pthis) {
+                    this -> pthis = pthis;
+                }
+                PyValue get(PyValue key);
+                PyValue __call__(py::args args) {
+                    return this->operator()(args);
+                }
+                std::string __str__() {
+                    return string_format("OT_NATIVECLOSURE: [addr={%p}, ref=%d]", pNativeClosure(), pNativeClosure()->_uiRef);
+                }
+                std::string __repr__() {
+                    return "SQNativeClosure(" + __str__() + ")";
+                }
+
+                SQObjectPtr pthis; // 'this' pointer for sq_call
+        };
     }
-    PyValue get(PyValue key);
-    PyValue __call__(py::args args);
-    std::string __str__() {
-        return string_format("OT_NATIVECLOSURE: [addr={%p}, ref=%d]", pNativeClosure, pNativeClosure->_uiRef);
-    }
-    std::string __repr__() {
-        return "SQNativeClosure(" + __str__() + ")";
-    }
-};
-#endif
+}
+
+typedef sqbinding::python::SQNativeClosure _SQNativeClosure_;

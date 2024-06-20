@@ -34,11 +34,11 @@ void call_setup(HSQUIRRELVM vm, const HSQOBJECT& closure, const HSQOBJECT& table
 }
 
 
-PyValue _SQNativeClosure_::__call__(py::args args) {
-    SQObjectPtr obj(pNativeClosure);
+PyValue sqbinding::python::SQNativeClosure::operator()(py::args args) {
     SQObjectPtr result;
+    HSQUIRRELVM vm = holder->vm;
     stack_guard stack_guard(vm);
-    sq_pushobject(vm, obj);
+    sq_pushobject(vm, holder->nativeClosure);
 
     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
         sq_pushobject(vm, pthis);
@@ -127,10 +127,12 @@ PyValue sqbinding::python::SQClosure::get(PyValue key) {
 }
 
 
-PyValue _SQNativeClosure_::get(PyValue key) {
+
+PyValue sqbinding::python::SQNativeClosure::get(PyValue key) {
+    HSQUIRRELVM vm = holder->vm;
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval;
-    SQObjectPtr self = {pNativeClosure};
+    SQObjectPtr self = {holder->nativeClosure};
     if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
         auto v = sqobject_topython(sqval, vm);
         if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {

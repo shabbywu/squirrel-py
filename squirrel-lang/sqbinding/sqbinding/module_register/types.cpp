@@ -103,7 +103,7 @@ void register_squirrel_type(py::module_ &m) {
     .def("__repr__", &_SQNativeClosure_::__repr__)
     .def("__getattr__", &_SQNativeClosure_::get, py::arg("key"), py::return_value_policy::move)
     .def("clone", [](std::shared_ptr<_SQNativeClosure_> self) -> std::shared_ptr<_SQNativeClosure_> {
-        return std::make_shared<_SQNativeClosure_>(_SQNativeClosure_(self->pNativeClosure->Clone(), self->vm));
+        return std::make_shared<_SQNativeClosure_>(_SQNativeClosure_(self->pNativeClosure()->Clone(), self->holder->vm));
     }, py::return_value_policy::move)
     ;
 

@@ -27,7 +27,6 @@ class _SQArray_;
 class _SQClass_;
 class _SQInstance_;
 class _SQString_;
-class _SQNativeClosure_;
 class TableIterator;
 class ArrayIterator;
 class SQPythonDict;
@@ -37,10 +36,12 @@ class SQPythonObject;
 namespace sqbinding {
     namespace python {
         class SQClosure;
+        class SQNativeClosure;
     }
 }
 
 typedef sqbinding::python::SQClosure _SQClosure_;
+typedef sqbinding::python::SQNativeClosure _SQNativeClosure_;
 
 namespace py = pybind11;
 

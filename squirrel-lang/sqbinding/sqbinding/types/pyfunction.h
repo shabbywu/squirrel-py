@@ -67,7 +67,7 @@ public:
         {
             auto _call = nativeclosure_handlers["_call"];
             auto funcName = _val.attr("__name__").cast<py::str>();
-            _call->pNativeClosure->_name = pyvalue_tosqobject(funcName, vm);
+            _call->pNativeClosure()->_name = pyvalue_tosqobject(funcName, vm);
         }
         catch(const std::exception& e)
         {
