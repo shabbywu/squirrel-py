@@ -1,5 +1,4 @@
-#ifndef _VM_H_
-#define _VM_H_
+#pragma once
 
 #include <squirrel.h>
 #include <sqstdio.h>
@@ -12,7 +11,8 @@
 #include <memory.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "types/definition.h"
+#include "sqbinding/types/definition.h"
+#include "sqbinding/common/errors.h"
 
 
 namespace py = pybind11;
@@ -20,22 +20,22 @@ void printStdout(HSQUIRRELVM vm, const SQChar *format,...);
 void printStdErr(HSQUIRRELVM vm, const SQChar *format,...);
 void printCompileError(HSQUIRRELVM, const SQChar * desc, const SQChar * source, SQInteger line, SQInteger column);
 
-class StaticVM {
+class BaseVM {
 public:
     HSQUIRRELVM vm;
     std::shared_ptr<_SQTable_> roottable;
 
-    StaticVM() {};
-    StaticVM(HSQUIRRELVM vm) {
+    BaseVM() = default;
+    BaseVM(HSQUIRRELVM vm) {
         this->vm = vm;
         vmlock::register_vm_handle(vm);
     }
 
-    StaticVM(const StaticVM& rhs) {
+    BaseVM(const BaseVM& rhs) {
         this -> vm = rhs.vm;
         vmlock::register_vm_handle(vm);
     }
-    StaticVM& operator=(const StaticVM& rhs) {
+    BaseVM& operator=(const BaseVM& rhs) {
         release();
         this -> vm = rhs.vm;
         vmlock::register_vm_handle(vm);
@@ -43,12 +43,12 @@ public:
 
     virtual void release() {
         #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release StaticVM: " << vm << std::endl;
+        std::cout << "GC::Release BaseVM: " << vm << std::endl;
         #endif
         vmlock::unregister_vm_handle(vm);
     }
 
-    ~StaticVM() {
+    ~BaseVM() {
         release();
     }
 
@@ -78,10 +78,4 @@ public:
         sq_pop(vm, 2);
         return std::string(sqErr);
     };
-
 };
-
-
-void register_squirrel_vm(py::module_ &m);
-void set_static_vm(HSQUIRRELVM vm);
-#endif
