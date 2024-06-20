@@ -8,12 +8,12 @@ PyValue _SQClass_::get(PyValue key) {
     SQObjectPtr self = {pClass};
     if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
         auto v = sqobject_topython(sqval, vm);
-        if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
-            auto& c = std::get<std::shared_ptr<_SQClosure_>>(v);
+        if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
+            auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
             c->bindThis(self);
         }
-        if (std::holds_alternative<std::shared_ptr<_SQNativeClosure_>>(v)) {
-            auto& c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
+        if (std::holds_alternative<std::shared_ptr<sqbinding::python::NativeClosure>>(v)) {
+            auto& c = std::get<std::shared_ptr<sqbinding::python::NativeClosure>>(v);
             c->bindThis(self);
         }
         return std::move(v);

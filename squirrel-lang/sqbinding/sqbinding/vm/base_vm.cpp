@@ -66,7 +66,7 @@ PyValue BaseVM::ExecuteString(std::string sourcecode, PyValue env) {
         throw py::value_error("invalid sourcecode, failed to compile");
     }
 
-    auto func = std::get<std::shared_ptr<_SQClosure_>>(sqobject_topython(vm->PopGet(), vm));
+    auto func = std::get<std::shared_ptr<sqbinding::python::Closure>>(sqobject_topython(vm->PopGet(), vm));
     if (!std::holds_alternative<py::none>(env)) {
         func->pthis = pyvalue_tosqobject(env, vm);
     }
@@ -79,7 +79,7 @@ PyValue BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
     if (!SQ_SUCCEEDED(sq_readclosure(vm, read_string, &reader))) {
         throw std::runtime_error(GetLastError());
     }
-    auto func = std::get<std::shared_ptr<_SQClosure_>>(sqobject_topython(vm->PopGet(), vm));
+    auto func = std::get<std::shared_ptr<sqbinding::python::Closure>>(sqobject_topython(vm->PopGet(), vm));
     if (!std::holds_alternative<py::none>(env)) {
         func->pthis = pyvalue_tosqobject(env, vm);
     }

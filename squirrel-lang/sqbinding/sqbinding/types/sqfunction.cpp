@@ -34,7 +34,7 @@ void call_setup(HSQUIRRELVM vm, const HSQOBJECT& closure, const HSQOBJECT& table
 }
 
 
-PyValue sqbinding::python::SQNativeClosure::operator()(py::args args) {
+PyValue sqbinding::python::NativeClosure::operator()(py::args args) {
     SQObjectPtr result;
     HSQUIRRELVM vm = holder->vm;
     stack_guard stack_guard(vm);
@@ -71,7 +71,7 @@ PyValue sqbinding::python::SQNativeClosure::operator()(py::args args) {
 }
 
 
-PyValue sqbinding::python::SQClosure::operator()(py::args args) {
+PyValue sqbinding::python::Closure::operator()(py::args args) {
     SQObjectPtr result;
     HSQUIRRELVM vm = holder->vm;
     stack_guard stack_guard(vm);
@@ -106,19 +106,19 @@ PyValue sqbinding::python::SQClosure::operator()(py::args args) {
     return std::move(v);
 }
 
-PyValue sqbinding::python::SQClosure::get(PyValue key) {
+PyValue sqbinding::python::Closure::get(PyValue key) {
     HSQUIRRELVM vm = holder->vm;
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval;
     SQObjectPtr self = holder->closure;
     if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
         auto v = sqobject_topython(sqval, vm);
-        if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
-            auto& c = std::get<std::shared_ptr<_SQClosure_>>(v);
+        if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
+            auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
             c->bindThis(self);
         }
-        if (std::holds_alternative<std::shared_ptr<_SQNativeClosure_>>(v)) {
-            auto& c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
+        if (std::holds_alternative<std::shared_ptr<sqbinding::python::NativeClosure>>(v)) {
+            auto& c = std::get<std::shared_ptr<sqbinding::python::NativeClosure>>(v);
             c->bindThis(self);
         }
         return std::move(v);
@@ -128,19 +128,19 @@ PyValue sqbinding::python::SQClosure::get(PyValue key) {
 
 
 
-PyValue sqbinding::python::SQNativeClosure::get(PyValue key) {
+PyValue sqbinding::python::NativeClosure::get(PyValue key) {
     HSQUIRRELVM vm = holder->vm;
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval;
     SQObjectPtr self = {holder->nativeClosure};
     if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
         auto v = sqobject_topython(sqval, vm);
-        if (std::holds_alternative<std::shared_ptr<_SQClosure_>>(v)) {
-            auto& c = std::get<std::shared_ptr<_SQClosure_>>(v);
+        if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
+            auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
             c->bindThis(self);
         }
-        if (std::holds_alternative<std::shared_ptr<_SQNativeClosure_>>(v)) {
-            auto& c = std::get<std::shared_ptr<_SQNativeClosure_>>(v);
+        if (std::holds_alternative<std::shared_ptr<sqbinding::python::NativeClosure>>(v)) {
+            auto& c = std::get<std::shared_ptr<sqbinding::python::NativeClosure>>(v);
             c->bindThis(self);
         }
         return std::move(v);

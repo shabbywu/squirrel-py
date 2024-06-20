@@ -16,7 +16,7 @@ public:
     // delegate table
     std::shared_ptr<_SQTable_> _delegate;
     std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
-    std::map<std::string, std::shared_ptr<_SQNativeClosure_>> nativeclosure_handlers;
+    std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
 
     SQPythonDict(py::dict dict, HSQUIRRELVM vm) {
         this->vm = vm;
@@ -46,7 +46,7 @@ public:
         });
 
         for(const auto& [ k, v ]: cppfunction_handlers) {
-            nativeclosure_handlers[k] = std::make_shared<_SQNativeClosure_>(_SQNativeClosure_{v, vm, &PythonNativeCall});
+            nativeclosure_handlers[k] = std::make_shared<sqbinding::python::NativeClosure>(sqbinding::python::NativeClosure{v, vm, &PythonNativeCall});
         }
 
         _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));

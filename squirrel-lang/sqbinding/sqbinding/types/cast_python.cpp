@@ -50,8 +50,8 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
     __try_cast_cppwrapper_tosqobject(value, _SQTable_, pTable)
     __try_cast_cppwrapper_tosqobject(value, _SQClass_, pClass)
     __try_cast_cppwrapper_tosqobject(value, _SQInstance_, pInstance)
-    __try_cast_cppwrapper_tosqobject(value, _SQClosure_, pClosure())
-    __try_cast_cppwrapper_tosqobject(value, _SQNativeClosure_, pNativeClosure())
+    __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Closure, pClosure())
+    __try_cast_cppwrapper_tosqobject(value, sqbinding::python::NativeClosure, pNativeClosure())
 
     if (std::holds_alternative<py::object>(value)) {
         return SQObjectPtr(SQPythonObject::Create(std::get<py::object>(value), vm));
@@ -110,10 +110,10 @@ PyValue pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_to_ptr(v, object, _SQClass_)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQInstance_>)
     __try_cast_pyobject_to_ptr(v, object, _SQInstance_)
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQClosure_>)
-    __try_cast_pyobject_to_ptr(v, object, _SQClosure_)
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQNativeClosure_>)
-    __try_cast_pyobject_to_ptr(v, object, _SQNativeClosure_)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Closure>)
+    __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Closure)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::NativeClosure>)
+    __try_cast_pyobject_to_ptr(v, object, sqbinding::python::NativeClosure)
 
     return object;
 }

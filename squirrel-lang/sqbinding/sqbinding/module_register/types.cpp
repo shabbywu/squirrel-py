@@ -87,23 +87,22 @@ void register_squirrel_type(py::module_ &m) {
     ;
 
     {
-        using _SQClosure_ = sqbinding::python::SQClosure;
-        py::class_<_SQClosure_, std::shared_ptr<_SQClosure_>>(m, "SQClosure")
-        .def("__call__", &_SQClosure_::__call__, py::return_value_policy::move)
-        .def("__str__", &_SQClosure_::__str__)
-        .def("__repr__", &_SQClosure_::__repr__)
-        .def("__getattr__", &_SQClosure_::get, py::arg("key"), py::return_value_policy::move)
+        py::class_<sqbinding::python::Closure, std::shared_ptr<sqbinding::python::Closure>>(m, "SQClosure")
+        .def("__call__", &sqbinding::python::Closure::__call__, py::return_value_policy::move)
+        .def("__str__", &sqbinding::python::Closure::__str__)
+        .def("__repr__", &sqbinding::python::Closure::__repr__)
+        .def("__getattr__", &sqbinding::python::Closure::get, py::arg("key"), py::return_value_policy::move)
         ;
     }
 
 
-    py::class_<_SQNativeClosure_, std::shared_ptr<_SQNativeClosure_>>(m, "SQNativeClosure")
-    .def("__call__", &_SQNativeClosure_::__call__, py::return_value_policy::move)
-    .def("__str__", &_SQNativeClosure_::__str__)
-    .def("__repr__", &_SQNativeClosure_::__repr__)
-    .def("__getattr__", &_SQNativeClosure_::get, py::arg("key"), py::return_value_policy::move)
-    .def("clone", [](std::shared_ptr<_SQNativeClosure_> self) -> std::shared_ptr<_SQNativeClosure_> {
-        return std::make_shared<_SQNativeClosure_>(_SQNativeClosure_(self->pNativeClosure()->Clone(), self->holder->vm));
+    py::class_<sqbinding::python::NativeClosure, std::shared_ptr<sqbinding::python::NativeClosure>>(m, "SQNativeClosure")
+    .def("__call__", &sqbinding::python::NativeClosure::__call__, py::return_value_policy::move)
+    .def("__str__", &sqbinding::python::NativeClosure::__str__)
+    .def("__repr__", &sqbinding::python::NativeClosure::__repr__)
+    .def("__getattr__", &sqbinding::python::NativeClosure::get, py::arg("key"), py::return_value_policy::move)
+    .def("clone", [](std::shared_ptr<sqbinding::python::NativeClosure> self) -> std::shared_ptr<sqbinding::python::NativeClosure> {
+        return std::make_shared<sqbinding::python::NativeClosure>(sqbinding::python::NativeClosure(self->pNativeClosure()->Clone(), self->holder->vm));
     }, py::return_value_policy::move)
     ;
 

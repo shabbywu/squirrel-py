@@ -80,9 +80,9 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
     case tagSQObjectType::OT_INSTANCE:
         return std::move(std::shared_ptr<_SQInstance_>(new _SQInstance_{_instance(object), vm}));
     case tagSQObjectType::OT_CLOSURE:
-        return std::move(std::shared_ptr<_SQClosure_>(new _SQClosure_{_closure(object), vm}));
+        return std::move(std::shared_ptr<sqbinding::python::Closure>(new sqbinding::python::Closure{_closure(object), vm}));
     case tagSQObjectType::OT_NATIVECLOSURE:
-        return std::move(std::shared_ptr<_SQNativeClosure_>(new _SQNativeClosure_{_nativeclosure(object), vm}));
+        return std::move(std::shared_ptr<sqbinding::python::NativeClosure>(new sqbinding::python::NativeClosure{_nativeclosure(object), vm}));
     case tagSQObjectType::OT_USERDATA:
         {
             __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_LIST, SQPythonList)
