@@ -6,7 +6,7 @@
 
 namespace py = pybind11;
 
-static class StringReaderCtx {
+class StringReaderCtx {
 public:
     const char* c_str;
     int readed;
