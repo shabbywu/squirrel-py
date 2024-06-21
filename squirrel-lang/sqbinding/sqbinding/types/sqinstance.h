@@ -101,8 +101,6 @@ namespace sqbinding {
             Instance (::SQInstance* pInstance, HSQUIRRELVM vm): detail::Instance(pInstance, vm) {};
 
             PyValue get(PyValue key);
-            PyValue getAttributes(PyValue key);
-            PyValue setAttributes(PyValue key, PyValue val);
             // bindFunc to current instance
             void bindFunc(std::string funcname, PyValue func);
 

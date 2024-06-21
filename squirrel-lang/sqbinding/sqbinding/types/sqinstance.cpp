@@ -43,5 +43,5 @@ py::list sqbinding::python::Instance::keys() {
 }
 
 void sqbinding::python::Instance::bindFunc(std::string funcname, PyValue func) {
-    set(PyValue(funcname), func);
+    set(PyValue(funcname), PyValue(func));
 }

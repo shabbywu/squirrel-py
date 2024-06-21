@@ -50,7 +50,7 @@ py::list sqbinding::python::Table::keys() {
 
 
 void sqbinding::python::Table::bindFunc(std::string funcname, PyValue func) {
-    set(PyValue(funcname), func);
+    set(PyValue(funcname), PyValue(func));
 }
 
 
