@@ -21,7 +21,6 @@
 #include <iostream>
 
 
-class _SQObjectPtr_;
 class TableIterator;
 class ArrayIterator;
 class SQPythonDict;
@@ -30,6 +29,7 @@ class SQPythonObject;
 
 namespace sqbinding {
     namespace python {
+        class ObjectPtr;
         class Closure;
         class NativeClosure;
         class Table;

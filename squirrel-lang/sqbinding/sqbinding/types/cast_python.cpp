@@ -1,7 +1,7 @@
 #include "definition.h"
 #include "container.h"
 #include "sqiterator.h"
-#include "object.h"
+#include "sqobject.h"
 
 
 #define __try_cast_cppwrapper_tosqobject(object, type, field) \

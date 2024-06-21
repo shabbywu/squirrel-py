@@ -1,7 +1,7 @@
 #ifndef _SQBINDING_CONTAINER_H_
 #define _SQBINDING_CONTAINER_H_
 
-
+#include "sqobject.h"
 #include "sqarray.h"
 #include "sqtable.h"
 #include "sqstr.h"

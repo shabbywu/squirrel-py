@@ -2,7 +2,6 @@
 
 #include "definition.h"
 #include "sqiterator.h"
-#include "object.h"
 #include "sqbinding/common/errors.h"
 
 

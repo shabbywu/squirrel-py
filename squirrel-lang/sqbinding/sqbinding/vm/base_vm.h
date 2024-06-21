@@ -63,7 +63,7 @@ public:
     PyValue ExecuteString(std::string sourcecode, PyValue env = py::none());
     PyValue ExecuteBytecode(std::string bytecode, PyValue env = py::none());
 
-    _SQObjectPtr_* StackTop();
+    std::shared_ptr<sqbinding::python::ObjectPtr> StackTop();
     void bindFunc(std::string funcname, py::function func);
 
     inline std::string GetLastError() {

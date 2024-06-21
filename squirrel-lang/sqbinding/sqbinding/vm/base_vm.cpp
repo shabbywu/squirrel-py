@@ -1,7 +1,6 @@
 #include "base_vm.h"
 #include "compiler.h"
 #include "sqbinding/types/container.h"
-#include "sqbinding/types/object.h"
 #include "sqbinding/types/sqiterator.h"
 
 namespace py = pybind11;
@@ -86,8 +85,8 @@ PyValue BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
     return func->__call__(py::list());
 }
 
-_SQObjectPtr_* BaseVM::StackTop() {
-    return new _SQObjectPtr_(vm->Top(), this->vm, true);
+std::shared_ptr<sqbinding::python::ObjectPtr> BaseVM::StackTop() {
+    return std::make_shared<sqbinding::python::ObjectPtr>(vm->Top(), vm);
 };
 
 void BaseVM::bindFunc(std::string funcname, py::function func) {

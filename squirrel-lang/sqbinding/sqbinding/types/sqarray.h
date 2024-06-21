@@ -2,7 +2,6 @@
 
 #include "definition.h"
 #include "sqiterator.h"
-#include "object.h"
 
 
 namespace sqbinding {

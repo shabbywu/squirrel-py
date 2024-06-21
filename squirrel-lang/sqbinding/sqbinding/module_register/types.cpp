@@ -119,16 +119,14 @@ void register_squirrel_type(py::module_ &m) {
     ;
 
     py::class_<SQObjectPtr>(m, "__SQObjectPtr");
-    py::class_<_SQObjectPtr_, std::shared_ptr<_SQObjectPtr_>>(m, "SQObjectPtr")
-    .def_property_readonly("type", &_SQObjectPtr_::type)
+    py::class_<sqbinding::python::ObjectPtr, std::shared_ptr<sqbinding::python::ObjectPtr>>(m, "SQObjectPtr")
+    .def_property_readonly("type", &sqbinding::python::ObjectPtr::type)
     .def_property("value",
         //py::cpp_function(, py::return_value_policy::automatic),
-        &_SQObjectPtr_::to_python,
-        &_SQObjectPtr_::from_python)
-    .def("__str__", &_SQObjectPtr_::__str__)
-    .def("__repr__", &_SQObjectPtr_::__repr__)
-    .def_property_readonly("refcount", [](_SQObjectPtr_& self) {
-        return sq_getrefcount(self.vm, &self.obj);
-    })
+        &sqbinding::python::ObjectPtr::to_python,
+        &sqbinding::python::ObjectPtr::from_python)
+    .def("__str__", &sqbinding::python::ObjectPtr::__str__)
+    .def("__repr__", &sqbinding::python::ObjectPtr::__repr__)
+    .def_property_readonly("refcount", &sqbinding::python::ObjectPtr::getRefCount)
     ;
 }

@@ -2,7 +2,6 @@
 #include "sqbinding/vm/generic_vm.h"
 #include "sqbinding/vm/compiler.h"
 #include "sqbinding/types/container.h"
-#include "sqbinding/types/object.h"
 #include "sqbinding/types/sqiterator.h"
 
 typedef BaseVM StaticVM;
@@ -29,7 +28,7 @@ void register_squirrel_vm(py::module_ &m) {
         .def("execute", &StaticVM::ExecuteString, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
         .def("execute_bytecode", &StaticVM::ExecuteBytecode, py::arg("bytecode"), py::arg("env").none(true) = py::none())
         .def("bindfunc", &StaticVM::bindFunc, py::arg("funcname"), py::arg("func"))
-        .def("stack_top", &StaticVM::StackTop, py::return_value_policy::reference_internal)
+        .def("stack_top", &StaticVM::StackTop, py::return_value_policy::take_ownership)
         // base api
         .def_property("top", &StaticVM::gettop, &StaticVM::settop, py::return_value_policy::reference_internal)
         .def("get_roottable", &StaticVM::getroottable, py::keep_alive<0, 1>())

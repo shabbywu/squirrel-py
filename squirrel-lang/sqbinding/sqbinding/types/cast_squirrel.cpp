@@ -1,7 +1,7 @@
 #include "definition.h"
 #include "container.h"
 #include "sqiterator.h"
-#include "object.h"
+#include "sqobject.h"
 
 
 std::string sqobject_to_string(SQObjectPtr& self) {
