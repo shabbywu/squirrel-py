@@ -1,7 +1,7 @@
 #pragma once
 
 #include "definition.h"
-#include "sqbinding/types/cppbinding/sqstr.hpp"
+#include "sqbinding/detail/types/sqstr.hpp"
 
 namespace sqbinding {
     namespace python {

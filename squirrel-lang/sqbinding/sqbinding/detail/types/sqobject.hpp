@@ -1,6 +1,4 @@
 #pragma once
-
-#include "definition.h"
 #include "sqbinding/common/cast.h"
 
 namespace sqbinding {

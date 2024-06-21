@@ -1,11 +1,11 @@
 #pragma once
 
-#include "sqbinding/common/format.h"
-#include "sqbinding/common/errors.h"
+#include "sqbinding/detail/common/format.hpp"
+#include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/common/cast.h"
 #include "sqbinding/common/stack_operation.h"
 #include "definition.h"
-#include "sqbinding/types/cppbinding/sqtable.hpp"
+#include "sqbinding/detail/types/sqtable.hpp"
 
 namespace sqbinding {
     namespace python {

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "sqbinding/common/format.h"
+#include "sqbinding/detail/common/format.hpp"
 #include "definition.h"
 #include "pydict.hpp"
-#include "sqbinding/types/cppbinding/sqinstance.hpp"
+#include "sqbinding/detail/types/sqinstance.hpp"
 
 
 namespace sqbinding {

@@ -1,5 +1,5 @@
 #include "base_vm.h"
-#include "sqbinding/common/errors.h"
+#include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/common/cast.h"
 #include "printer.h"
 

@@ -1,8 +1,5 @@
 #pragma once
 
-#include "definition.h"
-
-
 namespace sqbinding {
     namespace detail {
         class String {

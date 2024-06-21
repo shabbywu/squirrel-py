@@ -1,7 +1,7 @@
 #pragma once
 #include <squirrel.h>
-#include "cast.h"
-#include "stack_operation.h"
+#include "cast.hpp"
+#include "stack_operation.hpp"
 
 namespace sqbinding {
     namespace detail {

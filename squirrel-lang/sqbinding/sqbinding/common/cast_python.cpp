@@ -1,5 +1,5 @@
 #include "cast.h"
-#include "format.h"
+#include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/types/pybinding/definition.h"
 #include "sqbinding/types/pybinding/container.h"
 #include "sqbinding/types/pybinding/sqobject.hpp"

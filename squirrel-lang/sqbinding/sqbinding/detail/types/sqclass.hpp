@@ -1,40 +1,36 @@
 #pragma once
-
-#include "sqbinding/common/format.h"
-#include "sqbinding/common/errors.h"
-#include "sqbinding/common/cast.h"
-#include "sqbinding/common/stack_operation.h"
-#include "definition.h"
-
+#include <squirrel.h>
+#include <memory>
+#include "sqbinding/detail/common/format.hpp"
 
 namespace sqbinding {
     namespace detail {
-        class Table: public std::enable_shared_from_this<Table> {
+        class Class: public std::enable_shared_from_this<Class> {
             public:
                 struct Holder {
-                    Holder(::SQTable* pTable, HSQUIRRELVM vm) : vm(vm) {
-                        table = pTable;
-                        sq_addref(vm, &table);
+                    Holder(::SQClass* pClass, HSQUIRRELVM vm) : vm(vm) {
+                        clazz = pClass;
+                        sq_addref(vm, &clazz);
                     }
                     ~Holder(){
-                        sq_release(vm, &table);
+                        sq_release(vm, &clazz);
                     }
                     HSQUIRRELVM vm;
-                    SQObjectPtr table;
+                    SQObjectPtr clazz;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Table(HSQUIRRELVM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(vm), 4), vm)) {}
-                Table(::SQTable* pTable, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
+                Class (::SQClass* pClass, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pClass, vm)) {};
 
                 SQUnsignedInteger getRefCount() {
-                    return pTable() -> _uiRef;
+                    return pClass() -> _uiRef;
                 }
 
-                ::SQTable* pTable() {
-                    return _table(holder->table);
+                ::SQClass* pClass() {
+                    return _class(holder->clazz);
                 }
+
             public:
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
@@ -55,12 +51,12 @@ namespace sqbinding {
                 template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     HSQUIRRELVM& vm = holder->vm;
-                    SQObjectPtr& self = holder->table;
+                    SQObjectPtr& self = holder->clazz;
 
                     sq_pushobject(vm, self);
                     sq_pushobject(vm, sqkey);
                     sq_pushobject(vm, sqval);
-                    sq_newslot(vm, -3, SQFalse);
+                    sq_newslot(vm, -3, SQTrue);
                     sq_pop(vm, 1);
                 }
             public:
@@ -90,16 +86,13 @@ namespace sqbinding {
                 template <>
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     HSQUIRRELVM& vm = holder->vm;
-                    SQObjectPtr& self = holder->table;
+                    SQObjectPtr& self = holder->clazz;
                     if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
                     return true;
                 }
 
-            // bindFunc to current table
-            // template<class Func>
-            // void bindFunc(std::string funcname, Func func);
         };
     }
 }

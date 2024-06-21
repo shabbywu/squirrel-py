@@ -1,9 +1,7 @@
 #pragma once
-
-#include "sqbinding/common/errors.h"
-#include "sqbinding/common/format.h"
-#include "definition.h"
-
+#include <squirrel.h>
+#include "sqbinding/detail/common/errors.hpp"
+#include "sqbinding/detail/common/format.hpp"
 
 namespace sqbinding {
     namespace detail {

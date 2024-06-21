@@ -1,9 +1,8 @@
 #pragma once
 
 #include <squirrel.h>
-#include "sqbinding/common/format.h"
-#include "sqbinding/common/call_setup.hpp"
-#include "definition.h"
+#include "sqbinding/detail/common/format.hpp"
+#include "sqbinding/detail/common/call_setup.hpp"
 
 namespace sqbinding {
     namespace detail {

@@ -2,7 +2,7 @@
 
 #include "definition.h"
 #include "sqbinding/common/cast.h"
-#include "sqbinding/types/cppbinding/sqobject.hpp"
+#include "sqbinding/detail/types/sqobject.hpp"
 
 namespace sqbinding {
     namespace python {

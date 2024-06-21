@@ -7,7 +7,7 @@
 #include <iostream>
 #include <cstring>
 #include <memory.h>
-#include "sqbinding/common/errors.h"
+#include "sqbinding/detail/common/errors.hpp"
 
 void printCompileError(HSQUIRRELVM, const SQChar * desc, const SQChar * source, SQInteger line, SQInteger column);
 std::string compile(std::string sourcecode, std::string sourcename);
