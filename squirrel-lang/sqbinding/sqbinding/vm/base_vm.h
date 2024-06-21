@@ -14,13 +14,9 @@
 #include "sqbinding/types/definition.h"
 #include "sqbinding/common/errors.h"
 #include "sqbinding/common/cast.h"
-
+#include "printer.h"
 
 namespace py = pybind11;
-void printStdout(HSQUIRRELVM vm, const SQChar *format,...);
-void printStdErr(HSQUIRRELVM vm, const SQChar *format,...);
-void printCompileError(HSQUIRRELVM, const SQChar * desc, const SQChar * source, SQInteger line, SQInteger column);
-
 namespace sqbinding {
     namespace python {
         class BaseVM {

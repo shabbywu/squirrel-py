@@ -1,10 +1,7 @@
 #include "base_vm.h"
 #include "sqbinding/common/errors.h"
 #include "sqbinding/common/cast.h"
-
-
-
-
+#include "printer.h"
 
 
 namespace sqbinding {
