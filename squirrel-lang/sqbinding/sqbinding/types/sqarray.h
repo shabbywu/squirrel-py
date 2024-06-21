@@ -1,7 +1,6 @@
 #pragma once
 
 #include "definition.h"
-#include "sqiterator.h"
 
 
 namespace sqbinding {
@@ -35,6 +34,16 @@ namespace sqbinding {
     }
 
     namespace python {
+        class Array;
+        class ArrayIterator {
+        public:
+            sqbinding::python::Array* obj;
+            SQInteger idx = 0;
+
+            ArrayIterator(sqbinding::python::Array *obj): obj(obj) {};
+            PyValue __next__();
+        };
+
         class Array: public detail::Array, public std::enable_shared_from_this<Array> {
             public:
                 // create a array in vm stack

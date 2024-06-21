@@ -1,7 +1,6 @@
 #pragma once
 
 #include "definition.h"
-#include "sqiterator.h"
 #include "pydict.h"
 
 

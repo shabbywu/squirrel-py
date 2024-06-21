@@ -1,6 +1,5 @@
 #include "definition.h"
 #include "container.h"
-#include "sqiterator.h"
 #include "sqobject.h"
 
 

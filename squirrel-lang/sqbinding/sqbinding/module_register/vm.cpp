@@ -2,7 +2,6 @@
 #include "sqbinding/vm/generic_vm.h"
 #include "sqbinding/vm/compiler.h"
 #include "sqbinding/types/container.h"
-#include "sqbinding/types/sqiterator.h"
 
 typedef BaseVM StaticVM;
 

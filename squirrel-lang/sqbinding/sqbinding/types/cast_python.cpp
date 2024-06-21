@@ -1,6 +1,5 @@
 #include "definition.h"
 #include "container.h"
-#include "sqiterator.h"
 #include "sqobject.h"
 
 
@@ -93,12 +92,12 @@ PyValue pyobject_topyvalue(py::object object) {
     #endif
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Array>)
     __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Array)
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<ArrayIterator>)
-    __try_cast_pyobject_to_ptr(v, object, ArrayIterator)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::ArrayIterator>)
+    __try_cast_pyobject_to_ptr(v, object, sqbinding::python::ArrayIterator)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Table>)
     __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Table)
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<TableIterator>)
-    __try_cast_pyobject_to_ptr(v, object, TableIterator)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::TableIterator>)
+    __try_cast_pyobject_to_ptr(v, object, sqbinding::python::TableIterator)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Class>)
     __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Class)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Instance>)

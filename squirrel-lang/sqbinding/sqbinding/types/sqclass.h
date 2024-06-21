@@ -2,7 +2,6 @@
 #define _SQBINDING_CLASS_H_
 
 #include "definition.h"
-#include "sqiterator.h"
 #include "pydict.h"
 
 namespace sqbinding {

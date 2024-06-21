@@ -1,7 +1,6 @@
 #include "base_vm.h"
 #include "compiler.h"
 #include "sqbinding/types/container.h"
-#include "sqbinding/types/sqiterator.h"
 
 namespace py = pybind11;
 

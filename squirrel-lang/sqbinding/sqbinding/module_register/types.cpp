@@ -36,12 +36,12 @@ void register_squirrel_type(py::module_ &m) {
 
     py::class_<tagSQObjectValue, std::shared_ptr<tagSQObjectValue>>(m, "tagSQObjectValue");
 
-    py::class_<ArrayIterator, std::shared_ptr<ArrayIterator>>(m, "ArrayIterator")
-    .def("__next__", &ArrayIterator::__next__)
+    py::class_<sqbinding::python::ArrayIterator, std::shared_ptr<sqbinding::python::ArrayIterator>>(m, "ArrayIterator")
+    .def("__next__", &sqbinding::python::ArrayIterator::__next__)
     ;
 
-    py::class_<TableIterator, std::shared_ptr<TableIterator>>(m, "TableIterator")
-    .def("__next__", &TableIterator::__next__)
+    py::class_<sqbinding::python::TableIterator, std::shared_ptr<sqbinding::python::TableIterator>>(m, "TableIterator")
+    .def("__next__", &sqbinding::python::TableIterator::__next__)
     ;
 
     {

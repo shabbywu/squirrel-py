@@ -1,7 +1,6 @@
 #pragma once
 
 #include "definition.h"
-#include "sqiterator.h"
 #include "sqbinding/common/errors.h"
 
 
@@ -72,6 +71,17 @@ namespace sqbinding {
     }
 
     namespace python {
+        class Table;
+        // iterator
+        class TableIterator {
+            public:
+                Table* obj;
+                SQInteger idx = 0;
+
+                TableIterator(Table *obj): obj(obj) {};
+                PyValue __next__();
+        };
+
         class Table : public detail::Table, public std::enable_shared_from_this<Table> {
             public:
             Table(HSQUIRRELVM vm): detail::Table(vm) {}

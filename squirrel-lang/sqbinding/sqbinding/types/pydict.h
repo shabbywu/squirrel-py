@@ -2,7 +2,6 @@
 #define _SQBINDING_DICT_H_
 
 #include "definition.h"
-#include "sqiterator.h"
 #include "pyfunction.h"
 
 namespace py = pybind11;

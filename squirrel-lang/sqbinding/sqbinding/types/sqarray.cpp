@@ -40,3 +40,18 @@ PyValue sqbinding::python::Array::pop() {
     pArray()->Pop();
     return sqobject_topython(sqval, vm);
 }
+
+
+PyValue sqbinding::python::ArrayIterator::__next__() {
+    if (idx < 0) {
+        throw py::stop_iteration();
+    }
+    PyValue result;
+    try {
+        result = obj->__getitem__(idx);
+    } catch(const py::index_error& e) {
+        throw py::stop_iteration();
+    }
+    idx++;
+    return result;
+}

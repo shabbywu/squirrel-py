@@ -2,7 +2,6 @@
 #define _SQBINDING_FUNCTION_H_
 
 #include "definition.h"
-#include "sqiterator.h"
 #include "sqfunction.h"
 #include "sqstr.h"
 

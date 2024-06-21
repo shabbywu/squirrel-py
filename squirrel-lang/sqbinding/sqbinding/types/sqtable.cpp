@@ -77,3 +77,27 @@ py::list sqbinding::python::Table::keys() {
 void sqbinding::python::Table::bindFunc(std::string funcname, PyValue func) {
     set(funcname, func);
 }
+
+
+PyValue sqbinding::python::TableIterator::__next__() {
+    if (idx < 0) {
+        throw py::stop_iteration();
+    }
+    PyValue key;
+    PyValue value;
+    bool found;
+    HSQUIRRELVM& vm = obj->holder->vm;
+    while (idx < obj->pTable()->_numofnodes) {
+        auto n = &obj->pTable()->_nodes[idx++];
+        if (sq_type(n->key) != tagSQObjectType::OT_NULL) {
+            key = sqobject_topython(n->key, vm);
+            value = sqobject_topython(n->val, vm);
+            found = 1;
+            break;
+        }
+    }
+    if (!found) {
+        throw py::stop_iteration();
+    }
+    return py::make_tuple(key, value);
+}

@@ -2,7 +2,6 @@
 #define _SQBINDING_PYOBJECT_H_
 
 #include "definition.h"
-#include "sqiterator.h"
 #include "sqstr.h"
 #include "pyfunction.h"
 
