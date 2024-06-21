@@ -25,12 +25,22 @@ void register_squirrel_vm(py::module_ &m) {
     py::class_<StaticVM, std::shared_ptr<StaticVM>>(m, "StaticVM")
         .def_property_readonly("vm", &StaticVM::GetVM)
         .def("dumpstack", &StaticVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
-        .def("execute", &StaticVM::ExecuteString, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
-        .def("execute_bytecode", &StaticVM::ExecuteBytecode, py::arg("bytecode"), py::arg("env").none(true) = py::none())
+        .def("execute", [](StaticVM* vm, std::string sourcecode, PyValue env) -> PyValue {
+            if (std::holds_alternative<py::none>(env)) {
+                return vm->ExecuteString<PyValue>(sourcecode);
+            }
+            return vm->ExecuteString<PyValue, PyValue>(sourcecode, env);
+        }, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
+        .def("execute_bytecode", [](StaticVM* vm, std::string bytecode, PyValue env) -> PyValue {
+            if (std::holds_alternative<py::none>(env)) {
+                return vm->ExecuteBytecode<PyValue>(bytecode);
+            }
+            return vm->ExecuteBytecode<PyValue, PyValue>(bytecode, env);
+        }, py::arg("bytecode"), py::arg("env").none(true) = py::none())
         .def("bindfunc", &StaticVM::bindFunc, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &StaticVM::StackTop, py::return_value_policy::take_ownership)
         // base api
-        .def_property("top", &StaticVM::gettop, &StaticVM::settop, py::return_value_policy::reference_internal)
+        .def_property("top", &StaticVM::GetTop, &StaticVM::SetTop, py::return_value_policy::reference_internal)
         .def("get_roottable", &StaticVM::getroottable, py::keep_alive<0, 1>())
         .def("collectgarbage", [](StaticVM* vm) -> int {
             return sq_collectgarbage(vm->GetVM());
@@ -41,12 +51,23 @@ void register_squirrel_vm(py::module_ &m) {
         .def(py::init<int>(), py::arg("size") = 1024)
         .def_property_readonly("vm", &GenericVM::GetVM)
         .def("dumpstack", &GenericVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
-        .def("execute", &GenericVM::ExecuteString, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
-        .def("execute_bytecode", &GenericVM::ExecuteBytecode, py::arg("bytecode"), py::arg("env").none(true) = py::none())
+        .def("execute", [](GenericVM* vm, std::string sourcecode, PyValue env) -> PyValue {
+            if (std::holds_alternative<py::none>(env)) {
+                return vm->ExecuteString<PyValue>(sourcecode);
+            }
+            return vm->ExecuteString<PyValue, PyValue>(sourcecode, env);
+        }, py::arg("sourcecode"), py::arg("env").none(true) = py::none())
+        .def("execute_bytecode", [](GenericVM* vm, std::string bytecode, PyValue env) -> PyValue {
+            if (std::holds_alternative<py::none>(env)) {
+                return vm->ExecuteBytecode<PyValue>(bytecode);
+            }
+            return vm->ExecuteBytecode<PyValue, PyValue>(bytecode, env);
+        }, py::arg("bytecode"), py::arg("env").none(true) = py::none())
+
         .def("bindfunc", &GenericVM::bindFunc, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &GenericVM::StackTop, py::return_value_policy::take_ownership)
         // base api
-        .def_property("top", &GenericVM::gettop, &GenericVM::settop, py::return_value_policy::reference_internal)
+        .def_property("top", &GenericVM::GetTop, &GenericVM::SetTop, py::return_value_policy::reference_internal)
         .def("get_roottable", &GenericVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::move)
         .def("collectgarbage", [](GenericVM* vm) -> int {
             return sq_collectgarbage(vm->GetVM());

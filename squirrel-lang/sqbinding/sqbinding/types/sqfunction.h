@@ -6,6 +6,45 @@
 #include "sqbinding/common/stack_operation.h"
 #include "definition.h"
 
+
+namespace sqbinding {
+    namespace detail {
+        inline
+        void call_setup_arg(HSQUIRRELVM vm) {}
+
+        template <class Arg, class... Args> inline
+        void call_setup_arg(HSQUIRRELVM vm, Arg head, Args... tail) {
+            generic_stack_push(vm, head);
+            call_setup_arg(vm, tail...);
+        }
+
+        template <class... Args> inline
+        void call_setup(HSQUIRRELVM vm, const HSQOBJECT& closure, const HSQOBJECT& table, Args... args) {
+            sq_pushobject(vm, closure);
+            sq_pushobject(vm, table);
+            call_setup_arg(vm, args...);
+        }
+
+        template <class Return> inline
+        Return call(HSQUIRRELVM vm, int params_count) {
+            if (SQ_FAILED(sq_call(vm, params_count, SQTrue, SQTrue))) {
+                const SQChar* sqErr;
+                sq_getlasterror(vm);
+                if (sq_gettype(vm, -1) == OT_NULL) {
+                    throw std::runtime_error("unknown error");
+                }
+                sq_tostring(vm, -1);
+                sq_getstring(vm, -1, &sqErr);
+                throw std::runtime_error(std::string(sqErr));
+            } else {
+                return generic_stack_get<Return>(vm, -1);
+            }
+        }
+    }
+}
+
+
+
 namespace sqbinding {
     namespace detail {
         template <class T>
@@ -39,7 +78,18 @@ namespace sqbinding {
                 void bindThis(SQObjectPtr &pthis) {
                     this -> pthis = pthis;
                 }
-                Return operator()(Args...);
+
+
+                Return operator()(Args... args) {
+                    HSQUIRRELVM vm = holder->vm;
+                    stack_guard stack_guard(vm);
+                    if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
+                        call_setup(vm, holder->closure, pthis, args...);
+                    } else {
+                        call_setup(vm, holder->closure, vm->_roottable, args...);
+                    }
+                    return call<Return>(vm, stack_guard.offset() - 1);
+                }
             public:
                 std::string to_string() {
                     return string_format("OT_CLOSURE: [addr={%p}, ref=%d]", pClosure(), getRefCount());
@@ -55,7 +105,9 @@ namespace sqbinding {
             public:
                 // Python API
                 PyValue get(PyValue key);
-                PyValue __call__(py::args args);
+                PyValue __call__(py::args args) {
+                    return this->operator()(args);
+                }
                 std::string __str__() {
                     return to_string();
                 }
@@ -100,7 +152,17 @@ namespace sqbinding {
                     this -> pthis = pthis;
                 }
 
-                Return operator()(Args...);
+                Return operator()(Args... args) {
+                    HSQUIRRELVM vm = holder->vm;
+                    stack_guard stack_guard(vm);
+                    if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
+                        call_setup(vm, holder->nativeClosure, pthis, args...);
+                    } else {
+                        call_setup(vm, holder->nativeClosure, vm->_roottable, args...);
+                    }
+                    return call<Return>(vm, stack_guard.offset() - 1);
+                }
+
             public:
                 std::string to_string() {
                     return string_format("OT_NATIVECLOSURE: [addr={%p}, ref=%d]", pNativeClosure(), getRefCount());
@@ -123,7 +185,9 @@ namespace sqbinding {
             public:
                 // Python API
                 PyValue get(PyValue key);
-                PyValue __call__(py::args args);
+                PyValue __call__(py::args args) {
+                    return this->operator()(args);
+                }
                 std::string __str__() {
                     return to_string();
                 }
