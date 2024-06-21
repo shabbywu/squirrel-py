@@ -67,7 +67,7 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
         return PyValue(py::bool_(_integer(object)));
     case tagSQObjectType::OT_STRING:
         #ifdef USE__SQString__
-        return PyValue(std::make_shared<_SQString_>(_SQString_(_string(object), vm)));
+        return PyValue(std::make_shared<sqbinding::python::String>(sqbinding::python::String(_string(object), vm)));
         #else
         return std::string(_stringval(object));
         #endif
@@ -76,7 +76,7 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
     case tagSQObjectType::OT_TABLE:
         return std::move(std::shared_ptr<sqbinding::python::Table>(new sqbinding::python::Table{_table(object), vm}));
     case tagSQObjectType::OT_CLASS:
-        return std::move(std::shared_ptr<_SQClass_>(new _SQClass_{_class(object), vm}));
+        return std::move(std::shared_ptr<sqbinding::python::Class>(new sqbinding::python::Class{_class(object), vm}));
     case tagSQObjectType::OT_INSTANCE:
         return std::move(std::shared_ptr<sqbinding::python::Instance>(new sqbinding::python::Instance{_instance(object), vm}));
     case tagSQObjectType::OT_CLOSURE:

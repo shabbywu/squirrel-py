@@ -61,13 +61,13 @@ void register_squirrel_type(py::module_ &m) {
         ;
     }
 
-    py::class_<_SQClass_, std::shared_ptr<_SQClass_>>(m, "SQClass")
-    .def("__getitem__", &_SQClass_::__getitem__, py::arg("key"), py::return_value_policy::move)
-    .def("__setitem__", &_SQClass_::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("__getattr__", &_SQClass_::__getitem__, py::arg("key"), py::return_value_policy::move)
-    .def("__setattr__", &_SQClass_::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("keys", &_SQClass_::keys, py::return_value_policy::take_ownership)
-    .def("bindfunc", &_SQClass_::bindFunc, py::arg("funcname"), py::arg("func"))
+    py::class_<sqbinding::python::Class, std::shared_ptr<sqbinding::python::Class>>(m, "SQClass")
+    .def("__getitem__", &sqbinding::python::Class::__getitem__, py::arg("key"), py::return_value_policy::move)
+    .def("__setitem__", &sqbinding::python::Class::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+    .def("__getattr__", &sqbinding::python::Class::__getitem__, py::arg("key"), py::return_value_policy::move)
+    .def("__setattr__", &sqbinding::python::Class::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+    .def("keys", &sqbinding::python::Class::keys, py::return_value_policy::take_ownership)
+    .def("bindfunc", &sqbinding::python::Class::bindFunc, py::arg("funcname"), py::arg("func"))
     ;
 
     py::class_<sqbinding::python::Instance, std::shared_ptr<sqbinding::python::Instance>>(m, "SQInstance")
@@ -81,11 +81,11 @@ void register_squirrel_type(py::module_ &m) {
     .def("__repr__", &sqbinding::python::Instance::__repr__)
     ;
 
-    py::class_<_SQString_, std::shared_ptr<_SQString_>>(m, "SQString")
-    .def_property_readonly("value", &_SQString_::value)
-    .def("__len__", &_SQString_::__len__)
-    .def("__str__", &_SQString_::__str__)
-    .def("__repr__", &_SQString_::__repr__)
+    py::class_<sqbinding::python::String, std::shared_ptr<sqbinding::python::String>>(m, "SQString")
+    .def_property_readonly("value", &sqbinding::python::String::value)
+    .def("__len__", &sqbinding::python::String::__len__)
+    .def("__str__", &sqbinding::python::String::__str__)
+    .def("__repr__", &sqbinding::python::String::__repr__)
     ;
 
     {

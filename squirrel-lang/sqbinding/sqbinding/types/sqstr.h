@@ -1,44 +1,65 @@
-#ifndef _SQBINDING_STRING_H_
-#define _SQBINDING_STRING_H_
+#pragma once
 
 #include "definition.h"
 #include "object.h"
 
 
-class _SQString_: public _SQObjectPtr_ {
-public:
+namespace sqbinding {
+    namespace detail {
+        class String {
+            public:
+            struct Holder {
+                Holder(::SQString* pString, HSQUIRRELVM vm) : vm(vm) {
+                    string_ = pString;
+                    sq_addref(vm, &string_);
+                }
+                ~Holder(){
+                    sq_release(vm, &string_);
+                }
+                HSQUIRRELVM vm;
+                SQObjectPtr string_;
+            };
+            String(::SQString* pString, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pString, vm)) {};
 
-    // link to a existed table in vm stack
-    _SQString_ (SQObjectPtr& pstring, HSQUIRRELVM vm, bool releaseOnDestroy = true) : _SQObjectPtr_(pstring, vm, releaseOnDestroy) {
+            SQUnsignedInteger getRefCount() {
+                return pString() -> _uiRef;
+            }
+
+            ::SQString* pString() {
+                return _string(holder->string_);
+            }
+            std::string value() {
+                return _stringval(holder->string_);
+            }
+
+            std::shared_ptr<Holder> holder;
+        };
     }
 
-    _SQString_ (SQString* pstring, HSQUIRRELVM vm) : _SQObjectPtr_(vm, false) {
-        obj = SQObjectPtr(pstring);
-    }
+    namespace python {
+        class String: public detail::String {
+            public:
+            String(::SQString* pString, HSQUIRRELVM vm): detail::String(pString, vm) {};
 
+            std::string __str__() {
+                return value();
+            }
 
-    std::string __str__() {
-        return value();
-    }
+            std::string __repr__() {
+                return "\"" + value() + "\"";
+            }
 
-    std::string __repr__() {
-        return "\"" + value() + "\"";
+            SQInteger __len__() {
+                return pString()->_len;
+            }
+        };
     }
-
-    std::string value() {
-        return _stringval(obj);
-    }
-
-    SQInteger __len__() {
-        return _string(obj)->_len;
-    }
-};
-#endif
+}
 
 
 namespace sqbinding { namespace detail {
     #ifdef USE__SQString__
-    typedef _SQString_ string;
+    typedef python::String string;
     #else
     typedef std::string string;
     #endif

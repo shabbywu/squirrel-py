@@ -4,13 +4,6 @@
 #include "object.h"
 
 
-#define __try_cast_pyvalue_tosqobject(object, type) \
-if (std::holds_alternative<std::shared_ptr<type>>(object)) {\
-    auto _val = std::get<std::shared_ptr<type>>(object);\
-    return _val->obj;\
-}
-
-
 #define __try_cast_cppwrapper_tosqobject(object, type, field) \
 if (std::holds_alternative<std::shared_ptr<type>>(object)) {\
     auto _val = std::get<std::shared_ptr<type>>(object);\
@@ -45,10 +38,10 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
         // TODO: 支持复杂的类型代理
         // return SQObjectPtr();
     }
-    __try_cast_pyvalue_tosqobject(value, _SQString_)
+    __try_cast_cppwrapper_tosqobject(value, sqbinding::python::String, pString())
     __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Array, pArray())
     __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Table, pTable())
-    __try_cast_cppwrapper_tosqobject(value, _SQClass_, pClass)
+    __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Class, pClass())
     __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Instance, pInstance())
     __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Closure, pClosure())
     __try_cast_cppwrapper_tosqobject(value, sqbinding::python::NativeClosure, pNativeClosure())
@@ -94,7 +87,7 @@ PyValue pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_topyvalue(v, object, py::type)
 
     #ifdef USE__SQString__
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQString_>)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::String>)
     #else
     __try_cast_pyobject_topyvalue(v, object, std::string)
     #endif
@@ -106,8 +99,8 @@ PyValue pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Table)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<TableIterator>)
     __try_cast_pyobject_to_ptr(v, object, TableIterator)
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQClass_>)
-    __try_cast_pyobject_to_ptr(v, object, _SQClass_)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Class>)
+    __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Class)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Instance>)
     __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Instance)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Closure>)
