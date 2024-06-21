@@ -4,10 +4,8 @@ set(CMAKE_CXX_EXTENSIONS ON)
 file(
   GLOB
   SQBINDING_SOURCE
-  "sqbinding/*.h"
   "sqbinding/*.cpp"
-  "sqbinding/types/*.h"
-  "sqbinding/types/*.cpp"
+  "sqbinding/types/pybinding/*.cpp"
   "sqbinding/vm/*.cpp"
   "sqbinding/common/*.cpp"
   "sqbinding/module_register/*.cpp")
@@ -19,7 +17,8 @@ target_compile_options(sqbinding PUBLIC -fPIC)
 target_include_directories(
   sqbinding PUBLIC ${squirrel_dir}/include ${squirrel_dir}/squirrel
                    ${squall_dir} ${CMAKE_CURRENT_LIST_DIR})
-target_precompile_headers(sqbinding PUBLIC sqbinding/types/definition.h)
+target_precompile_headers(sqbinding PUBLIC
+                          sqbinding/types/pybinding/definition.h)
 
 set_property(TARGET sqbinding PROPERTY CXX_STANDARD 20)
 

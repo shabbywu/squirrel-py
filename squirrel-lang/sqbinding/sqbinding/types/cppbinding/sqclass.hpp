@@ -2,35 +2,35 @@
 
 #include "sqbinding/common/format.h"
 #include "definition.h"
-#include "pydict.hpp"
-
 
 namespace sqbinding {
     namespace detail {
-        class Instance: public std::enable_shared_from_this<Instance> {
+        class Class: public std::enable_shared_from_this<Class> {
             public:
                 struct Holder {
-                    Holder(::SQInstance* pInstance, HSQUIRRELVM vm) : vm(vm) {
-                        instance = pInstance;
-                        sq_addref(vm, &instance);
+                    Holder(::SQClass* pClass, HSQUIRRELVM vm) : vm(vm) {
+                        clazz = pClass;
+                        sq_addref(vm, &clazz);
                     }
                     ~Holder(){
-                        sq_release(vm, &instance);
+                        sq_release(vm, &clazz);
                     }
                     HSQUIRRELVM vm;
-                    SQObjectPtr instance;
+                    SQObjectPtr clazz;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Instance (::SQInstance* pInstance, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pInstance, vm)) {};
+                Class (::SQClass* pClass, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pClass, vm)) {};
 
                 SQUnsignedInteger getRefCount() {
-                    return pInstance() -> _uiRef;
+                    return pClass() -> _uiRef;
                 }
-                ::SQInstance* pInstance() {
-                    return _instance(holder->instance);
+
+                ::SQClass* pClass() {
+                    return _class(holder->clazz);
                 }
+
             public:
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
@@ -51,12 +51,12 @@ namespace sqbinding {
                 template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     HSQUIRRELVM& vm = holder->vm;
-                    SQObjectPtr& self = holder->instance;
+                    SQObjectPtr& self = holder->clazz;
 
                     sq_pushobject(vm, self);
                     sq_pushobject(vm, sqkey);
                     sq_pushobject(vm, sqval);
-                    sq_newslot(vm, -3, SQFalse);
+                    sq_newslot(vm, -3, SQTrue);
                     sq_pop(vm, 1);
                 }
             public:
@@ -86,55 +86,13 @@ namespace sqbinding {
                 template <>
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     HSQUIRRELVM& vm = holder->vm;
-                    SQObjectPtr& self = holder->instance;
+                    SQObjectPtr& self = holder->clazz;
                     if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
                     return true;
                 }
-        };
-    }
-    namespace python {
-        class Instance: public detail::Instance, std::enable_shared_from_this<Instance>{
-            public:
-            // link to a existed pInstance in vm stack
-            Instance (::SQInstance* pInstance, HSQUIRRELVM vm): detail::Instance(pInstance, vm) {};
 
-            PyValue get(PyValue key);
-            // bindFunc to current instance
-            void bindFunc(std::string funcname, PyValue func) {
-                set(PyValue(funcname), PyValue(func));
-            }
-
-            // Python Interface
-            PyValue __getitem__(PyValue& key) {
-                return get(key);
-            }
-            PyValue __setitem__(PyValue key, PyValue val){
-                set<PyValue, PyValue>(key, val);
-                return val;
-            }
-            py::list keys() {
-                HSQUIRRELVM& vm = holder->vm;
-                SQInteger idx = 0;
-                py::list keys;
-                auto table = pInstance()->_class->_members;
-                while (idx < table->_numofnodes) {
-                    auto n = &table->_nodes[idx++];
-                    if (sq_type(n->key) != tagSQObjectType::OT_NULL) {
-                        keys.append(sqobject_topython(n->key, vm));
-                    }
-                }
-                return keys;
-            }
-
-            std::string __str__() {
-                return string_format("OT_INSTANCE: [addr={%p}, ref=%d]", pInstance(), getRefCount());
-            }
-
-            std::string __repr__() {
-                return "SQInstance(" + __str__() + ")";
-            }
         };
     }
 }

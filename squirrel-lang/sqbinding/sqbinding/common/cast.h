@@ -1,6 +1,6 @@
 #pragma once
 #include <type_traits>
-#include "sqbinding/types/definition.h"
+#include "sqbinding/types/pybinding/definition.h"
 
 
 namespace sqbinding {

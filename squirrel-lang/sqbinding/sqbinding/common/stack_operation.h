@@ -3,7 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "sqbinding/common/cast.h"
-#include "sqbinding/types/definition.h"
+#include "sqbinding/types/pybinding/definition.h"
 
 namespace py = pybind11;
 

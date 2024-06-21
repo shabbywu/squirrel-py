@@ -12,8 +12,8 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "sqbinding/types/definition.h"
-#include "sqbinding/types/container.h"
+#include "sqbinding/types/pybinding/definition.h"
+#include "sqbinding/types/pybinding/container.h"
 #include "sqbinding/common/errors.h"
 #include "sqbinding/common/cast.h"
 #include "printer.h"

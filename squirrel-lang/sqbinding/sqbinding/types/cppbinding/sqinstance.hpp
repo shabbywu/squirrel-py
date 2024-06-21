@@ -2,36 +2,34 @@
 
 #include "sqbinding/common/format.h"
 #include "definition.h"
-#include "pydict.hpp"
+
 
 namespace sqbinding {
     namespace detail {
-        class Class: public std::enable_shared_from_this<Class> {
+        class Instance: public std::enable_shared_from_this<Instance> {
             public:
                 struct Holder {
-                    Holder(::SQClass* pClass, HSQUIRRELVM vm) : vm(vm) {
-                        clazz = pClass;
-                        sq_addref(vm, &clazz);
+                    Holder(::SQInstance* pInstance, HSQUIRRELVM vm) : vm(vm) {
+                        instance = pInstance;
+                        sq_addref(vm, &instance);
                     }
                     ~Holder(){
-                        sq_release(vm, &clazz);
+                        sq_release(vm, &instance);
                     }
                     HSQUIRRELVM vm;
-                    SQObjectPtr clazz;
+                    SQObjectPtr instance;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Class (::SQClass* pClass, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pClass, vm)) {};
+                Instance (::SQInstance* pInstance, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pInstance, vm)) {};
 
                 SQUnsignedInteger getRefCount() {
-                    return pClass() -> _uiRef;
+                    return pInstance() -> _uiRef;
                 }
-
-                ::SQClass* pClass() {
-                    return _class(holder->clazz);
+                ::SQInstance* pInstance() {
+                    return _instance(holder->instance);
                 }
-
             public:
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
@@ -52,12 +50,12 @@ namespace sqbinding {
                 template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     HSQUIRRELVM& vm = holder->vm;
-                    SQObjectPtr& self = holder->clazz;
+                    SQObjectPtr& self = holder->instance;
 
                     sq_pushobject(vm, self);
                     sq_pushobject(vm, sqkey);
                     sq_pushobject(vm, sqval);
-                    sq_newslot(vm, -3, SQTrue);
+                    sq_newslot(vm, -3, SQFalse);
                     sq_pop(vm, 1);
                 }
             public:
@@ -87,53 +85,12 @@ namespace sqbinding {
                 template <>
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     HSQUIRRELVM& vm = holder->vm;
-                    SQObjectPtr& self = holder->clazz;
+                    SQObjectPtr& self = holder->instance;
                     if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
                     return true;
                 }
-
-        };
-    }
-
-    namespace python {
-        class Class: public detail::Class, public std::enable_shared_from_this<Class> {
-            public:
-            // link to a existed table in vm stack
-            Class (::SQClass* pClass, HSQUIRRELVM vm): detail::Class(pClass, vm) {}
-
-            PyValue get(PyValue key);
-            // bindFunc to current class
-            void bindFunc(std::string funcname, PyValue func) {
-                set(PyValue(funcname), PyValue(func));
-            }
-
-            // Python Interface
-            SQInteger __len__() {
-                return 0;
-                // return pClass->CountUsed();
-            }
-            PyValue __getitem__(PyValue key) {
-                return std::move(get(key));
-            }
-            PyValue __setitem__(PyValue key, PyValue val) {
-                set(key, val);
-                return val;
-            }
-            py::list keys() {
-                HSQUIRRELVM& vm = holder->vm;
-                return std::move(sqbinding::python::Table(pClass()->_members, vm).keys());
-            }
-
-
-            std::string __str__() {
-                return string_format("OT_CLASS: [addr={%p}, ref=%d]", pClass(), getRefCount());
-            }
-
-            std::string __repr__() {
-                return "SQClass(" + __str__() + ")";
-            }
         };
     }
 }

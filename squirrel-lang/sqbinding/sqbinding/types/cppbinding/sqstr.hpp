@@ -34,25 +34,6 @@ namespace sqbinding {
             std::shared_ptr<Holder> holder;
         };
     }
-
-    namespace python {
-        class String: public detail::String {
-            public:
-            String(::SQString* pString, HSQUIRRELVM vm): detail::String(pString, vm) {};
-
-            std::string __str__() {
-                return value();
-            }
-
-            std::string __repr__() {
-                return "\"" + value() + "\"";
-            }
-
-            SQInteger __len__() {
-                return pString()->_len;
-            }
-        };
-    }
 }
 
 
