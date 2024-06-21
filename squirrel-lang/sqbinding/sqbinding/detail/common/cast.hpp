@@ -62,5 +62,10 @@ namespace sqbinding {
         SQObjectPtr generic_cast(HSQUIRRELVM vm, int& obj) {
             return SQObjectPtr(obj);
         }
+
+        template <> inline
+        SQObjectPtr generic_cast(HSQUIRRELVM vm, std::string& obj) {
+            return SQObjectPtr(SQString::Create(_ss(vm), obj.c_str(), obj.size()));
+        }
     }
 }

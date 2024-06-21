@@ -1,5 +1,6 @@
 #pragma once
 #include <type_traits>
+#include <concepts>
 #include "sqbinding/detail/common/cast.hpp"
 #include "sqbinding/pybinding/types/definition.h"
 
