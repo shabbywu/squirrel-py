@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sqbinding/common/format.h"
 #include "definition.h"
 #include "pydict.h"
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <squirrel.h>
+#include "sqbinding/common/format.h"
 #include "definition.h"
 
 namespace sqbinding {

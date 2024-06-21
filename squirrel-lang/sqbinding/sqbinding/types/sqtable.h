@@ -1,7 +1,8 @@
 #pragma once
 
-#include "definition.h"
+#include "sqbinding/common/format.h"
 #include "sqbinding/common/errors.h"
+#include "definition.h"
 
 
 namespace sqbinding {

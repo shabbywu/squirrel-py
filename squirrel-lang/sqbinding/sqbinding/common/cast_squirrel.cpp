@@ -1,4 +1,5 @@
 #include "cast.h"
+#include "format.h"
 #include "sqbinding/types/definition.h"
 #include "sqbinding/types/container.h"
 #include "sqbinding/types/sqobject.h"
