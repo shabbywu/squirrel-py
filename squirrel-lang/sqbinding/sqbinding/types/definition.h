@@ -22,7 +22,6 @@
 
 
 class _SQObjectPtr_;
-class _SQArray_;
 class _SQClass_;
 class _SQInstance_;
 class _SQString_;
@@ -37,12 +36,13 @@ namespace sqbinding {
         class Closure;
         class NativeClosure;
         class Table;
+        class Array;
     }
 }
 
 namespace py = pybind11;
 
-typedef std::variant<py::none, std::shared_ptr<_SQString_>, std::shared_ptr<_SQArray_>, std::shared_ptr<sqbinding::python::Table>, std::shared_ptr<sqbinding::python::Closure>, std::shared_ptr<sqbinding::python::NativeClosure>, std::shared_ptr<_SQClass_>, std::shared_ptr<_SQInstance_>, std::shared_ptr<ArrayIterator>, std::shared_ptr<TableIterator>, py::int_, py::float_, py::bool_, std::string, py::list, py::dict, py::function, py::type, py::object> PyValue;
+typedef std::variant<py::none, std::shared_ptr<_SQString_>, std::shared_ptr<sqbinding::python::Array>, std::shared_ptr<sqbinding::python::Table>, std::shared_ptr<sqbinding::python::Closure>, std::shared_ptr<sqbinding::python::NativeClosure>, std::shared_ptr<_SQClass_>, std::shared_ptr<_SQInstance_>, std::shared_ptr<ArrayIterator>, std::shared_ptr<TableIterator>, py::int_, py::float_, py::bool_, std::string, py::list, py::dict, py::function, py::type, py::object> PyValue;
 
 
 namespace vmlock {

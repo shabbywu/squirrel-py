@@ -6,10 +6,10 @@
 
 class ArrayIterator {
 public:
-    _SQArray_* obj;
+    sqbinding::python::Array* obj;
     SQInteger idx = 0;
 
-    ArrayIterator(_SQArray_ *obj){
+    ArrayIterator(sqbinding::python::Array *obj){
         this->obj = obj;
     };
     PyValue __next__();

@@ -46,7 +46,7 @@ SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
         // return SQObjectPtr();
     }
     __try_cast_pyvalue_tosqobject(value, _SQString_)
-    __try_cast_cppwrapper_tosqobject(value, _SQArray_, pArray)
+    __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Array, pArray())
     __try_cast_cppwrapper_tosqobject(value, sqbinding::python::Table, pTable())
     __try_cast_cppwrapper_tosqobject(value, _SQClass_, pClass)
     __try_cast_cppwrapper_tosqobject(value, _SQInstance_, pInstance)
@@ -98,8 +98,8 @@ PyValue pyobject_topyvalue(py::object object) {
     #else
     __try_cast_pyobject_topyvalue(v, object, std::string)
     #endif
-    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<_SQArray_>)
-    __try_cast_pyobject_to_ptr(v, object, _SQArray_)
+    __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Array>)
+    __try_cast_pyobject_to_ptr(v, object, sqbinding::python::Array)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<ArrayIterator>)
     __try_cast_pyobject_to_ptr(v, object, ArrayIterator)
     __try_cast_pyobject_topyvalue(v, object, std::shared_ptr<sqbinding::python::Table>)

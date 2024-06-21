@@ -108,14 +108,14 @@ void register_squirrel_type(py::module_ &m) {
     }, py::return_value_policy::move)
     ;
 
-    py::class_<_SQArray_, std::shared_ptr<_SQArray_>>(m, "SQArray")
-    .def(py::init([](HSQUIRRELVM vm) { return std::make_shared<_SQArray_>(_SQArray_(vm)); }))
-    .def("__iter__", &_SQArray_::__iter__, py::return_value_policy::reference_internal)
-    .def("__getitem__", &_SQArray_::__getitem__, py::arg("idx"), py::return_value_policy::move)
-    .def("__setitem__", &_SQArray_::__setitem__, py::arg("idx"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("append", &_SQArray_::append, py::arg("val"), py::keep_alive<1, 2>())
-    .def("pop", &_SQArray_::pop, py::return_value_policy::reference_internal)
-    .def("__len__", &_SQArray_::__len__)
+    py::class_<sqbinding::python::Array, std::shared_ptr<sqbinding::python::Array>>(m, "SQArray")
+    .def(py::init([](HSQUIRRELVM vm) { return std::make_shared<sqbinding::python::Array>(sqbinding::python::Array(vm)); }))
+    .def("__iter__", &sqbinding::python::Array::__iter__, py::return_value_policy::reference_internal)
+    .def("__getitem__", &sqbinding::python::Array::__getitem__, py::arg("idx"), py::return_value_policy::move)
+    .def("__setitem__", &sqbinding::python::Array::__setitem__, py::arg("idx"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+    .def("append", &sqbinding::python::Array::append, py::arg("val"), py::keep_alive<1, 2>())
+    .def("pop", &sqbinding::python::Array::pop, py::return_value_policy::reference_internal)
+    .def("__len__", &sqbinding::python::Array::__len__)
     ;
 
     py::class_<SQObjectPtr>(m, "__SQObjectPtr");
