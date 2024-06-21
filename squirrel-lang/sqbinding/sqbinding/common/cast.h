@@ -1,4 +1,5 @@
 #pragma once
+#include <type_traits>
 #include "sqbinding/types/definition.h"
 
 
@@ -16,6 +17,12 @@ namespace sqbinding {
     namespace detail {
         template <class FromType, class ToType> inline
         ToType generic_cast(HSQUIRRELVM vm, FromType& obj);
+
+        // cast any to SQObjectPtr
+        template <> inline
+        SQObjectPtr generic_cast(HSQUIRRELVM vm, int& obj) {
+            return SQObjectPtr(obj);
+        }
 
         template <> inline
         SQObjectPtr generic_cast(HSQUIRRELVM vm, PyValue& obj) {

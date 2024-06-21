@@ -113,8 +113,8 @@ void register_squirrel_type(py::module_ &m) {
     .def("__iter__", &sqbinding::python::Array::__iter__, py::return_value_policy::reference_internal)
     .def("__getitem__", &sqbinding::python::Array::__getitem__, py::arg("idx"), py::return_value_policy::move)
     .def("__setitem__", &sqbinding::python::Array::__setitem__, py::arg("idx"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("append", &sqbinding::python::Array::append, py::arg("val"), py::keep_alive<1, 2>())
-    .def("pop", &sqbinding::python::Array::pop, py::return_value_policy::reference_internal)
+    .def("append", &sqbinding::python::Array::append<PyValue>, py::arg("val"), py::keep_alive<1, 2>())
+    .def("pop", &sqbinding::python::Array::pop<PyValue>, py::return_value_policy::reference_internal)
     .def("__len__", &sqbinding::python::Array::__len__)
     ;
 
