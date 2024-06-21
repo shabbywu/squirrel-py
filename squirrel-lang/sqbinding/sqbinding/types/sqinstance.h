@@ -1,68 +1,63 @@
-#ifndef _SQBINDING_INSTANCE_H_
-#define _SQBINDING_INSTANCE_H_
+#pragma once
 
 #include "definition.h"
 #include "sqiterator.h"
 #include "pydict.h"
 
 
-class _SQInstance_ : public std::enable_shared_from_this<_SQInstance_>  {
-public:
-    SQObjectPtr handler;
-    SQInstance* pInstance;
-    HSQUIRRELVM vm = nullptr;
+namespace sqbinding {
+    namespace detail {
+        class Instance: public std::enable_shared_from_this<Instance> {
+            public:
+                struct Holder {
+                    Holder(::SQInstance* pInstance, HSQUIRRELVM vm) : vm(vm) {
+                        instance = pInstance;
+                        sq_addref(vm, &instance);
+                    }
+                    ~Holder(){
+                        sq_release(vm, &instance);
+                    }
+                    HSQUIRRELVM vm;
+                    SQObjectPtr instance;
+                };
 
-    // link to a existed pInstance in vm stack
-    _SQInstance_ (SQInstance* pInstance, HSQUIRRELVM vm): pInstance(pInstance), vm(vm), handler(pInstance) {
-        sq_addref(vm, &handler);
+                Instance (::SQInstance* pInstance, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pInstance, vm)) {};
+
+                SQUnsignedInteger getRefCount() {
+                    return pInstance() -> _uiRef;
+                }
+
+                ::SQInstance* pInstance() {
+                    return _instance(holder->instance);
+                }
+                std::shared_ptr<Holder> holder;
+        };
     }
+    namespace python {
+        class Instance: public detail::Instance, std::enable_shared_from_this<Instance>{
+            public:
+            // link to a existed pInstance in vm stack
+            Instance (::SQInstance* pInstance, HSQUIRRELVM vm): detail::Instance(pInstance, vm) {};
 
-    _SQInstance_(const _SQInstance_& rhs) {
-        pInstance = rhs.pInstance;
-        vm = rhs.vm;
-        handler = pInstance;
-        sq_addref(vm, &handler);
+            PyValue get(PyValue key);
+            PyValue set(PyValue key, PyValue val);
+            PyValue getAttributes(PyValue key);
+            PyValue setAttributes(PyValue key, PyValue val);
+            // bindFunc to current instance
+            void bindFunc(std::string funcname, py::function func);
+
+            // Python Interface
+            PyValue __getitem__(PyValue key);
+            PyValue __setitem__(PyValue key, PyValue val);
+            py::list keys();
+
+            std::string __str__() {
+                return string_format("OT_INSTANCE: [addr={%p}, ref=%d]", pInstance(), getRefCount());
+            }
+
+            std::string __repr__() {
+                return "SQInstance(" + __str__() + ")";
+            }
+        };
     }
-    _SQInstance_& operator=(const _SQInstance_& rhs) {
-        release();
-        pInstance = rhs.pInstance;
-        vm = rhs.vm;
-        handler = pInstance;
-        sq_addref(vm, &handler);
-        return *this;
-    };
-
-    ~_SQInstance_() {
-        release();
-    }
-
-    void release() {
-        __check_vmlock(vm)
-        #ifdef TRACE_CONTAINER_GC
-        std::cout << "GC::Release " << __repr__() << " uiRef--=" << this -> pInstance -> _uiRef -2 << std::endl;
-        #endif
-        sq_release(vm, &handler);
-        handler.Null();
-    }
-
-    PyValue get(PyValue key);
-    PyValue set(PyValue key, PyValue val);
-    PyValue getAttributes(PyValue key);
-    PyValue setAttributes(PyValue key, PyValue val);
-    // bindFunc to current instance
-    void bindFunc(std::string funcname, py::function func);
-
-    // Python Interface
-    PyValue __getitem__(PyValue key);
-    PyValue __setitem__(PyValue key, PyValue val);
-    py::list keys();
-
-    std::string __str__() {
-        return string_format("OT_INSTANCE: [addr={%p}, ref=%d]", pInstance, pInstance->_uiRef);
-    }
-
-    std::string __repr__() {
-        return "SQInstance(" + __str__() + ")";
-    }
-};
-#endif
+}

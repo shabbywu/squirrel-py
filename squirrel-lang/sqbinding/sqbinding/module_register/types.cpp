@@ -70,15 +70,15 @@ void register_squirrel_type(py::module_ &m) {
     .def("bindfunc", &_SQClass_::bindFunc, py::arg("funcname"), py::arg("func"))
     ;
 
-    py::class_<_SQInstance_, std::shared_ptr<_SQInstance_>>(m, "SQInstance")
-    .def("__getitem__", &_SQInstance_::__getitem__, py::arg("key"), py::return_value_policy::move)
-    .def("__setitem__", &_SQInstance_::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("__getattr__", &_SQInstance_::__getitem__, py::arg("key"), py::return_value_policy::move)
-    .def("__setattr__", &_SQInstance_::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("keys", &_SQInstance_::keys, py::return_value_policy::take_ownership)
-    .def("bindfunc", &_SQInstance_::bindFunc, py::arg("funcname"), py::arg("func"))
-    .def("__str__", &_SQInstance_::__str__)
-    .def("__repr__", &_SQInstance_::__repr__)
+    py::class_<sqbinding::python::Instance, std::shared_ptr<sqbinding::python::Instance>>(m, "SQInstance")
+    .def("__getitem__", &sqbinding::python::Instance::__getitem__, py::arg("key"), py::return_value_policy::move)
+    .def("__setitem__", &sqbinding::python::Instance::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+    .def("__getattr__", &sqbinding::python::Instance::__getitem__, py::arg("key"), py::return_value_policy::move)
+    .def("__setattr__", &sqbinding::python::Instance::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+    .def("keys", &sqbinding::python::Instance::keys, py::return_value_policy::take_ownership)
+    .def("bindfunc", &sqbinding::python::Instance::bindFunc, py::arg("funcname"), py::arg("func"))
+    .def("__str__", &sqbinding::python::Instance::__str__)
+    .def("__repr__", &sqbinding::python::Instance::__repr__)
     ;
 
     py::class_<_SQString_, std::shared_ptr<_SQString_>>(m, "SQString")
