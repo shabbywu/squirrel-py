@@ -1,6 +1,7 @@
-#include "definition.h"
-#include "container.h"
-#include "sqobject.h"
+#include "cast.h"
+#include "sqbinding/types/definition.h"
+#include "sqbinding/types/container.h"
+#include "sqbinding/types/sqobject.h"
 
 
 #define __try_cast_cppwrapper_tosqobject(object, type, field) \
@@ -10,7 +11,7 @@ if (std::holds_alternative<std::shared_ptr<type>>(object)) {\
 }
 
 
-SQObjectPtr pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
+SQObjectPtr sqbinding::python::pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
     // 尝试解包装
     if (std::holds_alternative<py::object>(value)) {
         value = pyobject_topyvalue(std::get<py::object>(value));
@@ -66,7 +67,7 @@ if (py::isinstance<type>(object)) {\
 }
 
 
-PyValue pyobject_topyvalue(py::object object) {
+PyValue sqbinding::python::pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_topyvalue(v, object, py::none)
     if (py::isinstance<py::int_>(object)) {
         return py::cast<py::int_>(object);
@@ -108,4 +109,53 @@ PyValue pyobject_topyvalue(py::object object) {
     __try_cast_pyobject_to_ptr(v, object, sqbinding::python::NativeClosure)
 
     return object;
+}
+
+
+#define __try_cast_pyuserdata_to_python(object, typetag, cpp_type) \
+if (_userdata(object)->_typetag == (void*)typetag) {\
+    return ((cpp_type*)(sq_aligning(_userdata(object) + 1)))->_val;\
+}
+
+
+PyValue sqbinding::python::sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
+    switch (sq_type(object))
+    {
+    case tagSQObjectType::OT_NULL:
+        return PyValue(py::none());
+    case tagSQObjectType::OT_INTEGER:
+        return PyValue(py::int_(_integer(object)));
+    case tagSQObjectType::OT_FLOAT:
+        return PyValue(py::float_(_float(object)));
+    case tagSQObjectType::OT_BOOL:
+        return PyValue(py::bool_(_integer(object)));
+    case tagSQObjectType::OT_STRING:
+        #ifdef USE__SQString__
+        return PyValue(std::make_shared<sqbinding::python::String>(sqbinding::python::String(_string(object), vm)));
+        #else
+        return std::string(_stringval(object));
+        #endif
+    case tagSQObjectType::OT_ARRAY:
+        return std::move(std::shared_ptr<sqbinding::python::Array>(new sqbinding::python::Array{_array(object), vm}));
+    case tagSQObjectType::OT_TABLE:
+        return std::move(std::shared_ptr<sqbinding::python::Table>(new sqbinding::python::Table{_table(object), vm}));
+    case tagSQObjectType::OT_CLASS:
+        return std::move(std::shared_ptr<sqbinding::python::Class>(new sqbinding::python::Class{_class(object), vm}));
+    case tagSQObjectType::OT_INSTANCE:
+        return std::move(std::shared_ptr<sqbinding::python::Instance>(new sqbinding::python::Instance{_instance(object), vm}));
+    case tagSQObjectType::OT_CLOSURE:
+        return std::move(std::shared_ptr<sqbinding::python::Closure>(new sqbinding::python::Closure{_closure(object), vm}));
+    case tagSQObjectType::OT_NATIVECLOSURE:
+        return std::move(std::shared_ptr<sqbinding::python::NativeClosure>(new sqbinding::python::NativeClosure{_nativeclosure(object), vm}));
+    case tagSQObjectType::OT_USERDATA:
+        {
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_LIST, SQPythonList)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_DICT, SQPythonDict)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_FUNCTION, SQPythonFunction)
+            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_OBJECT, SQPythonObject)
+        }
+    default:
+        std::cout << "cast unknown obj to python: " << detail::sqobject_to_string(object) << std::endl;
+        return py::none();
+    }
 }

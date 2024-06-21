@@ -1,5 +1,6 @@
 #include "definition.h"
 #include "container.h"
+#include "sqbinding/common/cast.h"
 
 
 PyValue sqbinding::python::Array::__getitem__(int idx) {
@@ -21,7 +22,7 @@ PyValue sqbinding::python::Array::__setitem__(int idx, PyValue val) {
     if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
         return val;
     }
-    throw std::runtime_error(string_format("can't set idx=%d", idx) + " to value=" + sqobject_to_string(sqval));
+    throw std::runtime_error(string_format("can't set idx=%d", idx) + " to value=" + detail::sqobject_to_string(sqval));
 }
 
 PyValue sqbinding::python::Array::append(PyValue val) {

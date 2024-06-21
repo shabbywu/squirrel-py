@@ -3,7 +3,8 @@
 #include "sqbinding/vm/compiler.h"
 #include "sqbinding/types/container.h"
 
-typedef BaseVM StaticVM;
+typedef sqbinding::python::BaseVM StaticVM;
+typedef sqbinding::python::GenericVM GenericVM;
 
 
 std::shared_ptr<StaticVM> static_vm;

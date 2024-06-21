@@ -9,6 +9,7 @@ file(
   "sqbinding/types/*.h"
   "sqbinding/types/*.cpp"
   "sqbinding/vm/*.cpp"
+  "sqbinding/common/*.cpp"
   "sqbinding/module_register/*.cpp")
 
 add_library(sqbinding STATIC ${SQBINDING_SOURCE})

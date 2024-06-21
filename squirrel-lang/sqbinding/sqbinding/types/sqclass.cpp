@@ -1,5 +1,6 @@
 #include "definition.h"
 #include "container.h"
+#include "sqbinding/common/cast.h"
 
 
 PyValue sqbinding::python::Class::get(PyValue key) {
@@ -19,7 +20,7 @@ PyValue sqbinding::python::Class::get(PyValue key) {
         }
         return std::move(v);
     }
-    throw py::key_error(sqobject_to_string(sqkey));
+    throw py::key_error(detail::sqobject_to_string(sqkey));
 }
 
 PyValue sqbinding::python::Class::getAttributes(PyValue key) {
@@ -29,14 +30,14 @@ PyValue sqbinding::python::Class::getAttributes(PyValue key) {
     if (pClass()->GetAttributes(sqkey, sqval)) {
         return sqobject_topython(sqval, vm);
     }
-    throw py::key_error(sqobject_to_string(sqkey));
+    throw py::key_error(detail::sqobject_to_string(sqkey));
 }
 
 PyValue sqbinding::python::Class::set(PyValue key, PyValue val) {
     HSQUIRRELVM& vm = holder->vm;
     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    std::cout << "call class set key: " << sqobject_to_string(sqkey) << " , value: " << sqobject_to_string(sqval) << std::endl;
+    std::cout << "call class set key: " << detail::sqobject_to_string(sqkey) << " , value: " << detail::sqobject_to_string(sqval) << std::endl;
     pClass()->NewSlot(_ss(vm), sqkey, sqval, 1);
     return val;
 }

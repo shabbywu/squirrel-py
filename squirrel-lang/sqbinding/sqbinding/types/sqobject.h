@@ -1,6 +1,7 @@
 #pragma once
 
 #include "definition.h"
+#include "sqbinding/common/cast.h"
 
 namespace sqbinding {
     namespace detail {
@@ -51,11 +52,11 @@ namespace sqbinding {
             void from_python(PyValue val);
 
             std::string __str__() {
-                return sqobject_to_string(**this);
+                return detail::sqobject_to_string(**this);
             }
 
             std::string __repr__() {
-                return "SQObjectPtr(" + sqobject_to_string(**this) + ")";
+                return "SQObjectPtr(" + detail::sqobject_to_string(**this) + ")";
             }
         };
     }

@@ -21,12 +21,14 @@
 #include <iostream>
 
 
-class SQPythonDict;
-class SQPythonList;
-class SQPythonObject;
+
 
 namespace sqbinding {
     namespace python {
+        class SQPythonDict;
+        class SQPythonList;
+        class SQPythonObject;
+
         class ObjectPtr;
         class Closure;
         class NativeClosure;
@@ -79,11 +81,6 @@ std::string string_format( const std::string& format, Args ... args )
     std::snprintf( buf.get(), size, format.c_str(), args ... );
     return std::string( buf.get(), buf.get() + size - 1 ); // We don't want the '\0' inside
 }
-std::string sqobject_to_string(SQObjectPtr&);
-
-PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm);
-SQObjectPtr pyvalue_tosqobject(PyValue object, HSQUIRRELVM vm);
-PyValue pyobject_topyvalue(py::object object);
 
 enum class PythonTypeTags {
     TYPE_DICT = 0b01,

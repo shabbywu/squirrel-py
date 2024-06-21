@@ -1,7 +1,7 @@
 #include "base_vm.h"
 #include "generic_vm.h"
 
-HSQUIRRELVM open_sqvm(int size, unsigned int libsToLoad) {
+HSQUIRRELVM sqbinding::detail::open_sqvm(int size, unsigned int libsToLoad) {
         HSQUIRRELVM vm = sq_open(size);
         sq_setprintfunc(vm, printStdout, printStdErr);
         sq_setcompilererrorhandler(vm, printCompileError);

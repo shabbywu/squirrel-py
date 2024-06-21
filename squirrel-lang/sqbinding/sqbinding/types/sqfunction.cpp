@@ -1,5 +1,6 @@
 #include "definition.h"
 #include "container.h"
+#include "sqbinding/common/cast.h"
 
 namespace py = pybind11;
 
@@ -123,7 +124,7 @@ PyValue sqbinding::python::Closure::get(PyValue key) {
         }
         return std::move(v);
     }
-    throw py::key_error(sqobject_to_string(sqkey));
+    throw py::key_error(detail::sqobject_to_string(sqkey));
 }
 
 
@@ -145,5 +146,5 @@ PyValue sqbinding::python::NativeClosure::get(PyValue key) {
         }
         return std::move(v);
     }
-    throw py::key_error(sqobject_to_string(sqkey));
+    throw py::key_error(detail::sqobject_to_string(sqkey));
 }

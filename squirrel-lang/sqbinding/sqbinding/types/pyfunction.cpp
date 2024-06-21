@@ -3,7 +3,7 @@
 
 // PythonNativeCall: wrapper for python function, will not pass squirrel env to python object.
 // this function will be used to call python func in SQVM and return result to SQVM
-SQInteger PythonNativeCall(HSQUIRRELVM vm) {
+SQInteger sqbinding::python::PythonNativeCall(HSQUIRRELVM vm) {
     py::gil_scoped_acquire acquire;
     py::function* func;
     sq_getuserdata(vm, -1, (void**)&func, NULL);
@@ -29,7 +29,7 @@ SQInteger PythonNativeCall(HSQUIRRELVM vm) {
 
 // PythonNativeRawCall: wrapper for python function, will pass squirrel env to python object.
 // this function will be used to call python func in SQVM and return result to SQVM
-SQInteger PythonNativeRawCall(HSQUIRRELVM vm) {
+SQInteger sqbinding::python::PythonNativeRawCall(HSQUIRRELVM vm) {
     py::gil_scoped_acquire acquire;
     py::function* func;
     sq_getuserdata(vm, -1, (void**)&func, NULL);

@@ -1,5 +1,6 @@
 #include "definition.h"
 #include "container.h"
+#include "sqbinding/common/cast.h"
 
 
 PyValue sqbinding::python::Table::get(PyValue key) {
@@ -19,7 +20,7 @@ PyValue sqbinding::python::Table::get(PyValue key) {
         }
         return std::move(v);
     }
-    throw py::key_error(sqobject_to_string(sqkey));
+    throw py::key_error(detail::sqobject_to_string(sqkey));
 }
 
 
@@ -31,7 +32,7 @@ void sqbinding::python::Table::set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
     } else if (vm->NewSlot(self, sqkey, sqval, false)) {
         return;
     }
-    throw std::runtime_error("can't set key=" + sqobject_to_string(sqkey) + " to value=" + sqobject_to_string(sqval));
+    throw std::runtime_error("can't set key=" + detail::sqobject_to_string(sqkey) + " to value=" + detail::sqobject_to_string(sqval));
 }
 
 

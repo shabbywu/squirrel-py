@@ -32,32 +32,32 @@ static SQInteger read_string(SQUserPointer p,SQUserPointer buffer,SQInteger size
 }
 
 
-void BaseVM::DumpStack(SQInteger stackbase = -1, bool dumpall = false) {
+void sqbinding::python::BaseVM::DumpStack(SQInteger stackbase = -1, bool dumpall = false) {
     vm->dumpstack(stackbase, dumpall);
 }
 
-SQInteger BaseVM::gettop() {
+SQInteger sqbinding::python::BaseVM::gettop() {
     return sq_gettop(vm);
 }
 
-void BaseVM::settop(SQInteger top) {
+void sqbinding::python::BaseVM::settop(SQInteger top) {
     return sq_settop(vm, top);
 }
 
-std::shared_ptr<sqbinding::python::Table> BaseVM::getroottable() {
+std::shared_ptr<sqbinding::python::Table> sqbinding::python::BaseVM::getroottable() {
     if (roottable == NULL) {
         roottable = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(_table(vm->_roottable), vm));
     }
     return roottable;
 }
 
-void BaseVM::setroottable(std::shared_ptr<sqbinding::python::Table> roottable) {
+void sqbinding::python::BaseVM::setroottable(std::shared_ptr<sqbinding::python::Table> roottable) {
     vm->_roottable = roottable.get();
     roottable = NULL;
 }
 
 
-PyValue BaseVM::ExecuteString(std::string sourcecode, PyValue env) {
+PyValue sqbinding::python::BaseVM::ExecuteString(std::string sourcecode, PyValue env) {
     SQInteger oldtop = sq_gettop(vm);
 
     if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
@@ -71,7 +71,7 @@ PyValue BaseVM::ExecuteString(std::string sourcecode, PyValue env) {
     return func->__call__(py::list());
 }
 
-PyValue BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
+PyValue sqbinding::python::BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
     auto reader = StringReaderCtx(bytecode);
     SQInteger oldtop = sq_gettop(vm);
     if (!SQ_SUCCEEDED(sq_readclosure(vm, read_string, &reader))) {
@@ -84,10 +84,10 @@ PyValue BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
     return func->__call__(py::list());
 }
 
-std::shared_ptr<sqbinding::python::ObjectPtr> BaseVM::StackTop() {
+std::shared_ptr<sqbinding::python::ObjectPtr> sqbinding::python::BaseVM::StackTop() {
     return std::make_shared<sqbinding::python::ObjectPtr>(vm->Top(), vm);
 };
 
-void BaseVM::bindFunc(std::string funcname, py::function func) {
+void sqbinding::python::BaseVM::bindFunc(std::string funcname, py::function func) {
     sqbinding::python::Table(_table(vm->_roottable), vm).bindFunc(funcname, func);
 }
