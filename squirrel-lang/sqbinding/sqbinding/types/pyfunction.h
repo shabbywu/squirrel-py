@@ -2,7 +2,7 @@
 
 #include "definition.h"
 #include "sqfunction.h"
-#include "sqstr.h"
+#include "sqstr.hpp"
 #include "sqbinding/common/cast.h"
 
 namespace py = pybind11;

@@ -17,11 +17,10 @@ namespace sqbinding {
 
         HSQUIRRELVM open_sqvm(int size, unsigned int libsToLoad);
 
-        class GenericVM: public python::BaseVM {
+        class GenericVM: public detail::BaseVM {
             public:
-                struct Holder: python::BaseVM::Holder {
-                    Holder(HSQUIRRELVM vm) : python::BaseVM::Holder(vm) {
-                        std::cout << "detail::GenericVM::Holder()" << std::endl;
+                struct Holder: BaseVM::Holder {
+                    Holder(HSQUIRRELVM vm) : BaseVM::Holder(vm) {
                     };
                     ~Holder(){
                         #ifdef TRACE_CONTAINER_GC
@@ -39,7 +38,7 @@ namespace sqbinding {
                 GenericVM(HSQUIRRELVM vm): BaseVM(vm) {};
                 GenericVM(): GenericVM(1024) {}
                 GenericVM(int size): GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
-                GenericVM(int size, unsigned int libsToLoad): python::BaseVM(detail::open_sqvm(size, libsToLoad)) {}
+                GenericVM(int size, unsigned int libsToLoad): BaseVM(detail::open_sqvm(size, libsToLoad)) {}
         };
     }
 
@@ -50,6 +49,11 @@ namespace sqbinding {
             GenericVM(): detail::GenericVM(1024) {}
             GenericVM(int size): detail::GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
             GenericVM(int size, unsigned int libsToLoad): detail::GenericVM(size, libsToLoad) {}
+
+            void bindFunc(std::string funcname, py::function func) {
+                HSQUIRRELVM& vm = holder->vm;
+                holder->roottable->bindFunc(funcname, func);
+            }
         };
     }
 }

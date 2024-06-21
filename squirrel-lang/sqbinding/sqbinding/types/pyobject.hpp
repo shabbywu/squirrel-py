@@ -1,6 +1,6 @@
 #pragma once
 #include "definition.h"
-#include "sqstr.h"
+#include "sqstr.hpp"
 #include "pyfunction.h"
 #include "sqbinding/common/cast.h"
 

@@ -2,7 +2,7 @@
 #include "format.h"
 #include "sqbinding/types/definition.h"
 #include "sqbinding/types/container.h"
-#include "sqbinding/types/sqobject.h"
+#include "sqbinding/types/sqobject.hpp"
 
 
 #define __try_cast_cppwrapper_tosqobject(object, type, field) \

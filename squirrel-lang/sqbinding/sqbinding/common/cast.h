@@ -18,6 +18,9 @@ namespace sqbinding {
         template <class FromType, class ToType> inline
         ToType generic_cast(HSQUIRRELVM vm, FromType& obj);
 
+        template <class FromType> inline
+        void generic_cast(HSQUIRRELVM vm, FromType& obj) {};
+
         // cast any to SQObjectPtr
         template <> inline
         SQObjectPtr generic_cast(HSQUIRRELVM vm, int& obj) {

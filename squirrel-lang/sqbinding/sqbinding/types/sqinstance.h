@@ -2,7 +2,7 @@
 
 #include "sqbinding/common/format.h"
 #include "definition.h"
-#include "pydict.h"
+#include "pydict.hpp"
 
 
 namespace sqbinding {

@@ -2,7 +2,7 @@
 #include "format.h"
 #include "sqbinding/types/definition.h"
 #include "sqbinding/types/container.h"
-#include "sqbinding/types/sqobject.h"
+#include "sqbinding/types/sqobject.hpp"
 
 
 std::string sqbinding::detail::sqobject_to_string(SQObjectPtr& self) {
