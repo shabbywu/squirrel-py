@@ -2,7 +2,7 @@
 #define _SQBINDING_CONTAINER_H_
 
 #include "sqobject.hpp"
-#include "sqarray.h"
+#include "sqarray.hpp"
 #include "sqtable.h"
 #include "sqstr.hpp"
 #include "sqfunction.h"

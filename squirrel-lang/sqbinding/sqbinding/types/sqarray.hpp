@@ -120,16 +120,7 @@ namespace sqbinding {
     }
 
     namespace python {
-        class Array;
-        class ArrayIterator {
-        public:
-            sqbinding::python::Array* obj;
-            SQInteger idx = 0;
-
-            ArrayIterator(sqbinding::python::Array *obj): obj(obj) {};
-            PyValue __next__();
-        };
-
+        class ArrayIterator;
         class Array: public detail::Array, public std::enable_shared_from_this<Array> {
             public:
                 // create a array in vm stack
@@ -137,15 +128,19 @@ namespace sqbinding {
                 Array(SQArray* pArray, HSQUIRRELVM vm): detail::Array(pArray, vm) {}
 
                 // Python Interface
-                PyValue __getitem__(int idx);
-                PyValue __setitem__(int idx, PyValue val);
-                ArrayIterator __iter__() {
-                    return ArrayIterator(this);
+                PyValue __getitem__(int idx) {
+                    return get<int, PyValue>(idx);
+                }
+                PyValue __setitem__(int idx, PyValue val) {
+                    set<int, PyValue>(idx, val);
+                    return val;
+                }
+                std::shared_ptr<ArrayIterator> __iter__() {
+                    return std::make_shared<ArrayIterator>(this);
                 }
                 SQInteger __len__() {
                     return pArray()->Size();
                 }
-
 
                 std::string __str__() {
                     return to_string();
@@ -154,6 +149,27 @@ namespace sqbinding {
                 std::string __repr__() {
                     return "SQArray(" + to_string() + ")";
                 }
+        };
+
+        class ArrayIterator {
+        public:
+            sqbinding::python::Array* obj;
+            SQInteger idx = 0;
+
+            ArrayIterator(sqbinding::python::Array *obj): obj(obj) {};
+            PyValue __next__() {
+                if (idx < 0) {
+                    throw py::stop_iteration();
+                }
+                PyValue result;
+                try {
+                    result = obj->__getitem__(idx);
+                } catch(const py::index_error& e) {
+                    throw py::stop_iteration();
+                }
+                idx++;
+                return result;
+            }
         };
     }
 }
