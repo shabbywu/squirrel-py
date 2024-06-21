@@ -1,12 +1,13 @@
 #include "definition.h"
 #include "container.h"
-#include "sqbinding/common/cast.h"
+#include "sqtable.h"
+#include "sqbinding/pybinding/common/cast.h"
 
 
-PyValue sqbinding::python::Table::get(PyValue& key) {
+PyValue sqbinding::python::Instance::get(PyValue key) {
     HSQUIRRELVM& vm = holder->vm;
-    SQObjectPtr& self = holder->table;
-    auto v = detail::Table::get<PyValue, PyValue>(key);
+    SQObjectPtr& self = holder->instance;
+    auto v = detail::Instance::get<PyValue, PyValue>(key);
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
         auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
         c->bindThis(self);

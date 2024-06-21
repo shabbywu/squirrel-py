@@ -1,7 +1,7 @@
 #pragma once
 
 #include "definition.h"
-#include "sqbinding/common/cast.h"
+#include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/types/sqobject.hpp"
 
 namespace sqbinding {

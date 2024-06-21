@@ -5,10 +5,10 @@ file(
   GLOB
   SQBINDING_SOURCE
   "sqbinding/*.cpp"
-  "sqbinding/types/pybinding/*.cpp"
-  "sqbinding/vm/*.cpp"
-  "sqbinding/common/*.cpp"
-  "sqbinding/module_register/*.cpp")
+  "sqbinding/pybinding/types/*.cpp"
+  "sqbinding/pybinding/vm/*.cpp"
+  "sqbinding/pybinding/common/*.cpp"
+  "sqbinding/pybinding/module_register/*.cpp")
 
 add_library(sqbinding STATIC ${SQBINDING_SOURCE})
 target_link_libraries(sqbinding PUBLIC pybind11::pybind11 squirrel_static
@@ -18,7 +18,7 @@ target_include_directories(
   sqbinding PUBLIC ${squirrel_dir}/include ${squirrel_dir}/squirrel
                    ${squall_dir} ${CMAKE_CURRENT_LIST_DIR})
 target_precompile_headers(sqbinding PUBLIC
-                          sqbinding/types/pybinding/definition.h)
+                          sqbinding/pybinding/types/definition.h)
 
 set_property(TARGET sqbinding PROPERTY CXX_STANDARD 20)
 

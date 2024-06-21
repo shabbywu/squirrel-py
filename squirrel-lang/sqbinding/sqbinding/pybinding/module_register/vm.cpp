@@ -1,7 +1,7 @@
-#include "sqbinding/vm/base_vm.h"
-#include "sqbinding/vm/generic_vm.h"
-#include "sqbinding/vm/compiler.h"
-#include "sqbinding/types/pybinding/container.h"
+#include "sqbinding/pybinding/vm/base_vm.h"
+#include "sqbinding/pybinding/vm/generic_vm.h"
+#include "sqbinding/detail/vm/compiler.hpp"
+#include "sqbinding/pybinding/types/container.h"
 
 typedef sqbinding::python::BaseVM StaticVM;
 typedef sqbinding::python::GenericVM GenericVM;

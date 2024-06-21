@@ -12,11 +12,11 @@
 
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
-#include "sqbinding/types/pybinding/definition.h"
-#include "sqbinding/types/pybinding/container.h"
+#include "sqbinding/detail/types/sqtable.hpp"
+#include "sqbinding/detail/types/sqobject.hpp"
 #include "sqbinding/detail/common/errors.hpp"
-#include "sqbinding/common/cast.h"
-#include "printer.h"
+#include "sqbinding/detail/common/cast.hpp"
+#include "sqbinding/detail/vm/printer.hpp"
 
 namespace py = pybind11;
 namespace sqbinding {
@@ -47,23 +47,19 @@ namespace sqbinding {
             }
         };
 
-
-
         class BaseVM {
             public:
                 struct Holder {
                     Holder(HSQUIRRELVM vm) : vm(vm) {
-                        vmlock::register_vm_handle(vm);
-                        roottable = std::make_shared<sqbinding::python::Table>(_table(vm->_roottable), vm);
+                        roottable = std::make_shared<sqbinding::detail::Table>(_table(vm->_roottable), vm);
                     }
                     ~Holder(){
                         #ifdef TRACE_CONTAINER_GC
                         std::cout << "GC::Release BaseVM: " << vm << std::endl;
                         #endif
-                        vmlock::unregister_vm_handle(vm);
                     }
                     HSQUIRRELVM vm;
-                    std::shared_ptr<sqbinding::python::Table> roottable;
+                    std::shared_ptr<sqbinding::detail::Table> roottable;
                 };
             public:
                 std::shared_ptr<Holder> holder;
@@ -71,12 +67,12 @@ namespace sqbinding {
                 BaseVM() = default;
                 BaseVM(HSQUIRRELVM vm) : holder(std::make_shared<Holder>(vm)) {}
             public:
-                std::shared_ptr<sqbinding::python::Table> getroottable() {
+                std::shared_ptr<sqbinding::detail::Table> getroottable() {
                     return holder->roottable;
                 }
-                std::shared_ptr<sqbinding::python::ObjectPtr> StackTop() {
+                std::shared_ptr<sqbinding::detail::ObjectPtr> StackTop() {
                     HSQUIRRELVM& vm = holder->vm;
-                    return std::make_shared<sqbinding::python::ObjectPtr>(vm->Top(), vm);
+                    return std::make_shared<sqbinding::detail::ObjectPtr>(vm->Top(), vm);
                 }
                 HSQUIRRELVM& GetVM() {return holder->vm;}
 
@@ -164,19 +160,6 @@ namespace sqbinding {
 
                 ClosureType closure = ClosureType{_closure(vm->Top()), vm};
                 return closure();
-            }
-        };
-    }
-
-    namespace python {
-        class BaseVM: public detail::BaseVM {
-        public:
-            BaseVM(): detail::BaseVM() {}
-            BaseVM(HSQUIRRELVM vm): detail::BaseVM(vm) {}
-
-            void bindFunc(std::string funcname, py::function func) {
-                HSQUIRRELVM& vm = holder->vm;
-                holder->roottable->bindFunc(funcname, func);
             }
         };
     }

@@ -1,8 +1,8 @@
 #include "cast.h"
 #include "sqbinding/detail/common/format.hpp"
-#include "sqbinding/types/pybinding/definition.h"
-#include "sqbinding/types/pybinding/container.h"
-#include "sqbinding/types/pybinding/sqobject.hpp"
+#include "sqbinding/pybinding/types/definition.h"
+#include "sqbinding/pybinding/types/container.h"
+#include "sqbinding/pybinding/types/sqobject.hpp"
 
 
 #define __try_cast_cppwrapper_tosqobject(object, type, field) \

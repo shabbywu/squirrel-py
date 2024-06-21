@@ -2,8 +2,8 @@
 
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/errors.hpp"
-#include "sqbinding/common/cast.h"
-#include "sqbinding/common/stack_operation.h"
+#include "sqbinding/pybinding/common/cast.h"
+#include "sqbinding/pybinding/common/stack_operation.h"
 
 
 namespace sqbinding {

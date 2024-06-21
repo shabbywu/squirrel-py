@@ -1,7 +1,7 @@
 #include "base_vm.h"
 #include "sqbinding/detail/common/errors.hpp"
-#include "sqbinding/common/cast.h"
-#include "printer.h"
+#include "sqbinding/pybinding/common/cast.h"
+#include "sqbinding/detail/vm/printer.hpp"
 
 
 namespace sqbinding {
@@ -26,7 +26,7 @@ namespace sqbinding {
                         #ifdef TRACE_CONTAINER_GC
                         std::cout << "GC::Release GenericVM: " << vm << std::endl;
                         #endif
-                        vmlock::unregister_vm_handle(vm);
+
                         sq_collectgarbage(vm);
                         sq_settop(vm, 0);
                         sq_close(vm);

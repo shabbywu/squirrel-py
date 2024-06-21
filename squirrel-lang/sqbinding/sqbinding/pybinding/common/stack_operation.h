@@ -3,7 +3,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "sqbinding/detail/common/stack_operation.hpp"
-#include "sqbinding/types/pybinding/definition.h"
+#include "sqbinding/pybinding/types/definition.h"
 
 namespace py = pybind11;
 

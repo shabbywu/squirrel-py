@@ -1,5 +1,5 @@
 #pragma once
-#include "sqbinding/common/cast.h"
+#include "sqbinding/pybinding/common/cast.h"
 
 namespace sqbinding {
     namespace detail {

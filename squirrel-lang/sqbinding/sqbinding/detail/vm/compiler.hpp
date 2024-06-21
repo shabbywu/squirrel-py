@@ -1,14 +1,18 @@
-#include "compiler.h"
-// the standard XXTEA block cipher algorithm
-#define DELTA 0x9e3779b9
-#define MX(p) (((z>>5^y<<2) + (y>>3^z<<4)) ^ ((sum^y) + (key[((p)&3)^e] ^ z)))
+#pragma once
 
+#include <squirrel.h>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <cstring>
+#include <memory.h>
+#include "sqbinding/detail/common/errors.hpp"
+#include "printer.hpp"
 
-SQInteger write_stringbuf(SQUserPointer output,SQUserPointer source,SQInteger size)
+static SQInteger write_stringbuf(SQUserPointer output,SQUserPointer source,SQInteger size)
 {
     return ((std::stringbuf*)output)->sputn((const char*)source, size);
 }
-
 
 std::string compile(std::string sourcecode, std::string sourcename) {
     HSQUIRRELVM v;
@@ -28,10 +32,13 @@ std::string compile(std::string sourcecode, std::string sourcename) {
     return buff.str();
 }
 
+// the standard XXTEA block cipher algorithm
+#define DELTA 0x9e3779b9
+#define MX(p) (((z>>5^y<<2) + (y>>3^z<<4)) ^ ((sum^y) + (key[((p)&3)^e] ^ z)))
 
 // the key used by Battle Brothers
 static uint32_t bbkey[4] = { 238473842, 20047425, 14005, 978629342 };
-void encrypt(uint32_t *values, uint32_t count, const uint32_t key[4])
+static void encrypt(uint32_t *values, uint32_t count, const uint32_t key[4])
 {
     uint32_t rounds = 6 + 52/count, sum = 0, y, z = values[count-1];
     do
@@ -48,7 +55,7 @@ void encrypt(uint32_t *values, uint32_t count, const uint32_t key[4])
     } while (--rounds);
 }
 
-SQInteger write_encryptedbuf(SQUserPointer output, SQUserPointer source, SQInteger length)
+static SQInteger write_encryptedbuf(SQUserPointer output, SQUserPointer source, SQInteger length)
 {
 
     memcpy(output, source, length);
@@ -58,7 +65,8 @@ SQInteger write_encryptedbuf(SQUserPointer output, SQUserPointer source, SQInteg
     return length;
 }
 
-std::string compile_bb(std::string sourcecode, std::string sourcename) {
+
+static std::string compile_bb(std::string sourcecode, std::string sourcename) {
     HSQUIRRELVM v;
     v=sq_open(1024);
     sq_pushroottable(v);
