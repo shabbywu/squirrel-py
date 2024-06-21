@@ -15,7 +15,7 @@ namespace sqbinding {
             PyValue get(PyValue key);
             // bindFunc to current class
             void bindFunc(std::string funcname, PyValue func) {
-                set(PyValue(funcname), PyValue(func));
+                set(funcname, func);
             }
 
             // Python Interface

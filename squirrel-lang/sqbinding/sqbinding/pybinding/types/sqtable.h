@@ -16,7 +16,7 @@ namespace sqbinding {
             Table(::SQTable* pTable, HSQUIRRELVM vm): detail::Table(pTable, vm) {}
 
             void bindFunc(std::string funcname, PyValue func) {
-                set(PyValue(funcname), PyValue(func));
+                set(funcname, func);
             }
             PyValue get(PyValue& key);
 
