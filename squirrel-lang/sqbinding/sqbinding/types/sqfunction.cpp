@@ -4,6 +4,7 @@
 
 namespace py = pybind11;
 
+
 struct stack_guard {
     stack_guard(HSQUIRRELVM v) {
         vm = v;
@@ -18,42 +19,39 @@ struct stack_guard {
 };
 
 
-inline
-void call_setup_arg(HSQUIRRELVM vm) {}
 
-template <class Arg, class... Args> inline
-void call_setup_arg(HSQUIRRELVM vm, Arg head, Args... tail) {
-    sq_pushobject(vm, head);
-    call_setup_arg(vm, tail...);
+namespace sqbinding {
+    namespace detail {
+        inline
+        void call_setup_arg(HSQUIRRELVM vm) {}
+
+        template <class Arg, class... Args> inline
+        void call_setup_arg(HSQUIRRELVM vm, Arg head, Args... tail) {
+            generic_stack_push(vm, head);
+            call_setup_arg(vm, tail...);
+        }
+
+        template <class... Args> inline
+        void call_setup(HSQUIRRELVM vm, const HSQOBJECT& closure, const HSQOBJECT& table, Args... args) {
+            sq_pushobject(vm, closure);
+            sq_pushobject(vm, table);
+            call_setup_arg(vm, args...);
+        }
+    }
 }
 
-template <class... Args> inline
-void call_setup(HSQUIRRELVM vm, const HSQOBJECT& closure, const HSQOBJECT& table, Args... args) {
-    sq_pushobject(vm, closure);
-    sq_pushobject(vm, table);
-    call_setup_arg(vm, args...);
-}
 
-
-PyValue sqbinding::python::NativeClosure::operator()(py::args args) {
-    SQObjectPtr result;
+template <class Return, class... Args>
+Return sqbinding::detail::NativeClosure<Return (Args...)>::operator()(Args... args) {
     HSQUIRRELVM vm = holder->vm;
     stack_guard stack_guard(vm);
-    sq_pushobject(vm, holder->nativeClosure);
-
     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-        sq_pushobject(vm, pthis);
+        call_setup(vm, holder->nativeClosure, pthis, args...);
     } else {
-        sq_pushroottable(vm);
+        call_setup(vm, holder->nativeClosure, vm->_roottable, args...);
     }
 
-    // push args into stack
-    for (auto var_ : args) {
-        auto var = pyvalue_tosqobject(std::move(var_.cast<PyValue>()), vm);
-        sq_pushobject(vm, std::move(var));
-    }
-
-    if (SQ_FAILED(sq_call(vm, args.size() + 1, SQTrue, SQTrue))) {
+    if (SQ_FAILED(sq_call(vm, sizeof...(args)+1, SQTrue, SQTrue))) {
         const SQChar* sqErr;
         sq_getlasterror(vm);
         if (sq_gettype(vm, -1) == OT_NULL) {
@@ -63,33 +61,27 @@ PyValue sqbinding::python::NativeClosure::operator()(py::args args) {
         sq_getstring(vm, -1, &sqErr);
         throw std::runtime_error(std::string(sqErr));
     } else {
-        SQObject ref;
-        sq_getstackobj(vm, -1, &ref);
-        result = ref;
+        return generic_stack_get<Return>(vm, -1);
     }
-    auto v = sqobject_topython(result, vm);
-    return std::move(v);
+}
+
+PyValue sqbinding::python::NativeClosure::__call__(py::args args) {
+    return this->operator()(args);
 }
 
 
-PyValue sqbinding::python::Closure::operator()(py::args args) {
-    SQObjectPtr result;
+
+template <class Return, class... Args>
+Return sqbinding::detail::Closure<Return (Args...)>::operator()(Args... args) {
     HSQUIRRELVM vm = holder->vm;
     stack_guard stack_guard(vm);
-    sq_pushobject(vm, holder->closure);
     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-        sq_pushobject(vm, pthis);
+        call_setup(vm, holder->closure, pthis, args...);
     } else {
-        sq_pushroottable(vm);
+        call_setup(vm, holder->closure, vm->_roottable, args...);
     }
 
-    // push args into stack
-    for (auto var_ : args) {
-        auto var = pyvalue_tosqobject(std::move(var_.cast<PyValue>()), vm);
-        sq_pushobject(vm, std::move(var));
-    }
-
-    if (SQ_FAILED(sq_call(vm, args.size() + 1, SQTrue, SQTrue))) {
+    if (SQ_FAILED(sq_call(vm, sizeof...(args)+1, SQTrue, SQTrue))) {
         const SQChar* sqErr;
         sq_getlasterror(vm);
         if (sq_gettype(vm, -1) == OT_NULL) {
@@ -99,13 +91,15 @@ PyValue sqbinding::python::Closure::operator()(py::args args) {
         sq_getstring(vm, -1, &sqErr);
         throw std::runtime_error(std::string(sqErr));
     } else {
-        SQObject ref;
-        sq_getstackobj(vm, -1, &ref);
-        result = ref;
+        return generic_stack_get<Return>(vm, -1);
     }
-    auto v = sqobject_topython(result, vm);
-    return std::move(v);
 }
+
+
+PyValue sqbinding::python::Closure::__call__(py::args args) {
+    return this->operator()(args);
+}
+
 
 PyValue sqbinding::python::Closure::get(PyValue key) {
     HSQUIRRELVM vm = holder->vm;
