@@ -94,6 +94,39 @@ namespace sqbinding {
                 std::string to_string() {
                     return string_format("OT_CLOSURE: [addr={%p}, ref=%d]", pClosure(), getRefCount());
                 }
+            public:
+                template <typename TK, typename TV>
+                TV get(TK& key) {
+                    TV r;
+                    if(get(key, r)) {
+                        return r;
+                    }
+                    HSQUIRRELVM& vm = holder->vm;
+                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                    throw sqbinding::key_error(sqobject_to_string(sqkey));
+                }
+
+                template <typename TK, typename TV>
+                bool get(TK& key, TV& r) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                    SQObjectPtr ptr;
+                    if (!get(sqkey, ptr)) {
+                        return false;
+                    }
+                    r = generic_cast<SQObjectPtr, std::remove_reference_t<TV>>(vm, ptr);
+                    return true;
+                }
+
+                template <>
+                bool get(SQObjectPtr& key, SQObjectPtr& ret) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    SQObjectPtr& self = holder->closure;
+                    if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
+                        return false;
+                    }
+                    return true;
+                }
         };
     }
 
@@ -166,6 +199,39 @@ namespace sqbinding {
             public:
                 std::string to_string() {
                     return string_format("OT_NATIVECLOSURE: [addr={%p}, ref=%d]", pNativeClosure(), getRefCount());
+                }
+            public:
+                template <typename TK, typename TV>
+                TV get(TK& key) {
+                    TV r;
+                    if(get(key, r)) {
+                        return r;
+                    }
+                    HSQUIRRELVM& vm = holder->vm;
+                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                    throw sqbinding::key_error(sqobject_to_string(sqkey));
+                }
+
+                template <typename TK, typename TV>
+                bool get(TK& key, TV& r) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                    SQObjectPtr ptr;
+                    if (!get(sqkey, ptr)) {
+                        return false;
+                    }
+                    r = generic_cast<SQObjectPtr, std::remove_reference_t<TV>>(vm, ptr);
+                    return true;
+                }
+
+                template <>
+                bool get(SQObjectPtr& key, SQObjectPtr& ret) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    SQObjectPtr& self = holder->nativeClosure;
+                    if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
+                        return false;
+                    }
+                    return true;
                 }
         };
     }
