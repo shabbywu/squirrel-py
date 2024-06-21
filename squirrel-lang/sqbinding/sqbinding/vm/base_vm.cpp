@@ -32,32 +32,29 @@ static SQInteger read_string(SQUserPointer p,SQUserPointer buffer,SQInteger size
 }
 
 
-void sqbinding::python::BaseVM::DumpStack(SQInteger stackbase = -1, bool dumpall = false) {
-    vm->dumpstack(stackbase, dumpall);
+void sqbinding::detail::BaseVM::DumpStack(SQInteger stackbase = -1, bool dumpall = false) {
+    holder->vm->dumpstack(stackbase, dumpall);
 }
 
-SQInteger sqbinding::python::BaseVM::gettop() {
-    return sq_gettop(vm);
+SQInteger sqbinding::detail::BaseVM::gettop() {
+    return sq_gettop(holder->vm);
 }
 
-void sqbinding::python::BaseVM::settop(SQInteger top) {
-    return sq_settop(vm, top);
+void sqbinding::detail::BaseVM::settop(SQInteger top) {
+    return sq_settop(holder->vm, top);
 }
 
-std::shared_ptr<sqbinding::python::Table> sqbinding::python::BaseVM::getroottable() {
-    if (roottable == NULL) {
-        roottable = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(_table(vm->_roottable), vm));
-    }
-    return roottable;
+std::shared_ptr<sqbinding::python::Table> sqbinding::detail::BaseVM::getroottable() {
+    return holder->roottable;
 }
 
-void sqbinding::python::BaseVM::setroottable(std::shared_ptr<sqbinding::python::Table> roottable) {
-    vm->_roottable = roottable.get();
-    roottable = NULL;
-}
-
+std::shared_ptr<sqbinding::python::ObjectPtr> sqbinding::detail::BaseVM::StackTop() {
+    HSQUIRRELVM& vm = holder->vm;
+    return std::make_shared<sqbinding::python::ObjectPtr>(vm->Top(), vm);
+};
 
 PyValue sqbinding::python::BaseVM::ExecuteString(std::string sourcecode, PyValue env) {
+    HSQUIRRELVM& vm = holder->vm;
     detail::stack_guard stack_guard(vm);
 
     if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
@@ -71,6 +68,7 @@ PyValue sqbinding::python::BaseVM::ExecuteString(std::string sourcecode, PyValue
 }
 
 PyValue sqbinding::python::BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
+    HSQUIRRELVM& vm = holder->vm;
     detail::stack_guard stack_guard(vm);
     auto reader = StringReaderCtx(bytecode);
     if (!SQ_SUCCEEDED(sq_readclosure(vm, read_string, &reader))) {
@@ -83,10 +81,7 @@ PyValue sqbinding::python::BaseVM::ExecuteBytecode(std::string bytecode, PyValue
     return func->__call__(py::list());
 }
 
-std::shared_ptr<sqbinding::python::ObjectPtr> sqbinding::python::BaseVM::StackTop() {
-    return std::make_shared<sqbinding::python::ObjectPtr>(vm->Top(), vm);
-};
-
 void sqbinding::python::BaseVM::bindFunc(std::string funcname, py::function func) {
-    sqbinding::python::Table(_table(vm->_roottable), vm).bindFunc(funcname, func);
+    HSQUIRRELVM& vm = holder->vm;
+    holder->roottable->bindFunc(funcname, func);
 }

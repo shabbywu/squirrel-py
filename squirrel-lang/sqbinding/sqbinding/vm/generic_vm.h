@@ -16,35 +16,40 @@ namespace sqbinding {
         };
 
         HSQUIRRELVM open_sqvm(int size, unsigned int libsToLoad);
+
+        class GenericVM: public python::BaseVM {
+            public:
+                struct Holder: python::BaseVM::Holder {
+                    Holder(HSQUIRRELVM vm) : python::BaseVM::Holder(vm) {
+                        std::cout << "detail::GenericVM::Holder()" << std::endl;
+                    };
+                    ~Holder(){
+                        #ifdef TRACE_CONTAINER_GC
+                        std::cout << "GC::Release GenericVM: " << vm << std::endl;
+                        #endif
+                        vmlock::unregister_vm_handle(vm);
+                        sq_collectgarbage(vm);
+                        sq_settop(vm, 0);
+                        sq_close(vm);
+                    }
+                };
+            public:
+                std::shared_ptr<Holder> holder;
+            public:
+                GenericVM(HSQUIRRELVM vm): BaseVM(vm) {};
+                GenericVM(): GenericVM(1024) {}
+                GenericVM(int size): GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
+                GenericVM(int size, unsigned int libsToLoad): python::BaseVM(detail::open_sqvm(size, libsToLoad)) {}
+        };
     }
 
     namespace python {
-        class GenericVM: public BaseVM {
+        class GenericVM: public detail::GenericVM {
         public:
-            GenericVM(HSQUIRRELVM vm): BaseVM(vm) {};
-            GenericVM(): GenericVM(1024) {}
-            GenericVM(int size): GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
-            GenericVM(int size, unsigned int libsToLoad) {
-                if (size <= 10) {
-                    throw sqbinding::value_error("stacksize can't less than 10");
-                }
-                vm = detail::open_sqvm(size, libsToLoad);
-                vmlock::register_vm_handle(vm);
-            }
-
-            virtual void release() {
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release GenericVM step1" << std::endl;
-                #endif
-                roottable = NULL;
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release GenericVM step2" << std::endl;
-                #endif
-                vmlock::unregister_vm_handle(vm);
-                sq_collectgarbage(vm);
-                sq_settop(vm, 0);
-                sq_close(vm);
-            }
+            GenericVM(HSQUIRRELVM vm): detail::GenericVM(vm) {};
+            GenericVM(): detail::GenericVM(1024) {}
+            GenericVM(int size): detail::GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
+            GenericVM(int size, unsigned int libsToLoad): detail::GenericVM(size, libsToLoad) {}
         };
     }
 }

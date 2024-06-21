@@ -2,6 +2,9 @@
 #include "generic_vm.h"
 
 HSQUIRRELVM sqbinding::detail::open_sqvm(int size, unsigned int libsToLoad) {
+        if (size <= 10) {
+            throw sqbinding::value_error("stacksize can't less than 10");
+        }
         HSQUIRRELVM vm = sq_open(size);
         sq_setprintfunc(vm, printStdout, printStdErr);
         sq_setcompilererrorhandler(vm, printCompileError);
