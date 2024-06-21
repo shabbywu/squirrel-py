@@ -105,16 +105,26 @@ namespace sqbinding {
 
             PyValue get(PyValue key);
             // bindFunc to current class
-            void bindFunc(std::string funcname, PyValue func);
+            void bindFunc(std::string funcname, PyValue func) {
+                set(PyValue(funcname), PyValue(func));
+            }
 
             // Python Interface
             SQInteger __len__() {
                 return 0;
                 // return pClass->CountUsed();
             }
-            PyValue __getitem__(PyValue key);
-            PyValue __setitem__(PyValue key, PyValue val);
-            py::list keys();
+            PyValue __getitem__(PyValue key) {
+                return std::move(get(key));
+            }
+            PyValue __setitem__(PyValue key, PyValue val) {
+                set(key, val);
+                return val;
+            }
+            py::list keys() {
+                HSQUIRRELVM& vm = holder->vm;
+                return std::move(sqbinding::python::Table(pClass()->_members, vm).keys());
+            }
 
 
             std::string __str__() {

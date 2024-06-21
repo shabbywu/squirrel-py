@@ -1,7 +1,7 @@
 #pragma once
 
 #include "definition.h"
-#include "pyfunction.h"
+#include "pyfunction.hpp"
 
 namespace py = pybind11;
 

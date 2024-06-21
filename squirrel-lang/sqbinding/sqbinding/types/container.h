@@ -11,7 +11,7 @@
 
 #include "pydict.hpp"
 #include "pylist.hpp"
-#include "pyfunction.h"
+#include "pyfunction.hpp"
 #include "pyobject.hpp"
 
 #endif

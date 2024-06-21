@@ -17,21 +17,3 @@ PyValue sqbinding::python::Class::get(PyValue key) {
     }
     return v;
 }
-
-PyValue sqbinding::python::Class::__getitem__(PyValue key) {
-    return std::move(get(key));
-}
-
-PyValue sqbinding::python::Class::__setitem__(PyValue key, PyValue val) {
-    set(key, val);
-    return val;
-}
-
-py::list sqbinding::python::Class::keys() {
-    HSQUIRRELVM& vm = holder->vm;
-    return std::move(sqbinding::python::Table(pClass()->_members, vm).keys());
-}
-
-void sqbinding::python::Class::bindFunc(std::string funcname, PyValue func) {
-    set(PyValue(funcname), PyValue(func));
-}

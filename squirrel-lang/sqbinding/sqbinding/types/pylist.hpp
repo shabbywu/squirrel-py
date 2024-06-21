@@ -1,7 +1,7 @@
 #pragma once
 
 #include "definition.h"
-#include "pyfunction.h"
+#include "pyfunction.hpp"
 #include "sqbinding/common/cast.h"
 
 namespace py = pybind11;
