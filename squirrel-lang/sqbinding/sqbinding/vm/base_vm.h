@@ -23,7 +23,7 @@ void printCompileError(HSQUIRRELVM, const SQChar * desc, const SQChar * source, 
 class BaseVM {
 public:
     HSQUIRRELVM vm;
-    std::shared_ptr<_SQTable_> roottable;
+    std::shared_ptr<sqbinding::python::Table> roottable;
 
     BaseVM() = default;
     BaseVM(HSQUIRRELVM vm) {
@@ -56,8 +56,8 @@ public:
 
     SQInteger gettop();
     void settop(SQInteger top);
-    std::shared_ptr<_SQTable_> getroottable();
-    void setroottable(std::shared_ptr<_SQTable_> roottable);
+    std::shared_ptr<sqbinding::python::Table> getroottable();
+    void setroottable(std::shared_ptr<sqbinding::python::Table> roottable);
     void pushrootable();
 
     PyValue ExecuteString(std::string sourcecode, PyValue env = py::none());

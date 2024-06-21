@@ -58,7 +58,7 @@ PyValue _SQClass_::__setitem__(PyValue key, PyValue val) {
 }
 
 py::list _SQClass_::keys() {
-    return std::move(_SQTable_(pClass->_members, vm).keys());
+    return std::move(sqbinding::python::Table(pClass->_members, vm).keys());
 }
 
 void _SQClass_::bindFunc(std::string funcname, py::function func) {

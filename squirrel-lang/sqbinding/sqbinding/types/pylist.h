@@ -13,7 +13,7 @@ public:
     HSQUIRRELVM vm;
     py::list _val;
     // delegate table
-    std::shared_ptr<_SQTable_> _delegate;
+    std::shared_ptr<sqbinding::python::Table> _delegate;
     std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
     std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
 
@@ -48,7 +48,7 @@ public:
             nativeclosure_handlers[k] = std::make_shared<sqbinding::python::NativeClosure>(sqbinding::python::NativeClosure{v, vm, &PythonNativeCall});
         }
 
-        _delegate = std::make_shared<_SQTable_>(_SQTable_(vm));
+        _delegate = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm));
         for(auto pair: nativeclosure_handlers) {
             _delegate->bindFunc(pair.first, pair.second);
         }
@@ -74,7 +74,7 @@ public:
 
         // get userdata in stack top
         SQUserData* ud = _userdata(vm->PopGet());
-        ud->SetDelegate(pycontainer->_delegate->pTable);
+        ud->SetDelegate(pycontainer->_delegate->pTable());
         ud->_hook = release_SQPythonList;
         ud->_typetag = (void*)PythonTypeTags::TYPE_LIST;
         return ud;

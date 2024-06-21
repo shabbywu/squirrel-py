@@ -74,7 +74,7 @@ PyValue sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
     case tagSQObjectType::OT_ARRAY:
         return std::move(std::shared_ptr<_SQArray_>(new _SQArray_{_array(object), vm}));
     case tagSQObjectType::OT_TABLE:
-        return std::move(std::shared_ptr<_SQTable_>(new _SQTable_{_table(object), vm}));
+        return std::move(std::shared_ptr<sqbinding::python::Table>(new sqbinding::python::Table{_table(object), vm}));
     case tagSQObjectType::OT_CLASS:
         return std::move(std::shared_ptr<_SQClass_>(new _SQClass_{_class(object), vm}));
     case tagSQObjectType::OT_INSTANCE:

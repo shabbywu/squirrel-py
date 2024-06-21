@@ -3,7 +3,7 @@
 #include "container.h"
 
 
-TableIterator::TableIterator(_SQTable_ *obj) {
+TableIterator::TableIterator(sqbinding::python::Table *obj) {
     this->obj = obj;
 }
 
@@ -15,11 +15,12 @@ PyValue TableIterator::__next__() {
     PyValue key;
     PyValue value;
     bool found;
-    while (idx < obj->pTable->_numofnodes) {
-        auto n = &obj->pTable->_nodes[idx++];
+    HSQUIRRELVM& vm = obj->holder->vm;
+    while (idx < obj->pTable()->_numofnodes) {
+        auto n = &obj->pTable()->_nodes[idx++];
         if (sq_type(n->key) != tagSQObjectType::OT_NULL) {
-            key = sqobject_topython(n->key, obj->vm);
-            value = sqobject_topython(n->val, obj->vm);
+            key = sqobject_topython(n->key, vm);
+            value = sqobject_topython(n->val, vm);
             found = 1;
             break;
         }

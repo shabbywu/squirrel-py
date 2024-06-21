@@ -46,14 +46,14 @@ void BaseVM::settop(SQInteger top) {
     return sq_settop(vm, top);
 }
 
-std::shared_ptr<_SQTable_> BaseVM::getroottable() {
+std::shared_ptr<sqbinding::python::Table> BaseVM::getroottable() {
     if (roottable == NULL) {
-        roottable = std::make_shared<_SQTable_>(_SQTable_(_table(vm->_roottable), vm));
+        roottable = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(_table(vm->_roottable), vm));
     }
     return roottable;
 }
 
-void BaseVM::setroottable(std::shared_ptr<_SQTable_> roottable) {
+void BaseVM::setroottable(std::shared_ptr<sqbinding::python::Table> roottable) {
     vm->_roottable = roottable.get();
     roottable = NULL;
 }
@@ -91,5 +91,5 @@ _SQObjectPtr_* BaseVM::StackTop() {
 };
 
 void BaseVM::bindFunc(std::string funcname, py::function func) {
-    _SQTable_(_table(vm->_roottable), vm).bindFunc(funcname, func);
+    sqbinding::python::Table(_table(vm->_roottable), vm).bindFunc(funcname, func);
 }

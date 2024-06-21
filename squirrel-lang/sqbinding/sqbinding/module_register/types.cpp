@@ -44,20 +44,22 @@ void register_squirrel_type(py::module_ &m) {
     .def("__next__", &TableIterator::__next__)
     ;
 
-    py::class_<_SQTable_, std::shared_ptr<_SQTable_>>(m, "SQTable")
-    .def(py::init([](HSQUIRRELVM vm) { return std::make_shared<_SQTable_>(_SQTable_(vm)); }))
-    .def("__iter__", &_SQTable_::__iter__, py::return_value_policy::reference_internal)
-    .def("__getitem__", &_SQTable_::__getitem__, py::arg("key"), py::return_value_policy::move)
-    .def("__setitem__", &_SQTable_::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("__delitem__", &_SQTable_::__delitem__, py::arg("key"))
-    .def("__getattr__", &_SQTable_::__getitem__, py::arg("key"), py::return_value_policy::move)
-    .def("__setattr__", &_SQTable_::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
-    .def("__delattr__", &_SQTable_::__delitem__, py::arg("key"))
-    .def("keys", &_SQTable_::keys, py::return_value_policy::take_ownership)
-    .def("__len__", &_SQTable_::__len__)
-    .def("bindfunc", static_cast<void(_SQTable_::*)(std::string, py::function)>(&_SQTable_::bindFunc), py::arg("funcname"), py::arg("func"))
-    .def("get_ref_count", &_SQTable_::getRefCount)
-    ;
+    {
+        py::class_<sqbinding::python::Table, std::shared_ptr<sqbinding::python::Table>>(m, "SQTable")
+        .def(py::init([](HSQUIRRELVM vm) { return std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm)); }))
+        .def("__iter__", &sqbinding::python::Table::__iter__, py::return_value_policy::reference_internal)
+        .def("__getitem__", &sqbinding::python::Table::__getitem__, py::arg("key"), py::return_value_policy::move)
+        .def("__setitem__", &sqbinding::python::Table::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+        .def("__delitem__", &sqbinding::python::Table::__delitem__, py::arg("key"))
+        .def("__getattr__", &sqbinding::python::Table::__getitem__, py::arg("key"), py::return_value_policy::move)
+        .def("__setattr__", &sqbinding::python::Table::__setitem__, py::arg("key"), py::arg("val"), py::keep_alive<1, 3>(), py::return_value_policy::reference)
+        .def("__delattr__", &sqbinding::python::Table::__delitem__, py::arg("key"))
+        .def("keys", &sqbinding::python::Table::keys, py::return_value_policy::take_ownership)
+        .def("__len__", &sqbinding::python::Table::__len__)
+        .def("bindfunc", &sqbinding::python::Table::bindFunc, py::arg("funcname"), py::arg("func"))
+        .def("get_ref_count", &sqbinding::python::Table::getRefCount)
+        ;
+    }
 
     py::class_<_SQClass_, std::shared_ptr<_SQClass_>>(m, "SQClass")
     .def("__getitem__", &_SQClass_::__getitem__, py::arg("key"), py::return_value_policy::move)

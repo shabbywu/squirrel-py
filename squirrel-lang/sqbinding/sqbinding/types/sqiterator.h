@@ -2,8 +2,6 @@
 #define _SQBINDING_ITERATOR_H_
 
 #include "definition.h"
-class _SQArray_;
-class _SQTable_;
 
 
 class ArrayIterator {
@@ -20,10 +18,10 @@ public:
 
 class TableIterator {
     public:
-        _SQTable_* obj;
+        sqbinding::python::Table* obj;
         SQInteger idx = 0;
 
-        TableIterator(_SQTable_ *obj);
+        TableIterator(sqbinding::python::Table *obj);
         PyValue __next__();
 };
 
