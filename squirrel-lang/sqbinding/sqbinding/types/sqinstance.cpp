@@ -7,35 +7,17 @@
 PyValue sqbinding::python::Instance::get(PyValue key) {
     HSQUIRRELVM& vm = holder->vm;
     SQObjectPtr& self = holder->instance;
-    SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
-    SQObjectPtr sqval;
-    if (vm->Get(self, sqkey, sqval, false, DONT_FALL_BACK)) {
-        auto v = sqobject_topython(sqval, vm);
-        if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
-            auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
-            c->bindThis(self);
-        }
-        if (std::holds_alternative<std::shared_ptr<sqbinding::python::NativeClosure>>(v)) {
-            auto& c = std::get<std::shared_ptr<sqbinding::python::NativeClosure>>(v);
-            c->bindThis(self);
-        }
-        return std::move(v);
+    auto v = detail::Instance::get<PyValue, PyValue>(key);
+    if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
+        auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
+        c->bindThis(self);
     }
-    throw py::key_error(detail::sqobject_to_string(sqkey));
+    if (std::holds_alternative<std::shared_ptr<sqbinding::python::NativeClosure>>(v)) {
+        auto& c = std::get<std::shared_ptr<sqbinding::python::NativeClosure>>(v);
+        c->bindThis(self);
+    }
+    return v;
 }
-
-// PyValue sqbinding::python::Instance::set(PyValue key, PyValue val) {
-//     HSQUIRRELVM& vm = holder->vm;
-//     SQObjectPtr& self = holder->instance;
-//     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
-//     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-//     if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
-//         return val;
-//     } else if (vm->NewSlot(self, sqkey, sqval, false)) {
-//         return val;
-//     }
-//     throw std::runtime_error("can't set key=" + detail::sqobject_to_string(sqkey) + " to value=" + detail::sqobject_to_string(sqval));
-// }
 
 PyValue sqbinding::python::Instance::__getitem__(PyValue& key) {
     return get(key);
