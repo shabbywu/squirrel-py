@@ -22,10 +22,20 @@ namespace sqbinding {
                     HSQUIRRELVM vm;
                     SQObjectPtr table;
                 };
+            public:
+                std::shared_ptr<Holder> holder;
+            public:
+                Table(HSQUIRRELVM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(vm), 4), vm)) {}
+                Table(::SQTable* pTable, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
 
-            Table(HSQUIRRELVM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(vm), 4), vm)) {}
-            Table(::SQTable* pTable, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
+                SQUnsignedInteger getRefCount() {
+                    return pTable() -> _uiRef;
+                }
 
+                ::SQTable* pTable() {
+                    return _table(holder->table);
+                }
+            public:
             template <typename TK, typename TV>
             void set(TK& key, TV& val) {
                 HSQUIRRELVM& vm = holder->vm;
@@ -90,15 +100,6 @@ namespace sqbinding {
             // bindFunc to current table
             // template<class Func>
             // void bindFunc(std::string funcname, Func func);
-
-            SQUnsignedInteger getRefCount() {
-                return pTable() -> _uiRef;
-            }
-
-            ::SQTable* pTable() {
-                return _table(holder->table);
-            }
-            std::shared_ptr<Holder> holder;
         };
     }
 

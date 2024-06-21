@@ -24,25 +24,26 @@ PyValue sqbinding::python::Instance::get(PyValue key) {
     throw py::key_error(detail::sqobject_to_string(sqkey));
 }
 
-PyValue sqbinding::python::Instance::set(PyValue key, PyValue val) {
-    HSQUIRRELVM& vm = holder->vm;
-    SQObjectPtr& self = holder->instance;
-    SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
-    SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
-    if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
-        return val;
-    } else if (vm->NewSlot(self, sqkey, sqval, false)) {
-        return val;
-    }
-    throw std::runtime_error("can't set key=" + detail::sqobject_to_string(sqkey) + " to value=" + detail::sqobject_to_string(sqval));
-}
+// PyValue sqbinding::python::Instance::set(PyValue key, PyValue val) {
+//     HSQUIRRELVM& vm = holder->vm;
+//     SQObjectPtr& self = holder->instance;
+//     SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
+//     SQObjectPtr sqval = pyvalue_tosqobject(val, vm);
+//     if (vm->Set(self, sqkey, sqval, DONT_FALL_BACK)) {
+//         return val;
+//     } else if (vm->NewSlot(self, sqkey, sqval, false)) {
+//         return val;
+//     }
+//     throw std::runtime_error("can't set key=" + detail::sqobject_to_string(sqkey) + " to value=" + detail::sqobject_to_string(sqval));
+// }
 
-PyValue sqbinding::python::Instance::__getitem__(PyValue key) {
+PyValue sqbinding::python::Instance::__getitem__(PyValue& key) {
     return get(key);
 }
 
 PyValue sqbinding::python::Instance::__setitem__(PyValue key, PyValue val) {
-    return set(key, val);
+    set<PyValue, PyValue>(key, val);
+    return val;
 }
 
 py::list sqbinding::python::Instance::keys() {
@@ -59,6 +60,6 @@ py::list sqbinding::python::Instance::keys() {
     return keys;
 }
 
-void sqbinding::python::Instance::bindFunc(std::string funcname, py::function func) {
-    set(funcname, func);
+void sqbinding::python::Instance::bindFunc(std::string funcname, PyValue func) {
+    set(PyValue(funcname), func);
 }

@@ -20,17 +20,46 @@ namespace sqbinding {
                     HSQUIRRELVM vm;
                     SQObjectPtr instance;
                 };
-
+            public:
+                std::shared_ptr<Holder> holder;
+            public:
                 Instance (::SQInstance* pInstance, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pInstance, vm)) {};
 
                 SQUnsignedInteger getRefCount() {
                     return pInstance() -> _uiRef;
                 }
-
                 ::SQInstance* pInstance() {
                     return _instance(holder->instance);
                 }
-                std::shared_ptr<Holder> holder;
+            public:
+                template <typename TK, typename TV>
+                void set(TK& key, TV& val) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                    auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
+                    set(sqkey, sqval);
+                }
+
+                template <typename TK, typename TV>
+                void set(TK&& key, TV&& val) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                    auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
+                    set(sqkey, sqval);
+                }
+
+                template <>
+                void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
+                    HSQUIRRELVM& vm = holder->vm;
+                    SQObjectPtr& self = holder->instance;
+
+                    sq_pushobject(vm, self);
+                    sq_pushobject(vm, sqkey);
+                    sq_pushobject(vm, sqval);
+                    sq_newslot(vm, -3, SQFalse);
+                    sq_pop(vm, 1);
+                }
+
         };
     }
     namespace python {
@@ -40,14 +69,13 @@ namespace sqbinding {
             Instance (::SQInstance* pInstance, HSQUIRRELVM vm): detail::Instance(pInstance, vm) {};
 
             PyValue get(PyValue key);
-            PyValue set(PyValue key, PyValue val);
             PyValue getAttributes(PyValue key);
             PyValue setAttributes(PyValue key, PyValue val);
             // bindFunc to current instance
-            void bindFunc(std::string funcname, py::function func);
+            void bindFunc(std::string funcname, PyValue func);
 
             // Python Interface
-            PyValue __getitem__(PyValue key);
+            PyValue __getitem__(PyValue& key);
             PyValue __setitem__(PyValue key, PyValue val);
             py::list keys();
 
