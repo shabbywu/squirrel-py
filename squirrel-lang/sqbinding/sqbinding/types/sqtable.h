@@ -2,6 +2,8 @@
 
 #include "sqbinding/common/format.h"
 #include "sqbinding/common/errors.h"
+#include "sqbinding/common/cast.h"
+#include "sqbinding/common/stack_operation.h"
 #include "definition.h"
 
 
@@ -24,37 +26,66 @@ namespace sqbinding {
             Table(HSQUIRRELVM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(vm), 4), vm)) {}
             Table(::SQTable* pTable, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
 
-            // template <class T>
-            // void set(const string& key, const T& v) {
-            //     HSQUIRRELVM& vm = holder->vm;
-            //     sq_pushobject(vm, holder->table);
-            //     sq_pushstring(vm, key.c_str(), key.length());
-            //     detail::push(vm, v);
-            //     sq_newslot(vm, -3, SQFalse);
-            //     sq_pop(vm, 1);
-            // }
+            template <typename TK, typename TV>
+            void set(TK& key, TV& val) {
+                HSQUIRRELVM& vm = holder->vm;
+                auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
+                set(sqkey, sqval);
+            }
 
-            // template <class T>
-            // T get(const string& key) {
-            //     T r;
-            //     if(get<T>(key, r)) {
-            //         return r;
-            //     }
-            //     throw py::key_error(key);
-            // }
+            template <typename TK, typename TV>
+            void set(TK&& key, TV&& val) {
+                HSQUIRRELVM& vm = holder->vm;
+                auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
+                set(sqkey, sqval);
+            }
 
-            // template <class T>
-            // bool get(const string& key, T& r) {
-            //     HSQUIRRELVM& vm = holder->vm;
-            //     sq_pushobject(vm, holder->table);
-            //     sq_pushstring(vm_, key.data(), key.length());
-            //     if (!SQ_SUCCEEDED(sq_get(vm_, -2))) {
-            //         return false;
-            //     }
-            //     r = detail::fetch<T, detail::FetchContext::TableEntry>(vm_, -1);
-            //     sq_pop(vm_, 2);
-            //     return true;
-            // }
+            template <>
+            void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
+                HSQUIRRELVM& vm = holder->vm;
+                SQObjectPtr& self = holder->table;
+
+                sq_pushobject(vm, self);
+                sq_pushobject(vm, sqkey);
+                sq_pushobject(vm, sqval);
+                sq_newslot(vm, -3, SQFalse);
+                sq_pop(vm, 1);
+            }
+
+            template <typename TK, typename TV>
+            TV get(TK& key) {
+                TV r;
+                if(get(key, r)) {
+                    return r;
+                }
+                HSQUIRRELVM& vm = holder->vm;
+                auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                throw sqbinding::key_error(sqobject_to_string(sqkey));
+            }
+
+            template <typename TK, typename TV>
+            bool get(TK& key, TV& r) {
+                HSQUIRRELVM& vm = holder->vm;
+                auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
+                SQObjectPtr ptr;
+                if (!get(sqkey, ptr)) {
+                    return false;
+                }
+                r = generic_cast<SQObjectPtr, std::remove_reference_t<TV>>(vm, ptr);
+                return true;
+            }
+
+            template <>
+            bool get(SQObjectPtr& key, SQObjectPtr& ret) {
+                HSQUIRRELVM& vm = holder->vm;
+                SQObjectPtr& self = holder->table;
+                if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
+                    return false;
+                }
+                return true;
+            }
 
             // bindFunc to current table
             // template<class Func>
@@ -88,11 +119,8 @@ namespace sqbinding {
             Table(HSQUIRRELVM vm): detail::Table(vm) {}
             Table(::SQTable* pTable, HSQUIRRELVM vm): detail::Table(pTable, vm) {}
 
-            PyValue get(PyValue key);
-            void set(SQObjectPtr& key, SQObjectPtr& val);
-            PyValue set(PyValue key, PyValue val);
-
             void bindFunc(std::string funcname, PyValue func);
+            PyValue get(PyValue&);
 
             TableIterator __iter__() {
                 return TableIterator(this);

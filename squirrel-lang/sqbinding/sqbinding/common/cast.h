@@ -14,13 +14,25 @@ namespace sqbinding {
     }
 
     namespace detail {
-        template <class Type> inline
-        Type generic_cast(HSQUIRRELVM vm, HSQOBJECT& obj);
+        template <class FromType, class ToType> inline
+        ToType generic_cast(HSQUIRRELVM vm, FromType& obj);
 
+        template <> inline
+        SQObjectPtr generic_cast(HSQUIRRELVM vm, PyValue& obj) {
+            return python::pyvalue_tosqobject(obj, vm);
+        }
+
+        // cast sqobject to pyvalue
         template <> inline
         PyValue generic_cast(HSQUIRRELVM vm, HSQOBJECT& obj) {
             SQObjectPtr ptr = obj;
             return python::sqobject_topython(ptr, vm);
+        }
+
+        // cast sqobjectptr to pyvalue
+        template <> inline
+        PyValue generic_cast(HSQUIRRELVM vm, SQObjectPtr& obj) {
+            return python::sqobject_topython(obj, vm);
         }
     }
 }

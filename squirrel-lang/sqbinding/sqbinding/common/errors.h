@@ -8,4 +8,10 @@ namespace sqbinding {
             value_error(std::string& message): std::runtime_error(message) {};
             value_error(std::string&& message): std::runtime_error(message) {};
     };
+
+    class key_error : std::runtime_error {
+        public:
+            key_error(std::string& message): std::runtime_error(message) {};
+            key_error(std::string&& message): std::runtime_error(message) {};
+    };
 }

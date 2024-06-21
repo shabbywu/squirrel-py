@@ -47,7 +47,7 @@ namespace sqbinding {
         Return generic_stack_get(HSQUIRRELVM vm, SQInteger index) {
             HSQOBJECT ref;
             sq_getstackobj(vm, index, &ref);
-            return generic_cast<Return>(vm, ref);
+            return generic_cast<HSQOBJECT, Return>(vm, ref);
         }
 
     }
