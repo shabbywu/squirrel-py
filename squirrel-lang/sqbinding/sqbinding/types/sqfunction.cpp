@@ -4,22 +4,6 @@
 
 namespace py = pybind11;
 
-
-struct stack_guard {
-    stack_guard(HSQUIRRELVM v) {
-        vm = v;
-        top = sq_gettop(vm);
-    }
-    ~stack_guard() {
-        sq_settop(vm, top);
-    }
-    private:
-        HSQUIRRELVM vm;
-        SQInteger top;
-};
-
-
-
 namespace sqbinding {
     namespace detail {
         inline
@@ -37,6 +21,22 @@ namespace sqbinding {
             sq_pushobject(vm, table);
             call_setup_arg(vm, args...);
         }
+
+        template <class Return> inline
+        Return call(HSQUIRRELVM vm, int params_count) {
+            if (SQ_FAILED(sq_call(vm, params_count, SQTrue, SQTrue))) {
+                const SQChar* sqErr;
+                sq_getlasterror(vm);
+                if (sq_gettype(vm, -1) == OT_NULL) {
+                    throw std::runtime_error("unknown error");
+                }
+                sq_tostring(vm, -1);
+                sq_getstring(vm, -1, &sqErr);
+                throw std::runtime_error(std::string(sqErr));
+            } else {
+                return generic_stack_get<Return>(vm, -1);
+            }
+        }
     }
 }
 
@@ -50,19 +50,7 @@ Return sqbinding::detail::NativeClosure<Return (Args...)>::operator()(Args... ar
     } else {
         call_setup(vm, holder->nativeClosure, vm->_roottable, args...);
     }
-
-    if (SQ_FAILED(sq_call(vm, sizeof...(args)+1, SQTrue, SQTrue))) {
-        const SQChar* sqErr;
-        sq_getlasterror(vm);
-        if (sq_gettype(vm, -1) == OT_NULL) {
-            throw std::runtime_error("unknown error");
-        }
-        sq_tostring(vm, -1);
-        sq_getstring(vm, -1, &sqErr);
-        throw std::runtime_error(std::string(sqErr));
-    } else {
-        return generic_stack_get<Return>(vm, -1);
-    }
+    return call<Return>(vm, stack_guard.offset() - 1);
 }
 
 PyValue sqbinding::python::NativeClosure::__call__(py::args args) {
@@ -80,19 +68,7 @@ Return sqbinding::detail::Closure<Return (Args...)>::operator()(Args... args) {
     } else {
         call_setup(vm, holder->closure, vm->_roottable, args...);
     }
-
-    if (SQ_FAILED(sq_call(vm, sizeof...(args)+1, SQTrue, SQTrue))) {
-        const SQChar* sqErr;
-        sq_getlasterror(vm);
-        if (sq_gettype(vm, -1) == OT_NULL) {
-            throw std::runtime_error("unknown error");
-        }
-        sq_tostring(vm, -1);
-        sq_getstring(vm, -1, &sqErr);
-        throw std::runtime_error(std::string(sqErr));
-    } else {
-        return generic_stack_get<Return>(vm, -1);
-    }
+    return call<Return>(vm, stack_guard.offset() - 1);
 }
 
 

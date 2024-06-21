@@ -58,13 +58,12 @@ void sqbinding::python::BaseVM::setroottable(std::shared_ptr<sqbinding::python::
 
 
 PyValue sqbinding::python::BaseVM::ExecuteString(std::string sourcecode, PyValue env) {
-    SQInteger oldtop = sq_gettop(vm);
+    detail::stack_guard stack_guard(vm);
 
     if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
         throw py::value_error("invalid sourcecode, failed to compile");
     }
-
-    auto func = std::get<std::shared_ptr<sqbinding::python::Closure>>(sqobject_topython(vm->PopGet(), vm));
+    auto func = std::get<std::shared_ptr<sqbinding::python::Closure>>(sqobject_topython(vm->Top(), vm));
     if (!std::holds_alternative<py::none>(env)) {
         func->pthis = pyvalue_tosqobject(env, vm);
     }
@@ -72,12 +71,12 @@ PyValue sqbinding::python::BaseVM::ExecuteString(std::string sourcecode, PyValue
 }
 
 PyValue sqbinding::python::BaseVM::ExecuteBytecode(std::string bytecode, PyValue env) {
+    detail::stack_guard stack_guard(vm);
     auto reader = StringReaderCtx(bytecode);
-    SQInteger oldtop = sq_gettop(vm);
     if (!SQ_SUCCEEDED(sq_readclosure(vm, read_string, &reader))) {
         throw std::runtime_error(GetLastError());
     }
-    auto func = std::get<std::shared_ptr<sqbinding::python::Closure>>(sqobject_topython(vm->PopGet(), vm));
+    auto func = std::get<std::shared_ptr<sqbinding::python::Closure>>(sqobject_topython(vm->Top(), vm));
     if (!std::holds_alternative<py::none>(env)) {
         func->pthis = pyvalue_tosqobject(env, vm);
     }

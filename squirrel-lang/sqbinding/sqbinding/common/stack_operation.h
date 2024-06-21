@@ -7,8 +7,28 @@
 
 namespace py = pybind11;
 
+
 namespace sqbinding {
     namespace detail {
+        class stack_guard {
+            public:
+                stack_guard(HSQUIRRELVM v) {
+                    vm = v;
+                    top = sq_gettop(vm);
+                }
+                ~stack_guard() {
+                    sq_settop(vm, top);
+                }
+            private:
+                HSQUIRRELVM vm;
+                SQInteger top;
+
+            public:
+                int offset() {
+                    return sq_gettop(vm) - top;
+                }
+        };
+
         template <class Arg> inline
         void generic_stack_push(HSQUIRRELVM vm, Arg arg) {
             sq_pushobject(vm, arg);
