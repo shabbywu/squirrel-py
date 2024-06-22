@@ -90,6 +90,12 @@ namespace sqbinding {
                     }
                     return true;
                 }
+            public:
+            // bindFunc to current instance
+            template <typename Func>
+            void bindFunc(std::string funcname, Func func) {
+                set<std::string, Func>(funcname, func);
+            }
         };
     }
 }

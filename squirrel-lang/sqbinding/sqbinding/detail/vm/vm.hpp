@@ -153,6 +153,11 @@ namespace sqbinding {
                 ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
                 return closure();
             }
+
+            template <class Func>
+            void bindFunc(std::string funcname, Func func) {
+                getroottable()->bindFunc(funcname, func);
+            }
         };
 
         enum class SquirrelLibs {

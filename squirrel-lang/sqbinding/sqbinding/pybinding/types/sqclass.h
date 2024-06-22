@@ -21,11 +21,6 @@ namespace sqbinding {
                 return v;
             }
 
-            // // bindFunc to current class
-            void bindFunc(std::string funcname, PyValue func) {
-                set(funcname, func);
-            }
-
             // Python Interface
             SQInteger __len__() {
                 return 0;

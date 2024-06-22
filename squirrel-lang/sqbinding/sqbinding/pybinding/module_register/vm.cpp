@@ -38,7 +38,7 @@ void register_squirrel_vm(py::module_ &m) {
             }
             return vm->ExecuteBytecode<PyValue, PyValue>(bytecode, env);
         }, py::arg("bytecode"), py::arg("env").none(true) = py::none())
-        .def("bindfunc", &StaticVM::bindFunc, py::arg("funcname"), py::arg("func"))
+        .def("bindfunc", &StaticVM::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &StaticVM::StackTop, py::return_value_policy::take_ownership)
         // base api
         .def_property("top", &StaticVM::GetTop, &StaticVM::SetTop, py::return_value_policy::reference_internal)
@@ -65,7 +65,7 @@ void register_squirrel_vm(py::module_ &m) {
             return vm->ExecuteBytecode<PyValue, PyValue>(bytecode, env);
         }, py::arg("bytecode"), py::arg("env").none(true) = py::none())
 
-        .def("bindfunc", &GenericVM::bindFunc, py::arg("funcname"), py::arg("func"))
+        .def("bindfunc", &GenericVM::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"))
         .def("stack_top", &GenericVM::StackTop, py::return_value_policy::take_ownership)
         // base api
         .def_property("top", &GenericVM::GetTop, &GenericVM::SetTop, py::return_value_policy::reference_internal)

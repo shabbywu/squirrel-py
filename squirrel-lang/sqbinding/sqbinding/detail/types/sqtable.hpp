@@ -96,12 +96,12 @@ namespace sqbinding {
                     }
                     return true;
                 }
-
-            // bindFunc to current table
-            template<class Func>
-            void bindFunc(std::string funcname, Func func) {
-                set<std::string, Func>(funcname, func);
-            }
+            public:
+                // bindFunc to current table
+                template<class Func>
+                void bindFunc(std::string funcname, Func func) {
+                    set<std::string, Func>(funcname, func);
+                }
         };
     }
 }

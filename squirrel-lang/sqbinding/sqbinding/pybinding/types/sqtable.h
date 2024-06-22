@@ -15,9 +15,6 @@ namespace sqbinding {
             Table(detail::VM vm): detail::Table(vm) {}
             Table(::SQTable* pTable, detail::VM vm): detail::Table(pTable, vm) {}
 
-            void bindFunc(std::string funcname, PyValue func) {
-                set<std::string, PyValue> (funcname, func);
-            }
             void bind_this_if_need(PyValue& v);
             //
             PyValue get(PyValue& key) {

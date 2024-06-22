@@ -23,11 +23,6 @@ namespace sqbinding {
                 bind_this_if_need(v);
                 return v;
             }
-            // bindFunc to current instance
-            void bindFunc(std::string funcname, PyValue func) {
-                set(funcname, func);
-            }
-
             // Python Interface
             PyValue __getitem__(PyValue& key) {
                 return get(key);

@@ -30,16 +30,12 @@ namespace sqbinding {
         public:
             VMProxy() = delete;
             VMProxy(HSQUIRRELVM vm): detail::VMProxy(vm) {}
-
+        public:
             std::shared_ptr<python::Table>& getroottable() {
                 if (roottable == nullptr) {
                     roottable = std::make_shared<python::Table>(_table(GetSQVM()->_roottable), GetVM());
                 }
                 return roottable;
-            }
-
-            void bindFunc(std::string funcname, py::function func) {
-                getroottable()->bindFunc(funcname, func);
             }
         };
     }
