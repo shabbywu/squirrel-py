@@ -37,7 +37,7 @@ namespace sqbinding {
 
 namespace sqbinding { namespace detail {
     #ifdef USE__SQString__
-    typedef python::String string;
+    typedef detail::String string;
     #else
     typedef std::string string;
     #endif

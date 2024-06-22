@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "definition.h"

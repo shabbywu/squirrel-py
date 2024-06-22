@@ -33,7 +33,7 @@ namespace sqbinding {
         Return generic_stack_get(VM vm, SQInteger index) {
             HSQOBJECT ref;
             sq_getstackobj(*vm, index, &ref);
-            return generic_cast<HSQOBJECT, Return>(vm, ref);
+            return GenericCast<Return(HSQOBJECT&)>::template cast(vm, ref);
         }
 
     }

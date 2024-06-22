@@ -13,5 +13,4 @@
 #include "pylist.hpp"
 #include "pyfunction.hpp"
 #include "pyobject.hpp"
-
 #endif

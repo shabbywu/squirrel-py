@@ -1,8 +1,13 @@
 #pragma once
 #include <type_traits>
+#include <concepts>
+#include <variant>
 #include <squirrel.h>
 #include "format.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
+
+
+typedef std::variant<SQInteger, SQFloat> SafeSQType;
 
 namespace sqbinding {
     namespace detail {
@@ -75,31 +80,50 @@ namespace sqbinding {
             return std::make_pair(obj->instance.get(), ud);
         }
 
-        template <class FromType, class ToType> inline
-        ToType generic_cast(VM vm, FromType& obj);
+        template <typename  FuncSignature>
+        class GenericCast;
 
-        // cast any to SQObjectPtr
-        template <> inline
-        SQObjectPtr generic_cast(VM vm, int& obj) {
-            return SQObjectPtr(obj);
-        }
+        template <class FromType, class ToType>
+        class GenericCast<ToType(FromType)> {
+            public:
+            static ToType cast(VM vm, FromType);
+        };
 
-        template <> inline
-        SQObjectPtr generic_cast(VM vm, std::string& obj) {
-            return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
-        }
+        template <>
+        class GenericCast<SQObjectPtr(SQInteger&)> {
+            public:
+            static SQObjectPtr cast(VM vm, SQInteger& obj) {return SQObjectPtr(obj);}
+        };
 
-        template <class ToType> requires (!std::is_same_v<ToType, void>) inline
-        ToType generic_cast(VM vm, SQUserData*& obj) {
-            struct Holder {
-                std::shared_ptr<std::remove_pointer_t<ToType>> instance;
-            };
+        template <>
+        class GenericCast<SQObjectPtr(SQInteger&&)> {
+            public:
+            static SQObjectPtr cast(VM vm, SQInteger&& obj) {return SQObjectPtr(obj);}
+        };
 
-            Holder* holder = ((Holder*)(sq_aligning(obj + 1)));
-            return holder->instance.get();
-        }
+        template <>
+        class GenericCast<SQObjectPtr(std::string&)> {
+            public:
+            static SQObjectPtr cast(VM vm, std::string& obj) {return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));}
+        };
 
-        template <class FromType> inline
-        void generic_cast(VM vm, FromType& obj) {};
+        template <>
+        class GenericCast<SQObjectPtr(std::string&&)> {
+            public:
+            static SQObjectPtr cast(VM vm, std::string&& obj) {return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));}
+        };
+
+        template <class FromType>
+        class GenericCast<void(FromType&)> {
+            public:
+            static void cast(VM vm, FromType& obj) {}
+        };
+
+        template <class FromType>
+        class GenericCast<void(FromType&&)> {
+            public:
+            static void cast(VM vm, FromType&& obj) {}
+        };
+
     }
 }

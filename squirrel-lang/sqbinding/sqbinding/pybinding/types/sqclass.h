@@ -1,9 +1,10 @@
 #pragma once
 
+#include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/common/format.hpp"
+#include "sqbinding/detail/types/sqclass.hpp"
 #include "definition.h"
 #include "pydict.hpp"
-#include "sqbinding/detail/types/sqclass.hpp"
 
 namespace sqbinding {
     namespace python {
@@ -11,9 +12,16 @@ namespace sqbinding {
             public:
             // link to a existed table in vm stack
             Class (::SQClass* pClass, detail::VM vm): detail::Class(pClass, vm) {}
+            void bind_this_if_need(PyValue& v);
+            PyValue get(PyValue key) {
+                detail::VM& vm = holder->vm;
+                SQObjectPtr& self = holder->clazz;
+                auto v = detail::Class::get<PyValue, PyValue>(key);
+                bind_this_if_need(v);
+                return v;
+            }
 
-            PyValue get(PyValue key);
-            // bindFunc to current class
+            // // bindFunc to current class
             void bindFunc(std::string funcname, PyValue func) {
                 set(funcname, func);
             }
@@ -34,7 +42,6 @@ namespace sqbinding {
                 detail::VM& vm = holder->vm;
                 return std::move(sqbinding::python::Table(pClass()->_members, vm).keys());
             }
-
 
             std::string __str__() {
                 return string_format("OT_CLASS: [addr={%p}, ref=%d]", pClass(), getRefCount());

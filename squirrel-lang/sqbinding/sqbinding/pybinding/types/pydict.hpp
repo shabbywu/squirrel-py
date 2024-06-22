@@ -1,5 +1,5 @@
 #pragma once
-
+#include "sqbinding/pybinding/common/cast.h"
 #include "definition.h"
 #include "pyfunction.hpp"
 

@@ -1,8 +1,8 @@
 #pragma once
 
+#include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/errors.hpp"
-#include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/pybinding/common/stack_operation.h"
 #include "definition.h"
 #include "sqbinding/detail/types/sqtable.hpp"
@@ -16,9 +16,17 @@ namespace sqbinding {
             Table(::SQTable* pTable, detail::VM vm): detail::Table(pTable, vm) {}
 
             void bindFunc(std::string funcname, PyValue func) {
-                set(funcname, func);
+                set<std::string, PyValue> (funcname, func);
             }
-            PyValue get(PyValue& key);
+            void bind_this_if_need(PyValue& v);
+            //
+            PyValue get(PyValue& key) {
+                detail::VM& vm = holder->vm;
+                SQObjectPtr& self = holder->table;
+                auto v = detail::Table::get<PyValue, PyValue>(key);
+                bind_this_if_need(v);
+                return v;
+            }
 
             std::shared_ptr<TableIterator> __iter__() {
                 return std::make_shared<TableIterator>(this);

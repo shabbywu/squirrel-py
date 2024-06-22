@@ -40,16 +40,16 @@ namespace sqbinding {
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
                     VM& vm = holder->vm;
-                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
-                    auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
+                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::template cast(vm, key);
+                    auto sqval = GenericCast<SQObjectPtr(TV&)>::template cast(vm, val);
                     set(sqkey, sqval);
                 }
 
                 template <typename TK, typename TV>
                 void set(TK&& key, TV&& val) {
                     VM& vm = holder->vm;
-                    auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
-                    auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
+                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::template cast(vm, key);
+                    auto sqval = GenericCast<SQObjectPtr(TV&)>::template cast(vm, val);
                     set(sqkey, sqval);
                 }
 
@@ -72,19 +72,19 @@ namespace sqbinding {
                         return r;
                     }
                     VM& vm = holder->vm;
-                    auto sqidx = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, idx);
+                    auto sqidx = GenericCast<SQObjectPtr(TK&)>::template cast(vm, idx);
                     throw sqbinding::index_error(sqobject_to_string(sqidx));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& idx, TV& r) {
                     VM& vm = holder->vm;
-                    auto sqidx = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, idx);
+                    auto sqidx = GenericCast<SQObjectPtr(TK&)>::template cast(vm, idx);
                     SQObjectPtr ptr;
                     if (!get(sqidx, ptr)) {
                         return false;
                     }
-                    r = generic_cast<SQObjectPtr, std::remove_reference_t<TV>>(vm, ptr);
+                    r = GenericCast<TV(SQObjectPtr&)>::template cast(vm, ptr);
                     return true;
                 }
 
@@ -101,7 +101,7 @@ namespace sqbinding {
                 template <typename Type>
                 void append(Type& obj) {
                     VM& vm = holder->vm;
-                    auto sqobj = generic_cast<std::remove_reference_t<Type>, SQObjectPtr>(vm, obj);
+                    auto sqobj = GenericCast<SQObjectPtr(Type&)>::template cast(vm, obj);
                     pArray()->Append(std::move(sqobj));
                 }
 
@@ -113,7 +113,7 @@ namespace sqbinding {
                     }
                     SQObjectPtr sqval = pArray()->Top();
                     pArray()->Pop();
-                    return generic_cast<SQObjectPtr, std::remove_reference_t<Type>>(vm, sqval);
+                    return GenericCast<Type(SQObjectPtr&)>::template cast(vm, sqval);
                 }
         };
     }

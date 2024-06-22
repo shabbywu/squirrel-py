@@ -15,22 +15,65 @@ namespace sqbinding {
     }
 
     namespace detail {
-        template <> inline
-        SQObjectPtr generic_cast(VM vm, PyValue& obj) {
-            return python::pyvalue_tosqobject(obj, vm);
-        }
+        template <>
+        class GenericCast<SQObjectPtr(PyValue)> {
+            public:
+            static SQObjectPtr cast(VM vm, PyValue& obj) {
+                return python::pyvalue_tosqobject(obj, vm);
+            }
+        };
+
+        template <>
+        class GenericCast<SQObjectPtr(PyValue&)> {
+            public:
+            static SQObjectPtr cast(VM vm, PyValue& obj) {
+                return python::pyvalue_tosqobject(obj, vm);
+            }
+        };
+
+        template <>
+        class GenericCast<SQObjectPtr(PyValue&&)> {
+            public:
+            static SQObjectPtr cast(VM vm, PyValue&& obj) {
+                return python::pyvalue_tosqobject(obj, vm);
+            }
+        };
+
 
         // cast sqobject to pyvalue
-        template <> inline
-        PyValue generic_cast(VM vm, HSQOBJECT& obj) {
-            SQObjectPtr ptr = obj;
-            return python::sqobject_topython(ptr, vm);
-        }
+        template <>
+        class GenericCast<PyValue(HSQOBJECT&)> {
+            public:
+            static PyValue cast(VM vm, HSQOBJECT& obj) {
+                SQObjectPtr ptr = obj;
+                return python::sqobject_topython(ptr, vm);
+            }
+        };
+
+        template <>
+        class GenericCast<PyValue(HSQOBJECT&&)> {
+            public:
+            static PyValue cast(VM vm, HSQOBJECT&& obj) {
+                SQObjectPtr ptr = obj;
+                return python::sqobject_topython(ptr, vm);
+            }
+        };
 
         // cast sqobjectptr to pyvalue
-        template <> inline
-        PyValue generic_cast(VM vm, SQObjectPtr& obj) {
-            return python::sqobject_topython(obj, vm);
-        }
+        template <>
+        class GenericCast<PyValue(SQObjectPtr&)> {
+            public:
+            static PyValue cast(VM vm, SQObjectPtr& ptr) {
+                return python::sqobject_topython(ptr, vm);
+            }
+        };
+
+        template <>
+        class GenericCast<PyValue(SQObjectPtr&&)> {
+            public:
+            static PyValue cast(VM vm, SQObjectPtr&& ptr) {
+                return python::sqobject_topython(ptr, vm);
+            }
+        };
     }
 }

@@ -9,9 +9,6 @@
 #include <sqstdmath.h>
 #include <sqstdsystem.h>
 #include <sqstdstring.h>
-
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
 #include "sqbinding/detail/types/sqtable.hpp"
 #include "sqbinding/detail/types/sqobject.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
@@ -19,7 +16,7 @@
 #include "sqbinding/detail/common/cast.hpp"
 #include "sqbinding/detail/vm/printer.hpp"
 
-namespace py = pybind11;
+
 namespace sqbinding {
     namespace detail {
         class StringReaderCtx {
@@ -106,7 +103,7 @@ namespace sqbinding {
                 }
 
                 ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
-                SQObjectPtr pthis = detail::generic_cast<std::remove_reference_t<Env>, SQObjectPtr>(GetVM(), env);
+                SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env&)>::template cast(GetVM(), env);
                 closure.bindThis(pthis);
                 return closure();
             }
@@ -137,7 +134,7 @@ namespace sqbinding {
                 }
 
                 ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
-                SQObjectPtr pthis = detail::generic_cast<std::remove_reference_t<Env>, SQObjectPtr>(GetVM(), env);
+                SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env&)>::template cast(GetVM(), env);
                 closure.bindThis(pthis);
                 return closure();
             }

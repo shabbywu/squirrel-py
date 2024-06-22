@@ -1,5 +1,7 @@
 #include "sqbinding/pybinding/types/definition.h"
 #include "sqbinding/pybinding/types/container.h"
+#include "sqbinding/pybinding/common/cast.h"
+
 
 namespace py = pybind11;
 

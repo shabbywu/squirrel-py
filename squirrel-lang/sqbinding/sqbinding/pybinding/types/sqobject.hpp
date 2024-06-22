@@ -1,5 +1,5 @@
 #pragma once
-
+#include <sqobject.h>
 #include "definition.h"
 #include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/types/sqobject.hpp"
@@ -13,11 +13,11 @@ namespace sqbinding {
 
             PyValue to_python() {
                 detail::VM& vm = holder->vm;
-                return detail::generic_cast<SQObjectPtr, PyValue>(vm, **this);
+                return detail::GenericCast<PyValue(SQObjectPtr&)>::template cast(vm, **this);
             }
             void from_python(PyValue val) {
                 detail::VM& vm = holder->vm;
-                holder = std::make_shared<detail::ObjectPtr::Holder>(detail::generic_cast<PyValue, SQObjectPtr>(vm, val), vm);
+                holder = std::make_shared<detail::ObjectPtr::Holder>(detail::GenericCast<SQObjectPtr(PyValue)>::template cast(vm, val), vm);
                 return;
             }
 

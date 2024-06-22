@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/common/format.hpp"
 #include "definition.h"
 #include "pydict.hpp"
@@ -12,8 +13,16 @@ namespace sqbinding {
             public:
             // link to a existed pInstance in vm stack
             Instance (::SQInstance* pInstance, detail::VM vm): detail::Instance(pInstance, vm) {};
-
-            PyValue get(PyValue key);
+            public:
+            void bind_this_if_need(PyValue& v);
+            // Python API
+            PyValue get(PyValue key) {
+                detail::VM& vm = holder->vm;
+                SQObjectPtr& self = holder->instance;
+                auto v = detail::Instance::get<PyValue, PyValue>(key);
+                bind_this_if_need(v);
+                return v;
+            }
             // bindFunc to current instance
             void bindFunc(std::string funcname, PyValue func) {
                 set(funcname, func);

@@ -1,8 +1,9 @@
 #pragma once
+
+#include "sqbinding/pybinding/common/cast.h"
 #include "definition.h"
 #include "sqstr.hpp"
 #include "pyfunction.hpp"
-#include "sqbinding/pybinding/common/cast.h"
 
 
 namespace py = pybind11;
