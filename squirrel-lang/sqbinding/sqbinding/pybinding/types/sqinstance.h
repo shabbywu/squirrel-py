@@ -11,7 +11,7 @@ namespace sqbinding {
         class Instance: public detail::Instance, std::enable_shared_from_this<Instance>{
             public:
             // link to a existed pInstance in vm stack
-            Instance (::SQInstance* pInstance, HSQUIRRELVM vm): detail::Instance(pInstance, vm) {};
+            Instance (::SQInstance* pInstance, detail::VM vm): detail::Instance(pInstance, vm) {};
 
             PyValue get(PyValue key);
             // bindFunc to current instance
@@ -28,7 +28,7 @@ namespace sqbinding {
                 return val;
             }
             py::list keys() {
-                HSQUIRRELVM& vm = holder->vm;
+                detail::VM& vm = holder->vm;
                 SQInteger idx = 0;
                 py::list keys;
                 auto table = pInstance()->_class->_members;

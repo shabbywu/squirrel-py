@@ -19,26 +19,32 @@ namespace sqbinding {
 
         class GenericVM: public detail::BaseVM {
             public:
-                std::shared_ptr<Holder> holder;
-            public:
                 GenericVM(HSQUIRRELVM vm): BaseVM(vm) {};
                 GenericVM(): GenericVM(1024) {}
                 GenericVM(int size): GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
-                GenericVM(int size, unsigned int libsToLoad): BaseVM(detail::open_sqvm(size, libsToLoad), true) {}
+                GenericVM(int size, unsigned int libsToLoad): detail::BaseVM(detail::open_sqvm(size, libsToLoad), true) {}
         };
     }
 
     namespace python {
         class GenericVM: public detail::GenericVM {
         public:
+            std::shared_ptr<python::Table> roottable;
+        public:
             GenericVM(HSQUIRRELVM vm): detail::GenericVM(vm) {};
             GenericVM(): detail::GenericVM(1024) {}
             GenericVM(int size): detail::GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
             GenericVM(int size, unsigned int libsToLoad): detail::GenericVM(size, libsToLoad) {}
 
+            std::shared_ptr<python::Table>& getroottable() {
+                if (roottable == nullptr) {
+                    roottable = std::make_shared<python::Table>(_table(GetSQVM()->_roottable), GetVM());
+                }
+                return roottable;
+            }
+
             void bindFunc(std::string funcname, py::function func) {
-                HSQUIRRELVM& vm = holder->vm;
-                holder->roottable->bindFunc(funcname, func);
+                getroottable()->bindFunc(funcname, func);
             }
         };
     }

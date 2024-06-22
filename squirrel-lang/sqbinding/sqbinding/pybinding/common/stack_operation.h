@@ -11,11 +11,11 @@ namespace py = pybind11;
 namespace sqbinding {
     namespace detail {
         template <> inline
-        void generic_stack_push<py::args>(HSQUIRRELVM vm, py::args args) {
+        void generic_stack_push<py::args>(VM vm, py::args args) {
             // push args into stack
             for (auto var_ : args) {
                 auto var = python::pyvalue_tosqobject(std::move(var_.cast<PyValue>()), vm);
-                sq_pushobject(vm, std::move(var));
+                sq_pushobject(*vm, std::move(var));
             }
         }
 

@@ -4,7 +4,7 @@
 
 
 PyValue sqbinding::python::Table::get(PyValue& key) {
-    HSQUIRRELVM& vm = holder->vm;
+    detail::VM& vm = holder->vm;
     SQObjectPtr& self = holder->table;
     auto v = detail::Table::get<PyValue, PyValue>(key);
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {

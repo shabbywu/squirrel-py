@@ -22,9 +22,6 @@ namespace sqbinding {
             py::list args;
             // 索引从 1 开始, 且位置 1 是 this(env)
             // 参数从索引 2 开始
-            if (nparams > 1) {
-                std::cout << "params count=" <<nparams << std::endl;
-            }
             for (int idx = 2; idx <= 1 + nparams; idx ++) {
                 auto arg = stack_get(vm, idx);
                 auto pyarg = sqobject_topython(arg, vm);
@@ -68,14 +65,14 @@ namespace sqbinding {
 
         class SQPythonFunction {
         public:
-            HSQUIRRELVM vm;
+            detail::VM vm;
             py::function _val;
             // delegate table
             std::shared_ptr<sqbinding::python::Table> _delegate;
             std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
             std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
 
-            SQPythonFunction(py::function func, HSQUIRRELVM vm) {
+            SQPythonFunction(py::function func, detail::VM vm) {
                 this->vm = vm;
                 this->_val = func;
 
@@ -127,20 +124,9 @@ namespace sqbinding {
                 }
             }
 
-            ~SQPythonFunction() {
-                release();
-            }
-
-            void release() {
-                _delegate = NULL;
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release SQPythonFunction" << std::endl;
-                #endif
-            }
-
-            static SQUserData* Create(py::function func, HSQUIRRELVM vm) {
+            static SQUserData* Create(py::function func, detail::VM vm) {
                 // new userdata to store py::function
-                auto result = detail::make_stack_object<SQPythonFunction, py::function, HSQUIRRELVM>(vm, func, vm);
+                auto result = detail::make_stack_object<SQPythonFunction, py::function, detail::VM>(vm, func, vm);
                 auto pycontainer = result.first;
                 auto ud = result.second;
                 ud->SetDelegate(pycontainer->_delegate->pTable());

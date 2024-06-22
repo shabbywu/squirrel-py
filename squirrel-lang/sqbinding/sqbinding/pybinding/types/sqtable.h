@@ -12,8 +12,8 @@ namespace sqbinding {
         class TableIterator;
         class Table : public detail::Table, public std::enable_shared_from_this<Table> {
             public:
-            Table(HSQUIRRELVM vm): detail::Table(vm) {}
-            Table(::SQTable* pTable, HSQUIRRELVM vm): detail::Table(pTable, vm) {}
+            Table(detail::VM vm): detail::Table(vm) {}
+            Table(::SQTable* pTable, detail::VM vm): detail::Table(pTable, vm) {}
 
             void bindFunc(std::string funcname, PyValue func) {
                 set(funcname, func);
@@ -35,12 +35,12 @@ namespace sqbinding {
             }
             void __delitem__(PyValue key) {
                 // TODO: add pop(key)
-                HSQUIRRELVM& vm = holder->vm;
+                detail::VM& vm = holder->vm;
                 SQObjectPtr sqkey = pyvalue_tosqobject(key, vm);
                 pTable()->Remove(sqkey);
             }
             py::list keys() {
-                HSQUIRRELVM& vm = holder->vm;
+                detail::VM& vm = holder->vm;
                 SQInteger idx = 0;
                 py::list keys;
                 while (idx < pTable()->_numofnodes) {
@@ -75,7 +75,7 @@ namespace sqbinding {
                     PyValue key;
                     PyValue value;
                     bool found;
-                    HSQUIRRELVM& vm = obj->holder->vm;
+                    detail::VM& vm = obj->holder->vm;
                     while (idx < obj->pTable()->_numofnodes) {
                         auto n = &obj->pTable()->_nodes[idx++];
                         if (sq_type(n->key) != tagSQObjectType::OT_NULL) {

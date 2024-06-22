@@ -10,7 +10,7 @@ namespace sqbinding {
         class Class: public detail::Class, public std::enable_shared_from_this<Class> {
             public:
             // link to a existed table in vm stack
-            Class (::SQClass* pClass, HSQUIRRELVM vm): detail::Class(pClass, vm) {}
+            Class (::SQClass* pClass, detail::VM vm): detail::Class(pClass, vm) {}
 
             PyValue get(PyValue key);
             // bindFunc to current class
@@ -31,7 +31,7 @@ namespace sqbinding {
                 return val;
             }
             py::list keys() {
-                HSQUIRRELVM& vm = holder->vm;
+                detail::VM& vm = holder->vm;
                 return std::move(sqbinding::python::Table(pClass()->_members, vm).keys());
             }
 

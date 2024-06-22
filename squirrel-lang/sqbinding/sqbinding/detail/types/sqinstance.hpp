@@ -1,5 +1,6 @@
 #pragma once
 #include "sqbinding/detail/common/format.hpp"
+#include "sqvm.hpp"
 
 
 namespace sqbinding {
@@ -7,20 +8,20 @@ namespace sqbinding {
         class Instance: public std::enable_shared_from_this<Instance> {
             public:
                 struct Holder {
-                    Holder(::SQInstance* pInstance, HSQUIRRELVM vm) : vm(vm) {
+                    Holder(::SQInstance* pInstance, VM vm) : vm(vm) {
                         instance = pInstance;
-                        sq_addref(vm, &instance);
+                        sq_addref(*vm, &instance);
                     }
                     ~Holder(){
-                        sq_release(vm, &instance);
+                        sq_release(*vm, &instance);
                     }
-                    HSQUIRRELVM vm;
+                    VM vm;
                     SQObjectPtr instance;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Instance (::SQInstance* pInstance, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pInstance, vm)) {};
+                Instance (::SQInstance* pInstance, VM vm): holder(std::make_shared<Holder>(pInstance, vm)) {};
 
                 SQUnsignedInteger getRefCount() {
                     return pInstance() -> _uiRef;
@@ -31,7 +32,7 @@ namespace sqbinding {
             public:
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
                     auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
                     set(sqkey, sqval);
@@ -39,7 +40,7 @@ namespace sqbinding {
 
                 template <typename TK, typename TV>
                 void set(TK&& key, TV&& val) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
                     auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
                     set(sqkey, sqval);
@@ -47,14 +48,14 @@ namespace sqbinding {
 
                 template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     SQObjectPtr& self = holder->instance;
 
-                    sq_pushobject(vm, self);
-                    sq_pushobject(vm, sqkey);
-                    sq_pushobject(vm, sqval);
-                    sq_newslot(vm, -3, SQFalse);
-                    sq_pop(vm, 1);
+                    sq_pushobject(*vm, self);
+                    sq_pushobject(*vm, sqkey);
+                    sq_pushobject(*vm, sqval);
+                    sq_newslot(*vm, -3, SQFalse);
+                    sq_pop(*vm, 1);
                 }
             public:
                 template <typename TK, typename TV>
@@ -63,14 +64,14 @@ namespace sqbinding {
                     if(get(key, r)) {
                         return r;
                     }
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
                     throw sqbinding::key_error(sqobject_to_string(sqkey));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& key, TV& r) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
                     SQObjectPtr ptr;
                     if (!get(sqkey, ptr)) {
@@ -82,9 +83,9 @@ namespace sqbinding {
 
                 template <>
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     SQObjectPtr& self = holder->instance;
-                    if (!vm->Get(self, key, ret, false, DONT_FALL_BACK)) {
+                    if (!(*vm)->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
                     return true;

@@ -5,7 +5,7 @@
 
 
 PyValue sqbinding::python::Instance::get(PyValue key) {
-    HSQUIRRELVM& vm = holder->vm;
+    detail::VM& vm = holder->vm;
     SQObjectPtr& self = holder->instance;
     auto v = detail::Instance::get<PyValue, PyValue>(key);
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {

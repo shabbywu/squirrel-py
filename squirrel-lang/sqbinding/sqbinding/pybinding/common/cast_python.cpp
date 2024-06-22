@@ -1,6 +1,7 @@
 #include "cast.h"
 #include "sqbinding/detail/common/cast.hpp"
 #include "sqbinding/detail/common/format.hpp"
+#include "sqbinding/detail/types/sqvm.hpp"
 #include "sqbinding/pybinding/types/definition.h"
 #include "sqbinding/pybinding/types/container.h"
 #include "sqbinding/pybinding/types/sqobject.hpp"
@@ -13,7 +14,7 @@ if (std::holds_alternative<std::shared_ptr<type>>(object)) {\
 }
 
 
-SQObjectPtr sqbinding::python::pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm) {
+SQObjectPtr sqbinding::python::pyvalue_tosqobject(PyValue value, detail::VM vm) {
     // 尝试解包装
     if (std::holds_alternative<py::object>(value)) {
         value = pyobject_topyvalue(std::get<py::object>(value));
@@ -29,7 +30,7 @@ SQObjectPtr sqbinding::python::pyvalue_tosqobject(PyValue value, HSQUIRRELVM vm)
         return SQObjectPtr(bool(std::get<py::bool_>(value)));
     } else if (std::holds_alternative<std::string>(value)) {
         std::string s = std::get<std::string>(value);
-        return SQObjectPtr(SQString::Create(_ss(vm), s.c_str(), s.size()));
+        return SQObjectPtr(SQString::Create(_ss(*vm), s.c_str(), s.size()));
     } else if (std::holds_alternative<py::list>(value)) {
         return SQObjectPtr(SQPythonList::Create(std::get<py::list>(value), vm));
     } else if (std::holds_alternative<py::dict>(value)) {
@@ -129,7 +130,7 @@ if (_userdata(object)->_typetag == (void*)typetag) {\
 }
 
 
-PyValue sqbinding::python::sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
+PyValue sqbinding::python::sqobject_topython(SQObjectPtr& object, detail::VM vm) {
     switch (sq_type(object))
     {
     case tagSQObjectType::OT_NULL:

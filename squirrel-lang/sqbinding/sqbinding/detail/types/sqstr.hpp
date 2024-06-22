@@ -1,21 +1,22 @@
 #pragma once
+#include "sqvm.hpp"
 
 namespace sqbinding {
     namespace detail {
         class String {
             public:
             struct Holder {
-                Holder(::SQString* pString, HSQUIRRELVM vm) : vm(vm) {
+                Holder(::SQString* pString, VM vm) : vm(vm) {
                     string_ = pString;
-                    sq_addref(vm, &string_);
+                    sq_addref(*vm, &string_);
                 }
                 ~Holder(){
-                    sq_release(vm, &string_);
+                    sq_release(*vm, &string_);
                 }
-                HSQUIRRELVM vm;
+                VM vm;
                 SQObjectPtr string_;
             };
-            String(::SQString* pString, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pString, vm)) {};
+            String(::SQString* pString, VM vm): holder(std::make_shared<Holder>(pString, vm)) {};
 
             SQUnsignedInteger getRefCount() {
                 return pString() -> _uiRef;

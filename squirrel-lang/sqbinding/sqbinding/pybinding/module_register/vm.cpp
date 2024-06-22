@@ -23,7 +23,7 @@ std::shared_ptr<StaticVM> get_static_vm() {
 
 void register_squirrel_vm(py::module_ &m) {
     py::class_<StaticVM, std::shared_ptr<StaticVM>>(m, "StaticVM")
-        .def_property_readonly("vm", &StaticVM::GetVM)
+        .def_property_readonly("vm", &StaticVM::GetSQVM)
         .def("dumpstack", &StaticVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
         .def("execute", [](StaticVM* vm, std::string sourcecode, PyValue env) -> PyValue {
             if (std::holds_alternative<py::none>(env)) {
@@ -41,15 +41,15 @@ void register_squirrel_vm(py::module_ &m) {
         .def("stack_top", &StaticVM::StackTop, py::return_value_policy::take_ownership)
         // base api
         .def_property("top", &StaticVM::GetTop, &StaticVM::SetTop, py::return_value_policy::reference_internal)
-        .def("get_roottable", &StaticVM::getroottable, py::keep_alive<0, 1>())
+        .def("get_roottable", &StaticVM::getroottable, py::return_value_policy::copy)
         .def("collectgarbage", [](StaticVM* vm) -> int {
-            return sq_collectgarbage(vm->GetVM());
+            return sq_collectgarbage(vm->GetSQVM());
         })
         ;
 
     py::class_<GenericVM, std::shared_ptr<GenericVM>>(m, "SQVM")
         .def(py::init<int>(), py::arg("size") = 1024)
-        .def_property_readonly("vm", &GenericVM::GetVM)
+        .def_property_readonly("vm", &GenericVM::GetSQVM)
         .def("dumpstack", &GenericVM::DumpStack, py::arg("stackbase") = -1, py::arg("dumpall") = false)
         .def("execute", [](GenericVM* vm, std::string sourcecode, PyValue env) -> PyValue {
             if (std::holds_alternative<py::none>(env)) {
@@ -68,9 +68,9 @@ void register_squirrel_vm(py::module_ &m) {
         .def("stack_top", &GenericVM::StackTop, py::return_value_policy::take_ownership)
         // base api
         .def_property("top", &GenericVM::GetTop, &GenericVM::SetTop, py::return_value_policy::reference_internal)
-        .def("get_roottable", &GenericVM::getroottable, py::keep_alive<0, 1>(), py::return_value_policy::move)
+        .def("get_roottable", &GenericVM::getroottable, py::return_value_policy::copy)
         .def("collectgarbage", [](GenericVM* vm) -> int {
-            return sq_collectgarbage(vm->GetVM());
+            return sq_collectgarbage(vm->GetSQVM());
         })
         ;
 

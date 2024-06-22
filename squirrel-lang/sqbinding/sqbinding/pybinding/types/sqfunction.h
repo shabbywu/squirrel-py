@@ -10,7 +10,7 @@ namespace sqbinding {
     namespace python {
         class Closure: public detail::Closure<PyValue (py::args)> {
             public:
-                Closure(::SQClosure* pClosure, HSQUIRRELVM vm): detail::Closure<PyValue (py::args)>(pClosure, vm) {
+                Closure(::SQClosure* pClosure, detail::VM vm): detail::Closure<PyValue (py::args)>(pClosure, vm) {
                 };
             public:
                 // Python API
@@ -32,13 +32,14 @@ namespace sqbinding {
     namespace python {
         class NativeClosure: public detail::NativeClosure<PyValue (py::args)> {
             public:
-                NativeClosure(::SQNativeClosure* pNativeClosure, HSQUIRRELVM vm): detail::NativeClosure<PyValue (py::args)>(pNativeClosure, vm) {
+                NativeClosure(::SQNativeClosure* pNativeClosure, detail::VM vm): detail::NativeClosure<PyValue (py::args)>(pNativeClosure, vm) {
                 };
-                NativeClosure(std::shared_ptr<py::function> func, HSQUIRRELVM vm, SQFUNCTION caller): detail::NativeClosure<PyValue (py::args)>(::SQNativeClosure::Create(_ss(vm), caller, 1), vm) {
+                NativeClosure(std::shared_ptr<py::function> func, detail::VM vm, SQFUNCTION caller): detail::NativeClosure<PyValue (py::args)>(::SQNativeClosure::Create(_ss(*vm), caller, 1), vm) {
+                    // TODO: 重构 new userdata 的方式
                     pNativeClosure()->_nparamscheck = 0;
-                    SQUserPointer ptr = sq_newuserdata(vm, sizeof(py::function));
+                    SQUserPointer ptr = sq_newuserdata(*vm, sizeof(py::function));
                     std::memcpy(ptr, func.get(), sizeof(py::function));
-                    pNativeClosure()->_outervalues[0] = vm->PopGet();
+                    pNativeClosure()->_outervalues[0] = (*vm)->PopGet();
                 }
 
             public:

@@ -14,6 +14,7 @@
 #include <pybind11/stl.h>
 #include "sqbinding/detail/types/sqtable.hpp"
 #include "sqbinding/detail/types/sqobject.hpp"
+#include "sqbinding/detail/types/sqvm.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/cast.hpp"
 #include "sqbinding/detail/vm/printer.hpp"
@@ -49,35 +50,27 @@ namespace sqbinding {
 
         class BaseVM {
             public:
-                struct Holder {
-                    Holder(HSQUIRRELVM vm) : vm(vm) {
-                        roottable = std::make_shared<sqbinding::detail::Table>(_table(vm->_roottable), vm);
-                    }
-                    ~Holder(){
-                        #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release BaseVM: " << vm << std::endl;
-                        #endif
-                    }
-                    HSQUIRRELVM vm;
-                    std::shared_ptr<sqbinding::detail::Table> roottable;
-                };
-            public:
-                std::shared_ptr<Holder> holder;
+                std::shared_ptr<detail::VM> holder;
+                std::shared_ptr<detail::Table> roottable;
             public:
                 BaseVM() = default;
-                BaseVM(HSQUIRRELVM vm) : holder(std::make_shared<Holder>(vm)) {}
+                BaseVM(HSQUIRRELVM vm) : BaseVM(vm, false) {}
+                BaseVM(HSQUIRRELVM vm, bool should_close) : holder(std::make_shared<detail::VM>(vm, should_close)) {}
             public:
-                std::shared_ptr<sqbinding::detail::Table> getroottable() {
-                    return holder->roottable;
+                HSQUIRRELVM& GetSQVM() {return **holder;}
+                VM& GetVM() {return *holder;}
+                std::shared_ptr<detail::Table>& getroottable() {
+                    if (roottable == nullptr) {
+                        roottable = std::make_shared<detail::Table>(_table(GetSQVM()->_roottable), GetVM());
+                    }
+                    return roottable;
                 }
-                std::shared_ptr<sqbinding::detail::ObjectPtr> StackTop() {
-                    HSQUIRRELVM& vm = holder->vm;
-                    return std::make_shared<sqbinding::detail::ObjectPtr>(vm->Top(), vm);
+                std::shared_ptr<detail::ObjectPtr> StackTop() {
+                    return std::make_shared<detail::ObjectPtr>(GetSQVM()->Top(), GetVM());
                 }
-                HSQUIRRELVM& GetVM() {return holder->vm;}
 
                 inline std::string GetLastError() {
-                    HSQUIRRELVM& vm = holder->vm;
+                    HSQUIRRELVM& vm = GetSQVM();
                     const SQChar* sqErr;
                     sq_getlasterror(vm);
                     if (sq_gettype(vm, -1) == OT_NULL) {
@@ -91,27 +84,27 @@ namespace sqbinding {
                 };
             public:
                 void DumpStack(SQInteger stackbase, bool dumpall) {
-                    holder->vm->dumpstack(stackbase, dumpall);
+                    GetSQVM()->dumpstack(stackbase, dumpall);
                 }
                 SQInteger GetTop() {
-                    return sq_gettop(holder->vm);
+                    return sq_gettop(GetSQVM());
                 }
                 void SetTop(SQInteger top) {
-                    return sq_settop(holder->vm, top);
+                    return sq_settop(GetSQVM(), top);
                 }
             public:
             template <class Return, class Env>
             std::remove_reference_t<Return> ExecuteString(std::string sourcecode, Env& env) {
                 typedef Closure<std::remove_reference_t<Return> ()> ClosureType;
-                HSQUIRRELVM& vm = holder->vm;
+                HSQUIRRELVM& vm = GetSQVM();
                 detail::stack_guard stack_guard(vm);
 
                 if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
                     throw sqbinding::value_error("invalid sourcecode, failed to compile");
                 }
 
-                ClosureType closure = ClosureType{_closure(vm->Top()), vm};
-                SQObjectPtr pthis = generic_cast<std::remove_reference_t<Env>, SQObjectPtr>(vm, env);
+                ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
+                SQObjectPtr pthis = detail::generic_cast<std::remove_reference_t<Env>, SQObjectPtr>(GetVM(), env);
                 closure.bindThis(pthis);
                 return closure();
             }
@@ -119,21 +112,21 @@ namespace sqbinding {
             template <class Return>
             std::remove_reference_t<Return> ExecuteString(std::string sourcecode) {
                 typedef Closure<std::remove_reference_t<Return> ()> ClosureType;
-                HSQUIRRELVM& vm = holder->vm;
+                HSQUIRRELVM& vm = GetSQVM();
                 detail::stack_guard stack_guard(vm);
 
                 if (!SQ_SUCCEEDED(sq_compilebuffer(vm, sourcecode.c_str(), sourcecode.length(), "__main__", false))) {
                     throw sqbinding::value_error("invalid sourcecode, failed to compile");
                 }
 
-                ClosureType closure = ClosureType{_closure(vm->Top()), vm};
+                ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
                 return closure();
             }
             public:
             template <class Return, class Env>
             std::remove_reference_t<Return> ExecuteBytecode(std::string bytecode, Env& env) {
                 typedef Closure<std::remove_reference_t<Return> ()> ClosureType;
-                HSQUIRRELVM& vm = holder->vm;
+                HSQUIRRELVM& vm = GetSQVM();
                 detail::stack_guard stack_guard(vm);
 
                 auto reader = StringReaderCtx(bytecode);
@@ -141,8 +134,8 @@ namespace sqbinding {
                     throw std::runtime_error(GetLastError());
                 }
 
-                ClosureType closure = ClosureType{_closure(vm->Top()), vm};
-                SQObjectPtr pthis = generic_cast<std::remove_reference_t<Env>, SQObjectPtr>(vm, env);
+                ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
+                SQObjectPtr pthis = detail::generic_cast<std::remove_reference_t<Env>, SQObjectPtr>(GetVM(), env);
                 closure.bindThis(pthis);
                 return closure();
             }
@@ -150,7 +143,7 @@ namespace sqbinding {
             template <class Return>
             std::remove_reference_t<Return> ExecuteBytecode(std::string bytecode) {
                 typedef Closure<std::remove_reference_t<Return> ()> ClosureType;
-                HSQUIRRELVM& vm = holder->vm;
+                HSQUIRRELVM& vm = GetSQVM();
                 detail::stack_guard stack_guard(vm);
 
                 auto reader = StringReaderCtx(bytecode);
@@ -158,7 +151,7 @@ namespace sqbinding {
                     throw std::runtime_error(GetLastError());
                 }
 
-                ClosureType closure = ClosureType{_closure(vm->Top()), vm};
+                ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
                 return closure();
             }
         };

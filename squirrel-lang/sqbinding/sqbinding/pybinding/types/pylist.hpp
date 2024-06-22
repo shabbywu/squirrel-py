@@ -11,14 +11,14 @@ namespace sqbinding {
     namespace python {
         class SQPythonList {
         public:
-            HSQUIRRELVM vm;
+            detail::VM vm;
             py::list _val;
             // delegate table
             std::shared_ptr<sqbinding::python::Table> _delegate;
             std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
             std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
 
-            SQPythonList(py::list list, HSQUIRRELVM vm) {
+            SQPythonList(py::list list, detail::VM vm) {
                 this->vm = vm;
                 this->_val = list;
 
@@ -55,20 +55,9 @@ namespace sqbinding {
                 }
             }
 
-            ~SQPythonList() {
-                release();
-            }
-
-            void release() {
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release SQPythonList" << std::endl;
-                #endif
-                _delegate = NULL;
-            }
-
-            static SQUserData* Create(py::list list, HSQUIRRELVM vm) {
+            static SQUserData* Create(py::list list, detail::VM vm) {
                 // new userdata to store py::list
-                auto result = detail::make_stack_object<SQPythonList, py::list, HSQUIRRELVM>(vm, list, vm);
+                auto result = detail::make_stack_object<SQPythonList, py::list, detail::VM>(vm, list, vm);
                 auto pycontainer = result.first;
                 auto ud = result.second;
                 ud->SetDelegate(pycontainer->_delegate->pTable());

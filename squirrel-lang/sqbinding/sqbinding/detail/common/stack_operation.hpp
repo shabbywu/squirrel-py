@@ -1,37 +1,38 @@
 #pragma once
 #include <squirrel.h>
 #include "cast.hpp"
+#include "sqbinding/detail/types/sqvm.hpp"
 
 namespace sqbinding {
     namespace detail {
         class stack_guard {
             public:
-                stack_guard(HSQUIRRELVM v) {
+                stack_guard(VM v) {
                     vm = v;
-                    top = sq_gettop(vm);
+                    top = sq_gettop(*vm);
                 }
                 ~stack_guard() {
-                    sq_settop(vm, top);
+                    sq_settop(*vm, top);
                 }
             private:
-                HSQUIRRELVM vm;
+                VM vm;
                 SQInteger top;
 
             public:
                 int offset() {
-                    return sq_gettop(vm) - top;
+                    return sq_gettop(*vm) - top;
                 }
         };
 
         template <class Arg> inline
-        void generic_stack_push(HSQUIRRELVM vm, Arg arg) {
-            sq_pushobject(vm, arg);
+        void generic_stack_push(VM vm, Arg arg) {
+            sq_pushobject(*vm, arg);
         }
 
         template <class Return> inline
-        Return generic_stack_get(HSQUIRRELVM vm, SQInteger index) {
+        Return generic_stack_get(VM vm, SQInteger index) {
             HSQOBJECT ref;
-            sq_getstackobj(vm, index, &ref);
+            sq_getstackobj(*vm, index, &ref);
             return generic_cast<HSQOBJECT, Return>(vm, ref);
         }
 

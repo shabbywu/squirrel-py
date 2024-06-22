@@ -5,7 +5,7 @@
 namespace py = pybind11;
 
 PyValue sqbinding::python::Closure::get(PyValue key) {
-    HSQUIRRELVM& vm = holder->vm;
+    detail::VM& vm = holder->vm;
     SQObjectPtr& self = holder->closure;
     auto v = detail::Closure<PyValue (py::args)>::get<PyValue, PyValue>(key);
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
@@ -22,7 +22,7 @@ PyValue sqbinding::python::Closure::get(PyValue key) {
 
 
 PyValue sqbinding::python::NativeClosure::get(PyValue key) {
-    HSQUIRRELVM& vm = holder->vm;
+    detail::VM& vm = holder->vm;
     SQObjectPtr& self = holder->nativeClosure;
     auto v = detail::NativeClosure<PyValue (py::args)>::get<PyValue, PyValue>(key);
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {

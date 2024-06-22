@@ -7,7 +7,7 @@ namespace sqbinding {
     namespace python {
         class String: public detail::String {
             public:
-            String(::SQString* pString, HSQUIRRELVM vm): detail::String(pString, vm) {};
+            String(::SQString* pString, detail::VM vm): detail::String(pString, vm) {};
 
             std::string __str__() {
                 return value();

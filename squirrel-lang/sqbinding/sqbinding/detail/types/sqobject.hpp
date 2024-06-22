@@ -1,31 +1,32 @@
 #pragma once
 #include "sqbinding/pybinding/common/cast.h"
+#include "sqvm.hpp"
 
 namespace sqbinding {
     namespace detail {
         class ObjectPtr {
             public:
                 struct Holder {
-                    Holder(::SQObjectPtr& pObject, HSQUIRRELVM vm) : vm(vm) {
+                    Holder(::SQObjectPtr& pObject, VM vm) : vm(vm) {
                         obj = pObject;
-                        sq_addref(vm, &obj);
+                        sq_addref(*vm, &obj);
                     }
-                    Holder(::SQObjectPtr&& pObject, HSQUIRRELVM vm) : vm(vm) {
+                    Holder(::SQObjectPtr&& pObject, VM vm) : vm(vm) {
                         obj = pObject;
-                        sq_addref(vm, &obj);
+                        sq_addref(*vm, &obj);
                     }
                     ~Holder(){
-                        sq_release(vm, &obj);
+                        sq_release(*vm, &obj);
                     }
-                    HSQUIRRELVM vm;
+                    VM vm;
                     SQObjectPtr obj;
                 };
 
-                ObjectPtr(::SQObjectPtr& pObject, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pObject, vm)) {};
-                ObjectPtr(::SQObjectPtr&& pObject, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pObject, vm)) {};
+                ObjectPtr(::SQObjectPtr& pObject, VM vm): holder(std::make_shared<Holder>(pObject, vm)) {};
+                ObjectPtr(::SQObjectPtr&& pObject, VM vm): holder(std::make_shared<Holder>(pObject, vm)) {};
 
                 SQUnsignedInteger getRefCount() {
-                    return sq_getrefcount(holder->vm, &holder->obj);
+                    return sq_getrefcount(*holder->vm, &holder->obj);
                 }
 
                 SQObjectType type() {

@@ -2,27 +2,28 @@
 #include <squirrel.h>
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
+#include "sqvm.hpp"
 
 namespace sqbinding {
     namespace detail {
         class Array {
             public:
                 struct Holder {
-                    Holder(::SQArray* pArray, HSQUIRRELVM vm) : vm(vm) {
+                    Holder(::SQArray* pArray, VM vm) : vm(vm) {
                         array = pArray;
-                        sq_addref(vm, &array);
+                        sq_addref(*vm, &array);
                     }
                     ~Holder(){
-                        sq_release(vm, &array);
+                        sq_release(*vm, &array);
                     }
-                    HSQUIRRELVM vm;
+                    VM vm;
                     SQObjectPtr array;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Array(HSQUIRRELVM vm): holder(std::make_shared<Holder>(SQArray::Create(_ss(vm), 4), vm)) {}
-                Array(::SQArray* pArray, HSQUIRRELVM vm): holder(std::make_shared<Holder>(pArray, vm)) {}
+                Array(VM vm): holder(std::make_shared<Holder>(SQArray::Create(_ss(*vm), 4), vm)) {}
+                Array(::SQArray* pArray, VM vm): holder(std::make_shared<Holder>(pArray, vm)) {}
 
                 SQUnsignedInteger getRefCount() {
                     return pArray() -> _uiRef;
@@ -38,7 +39,7 @@ namespace sqbinding {
             public:
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
                     auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
                     set(sqkey, sqval);
@@ -46,7 +47,7 @@ namespace sqbinding {
 
                 template <typename TK, typename TV>
                 void set(TK&& key, TV&& val) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqkey = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, key);
                     auto sqval = generic_cast<std::remove_reference_t<TV>, SQObjectPtr>(vm, val);
                     set(sqkey, sqval);
@@ -54,14 +55,14 @@ namespace sqbinding {
 
                 template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     SQObjectPtr& self = holder->array;
 
-                    sq_pushobject(vm, self);
-                    sq_pushobject(vm, sqkey);
-                    sq_pushobject(vm, sqval);
-                    sq_set(vm, -3);
-                    sq_pop(vm, 1);
+                    sq_pushobject(*vm, self);
+                    sq_pushobject(*vm, sqkey);
+                    sq_pushobject(*vm, sqval);
+                    sq_set(*vm, -3);
+                    sq_pop(*vm, 1);
                 }
             public:
                 template <typename TK, typename TV>
@@ -70,14 +71,14 @@ namespace sqbinding {
                     if(get(idx, r)) {
                         return r;
                     }
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqidx = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, idx);
                     throw sqbinding::index_error(sqobject_to_string(sqidx));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& idx, TV& r) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqidx = generic_cast<std::remove_reference_t<TK>, SQObjectPtr>(vm, idx);
                     SQObjectPtr ptr;
                     if (!get(sqidx, ptr)) {
@@ -89,9 +90,9 @@ namespace sqbinding {
 
                 template <>
                 bool get(SQObjectPtr& idx, SQObjectPtr& ret) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     SQObjectPtr& self = holder->array;
-                    if (!vm->Get(self, idx, ret, false, DONT_FALL_BACK)) {
+                    if (!(*vm)->Get(self, idx, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
                     return true;
@@ -99,14 +100,14 @@ namespace sqbinding {
             public:
                 template <typename Type>
                 void append(Type& obj) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     auto sqobj = generic_cast<std::remove_reference_t<Type>, SQObjectPtr>(vm, obj);
                     pArray()->Append(std::move(sqobj));
                 }
 
                 template <typename Type>
                 std::remove_reference_t<Type> pop(Type& obj) {
-                    HSQUIRRELVM& vm = holder->vm;
+                    VM& vm = holder->vm;
                     if (pArray()->Size() < 1) {
                         throw sqbinding::index_error("can't pop empty array");
                     }

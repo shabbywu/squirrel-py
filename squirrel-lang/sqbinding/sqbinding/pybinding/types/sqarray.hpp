@@ -12,8 +12,8 @@ namespace sqbinding {
         class Array: public detail::Array, public std::enable_shared_from_this<Array> {
             public:
                 // create a array in vm stack
-                Array(HSQUIRRELVM vm): detail::Array(SQArray::Create(_ss(vm), 4), vm) {}
-                Array(SQArray* pArray, HSQUIRRELVM vm): detail::Array(pArray, vm) {}
+                Array(detail::VM vm): detail::Array(SQArray::Create(_ss(*vm), 4), vm) {}
+                Array(SQArray* pArray, detail::VM vm): detail::Array(pArray, vm) {}
 
                 // Python Interface
                 PyValue __getitem__(int idx) {
