@@ -1,6 +1,6 @@
 #pragma once
 #include <squirrel.h>
-#include "cast.hpp"
+#include "cast_def.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
 
 namespace sqbinding {

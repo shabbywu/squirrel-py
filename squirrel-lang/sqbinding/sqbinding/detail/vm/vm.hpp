@@ -14,7 +14,7 @@
 #include "sqbinding/detail/types/sqvm.hpp"
 #include "sqbinding/detail/types/sqfunction.hpp"
 #include "sqbinding/detail/common/errors.hpp"
-#include "sqbinding/detail/common/cast.hpp"
+#include "sqbinding/detail/common/cast_impl.hpp"
 #include "sqbinding/detail/vm/printer.hpp"
 
 

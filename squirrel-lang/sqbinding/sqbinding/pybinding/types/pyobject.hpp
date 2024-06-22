@@ -1,5 +1,5 @@
 #pragma once
-
+#include "sqbinding/detail/common/malloc.hpp"
 #include "sqbinding/pybinding/common/cast.h"
 #include "definition.h"
 #include "sqstr.hpp"

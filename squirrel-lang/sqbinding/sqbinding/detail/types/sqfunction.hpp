@@ -39,7 +39,6 @@ namespace sqbinding {
                     this -> pthis = pthis;
                 }
 
-
                 Return operator()(Args... args) {
                     VM& vm = holder->vm;
                     stack_guard stack_guard(vm);

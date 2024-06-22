@@ -3,7 +3,7 @@
 #include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/errors.hpp"
-#include "sqbinding/detail/common/cast.hpp"
+#include "sqbinding/detail/common/cast_impl.hpp"
 #include "sqbinding/detail/common/stack_operation.hpp"
 #include "sqvm.hpp"
 
