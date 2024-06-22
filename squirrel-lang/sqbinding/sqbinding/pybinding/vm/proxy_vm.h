@@ -19,17 +19,17 @@
 #include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/detail/vm/printer.hpp"
 #include "sqbinding/detail/common/debug.hpp"
-#include "sqbinding/detail/vm/base_vm.hpp"
+#include "sqbinding/detail/vm/vm.hpp"
 
 namespace py = pybind11;
 namespace sqbinding {
     namespace python {
-        class BaseVM: public detail::BaseVM {
+        class VMProxy: public detail::VMProxy {
         public:
             std::shared_ptr<python::Table> roottable;
         public:
-            BaseVM(): detail::BaseVM() {}
-            BaseVM(HSQUIRRELVM vm): detail::BaseVM(vm) {}
+            VMProxy() = delete;
+            VMProxy(HSQUIRRELVM vm): detail::VMProxy(vm) {}
 
             std::shared_ptr<python::Table>& getroottable() {
                 if (roottable == nullptr) {
