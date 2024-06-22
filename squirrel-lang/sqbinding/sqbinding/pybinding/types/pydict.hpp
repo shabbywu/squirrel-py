@@ -54,6 +54,7 @@ namespace sqbinding {
             }
 
             ~SQPythonDict() {
+                std::cout << "calling ~SQPythonDict" << std::endl;
                 release();
             }
 
@@ -65,27 +66,13 @@ namespace sqbinding {
             }
 
             static SQUserData* Create(py::dict dict, HSQUIRRELVM vm) {
-                // new userdata to store pythondict
-                SQPythonDict* pycontainer = new SQPythonDict(dict, vm);
-
-                SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonDict));
-                std::memcpy(ptr, pycontainer, sizeof(SQPythonDict));
-
-                // get userdata in stack top
-                SQUserData* ud = _userdata(vm->PopGet());
+                // new userdata to store py::dict
+                auto result = detail::make_stack_object<SQPythonDict, py::dict, HSQUIRRELVM>(vm, dict, vm);
+                auto pycontainer = result.first;
+                auto ud = result.second;
                 ud->SetDelegate(pycontainer->_delegate->pTable());
-                ud->_hook = release_SQPythonDict;
                 ud->_typetag = (void*)PythonTypeTags::TYPE_DICT;
                 return ud;
-            }
-
-            static SQInteger release_SQPythonDict(SQUserPointer ptr, SQInteger size) {
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release callback release_SQPythonDict" << std::endl;
-                #endif
-                SQPythonDict* ref = (SQPythonDict*)(ptr);
-                ref->release();
-                return 1;
             }
         };
     }

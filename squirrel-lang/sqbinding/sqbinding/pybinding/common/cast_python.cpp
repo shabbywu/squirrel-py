@@ -1,4 +1,5 @@
 #include "cast.h"
+#include "sqbinding/detail/common/cast.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/pybinding/types/definition.h"
 #include "sqbinding/pybinding/types/container.h"
@@ -118,6 +119,15 @@ if (_userdata(object)->_typetag == (void*)typetag) {\
     return ((cpp_type*)(sq_aligning(_userdata(object) + 1)))->_val;\
 }
 
+#define __try_cast_userdata(object, typetag, cpp_type) \
+if (_userdata(object)->_typetag == (void*)typetag) {\
+    struct Holder {\
+        std::shared_ptr<cpp_type> instance;\
+    };\
+    Holder* holder = ((Holder*)(sq_aligning(_userdata(object) + 1)));\
+    return holder->instance->_val;\
+}
+
 
 PyValue sqbinding::python::sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm) {
     switch (sq_type(object))
@@ -150,10 +160,10 @@ PyValue sqbinding::python::sqobject_topython(SQObjectPtr& object, HSQUIRRELVM vm
         return std::move(std::shared_ptr<sqbinding::python::NativeClosure>(new sqbinding::python::NativeClosure{_nativeclosure(object), vm}));
     case tagSQObjectType::OT_USERDATA:
         {
-            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_LIST, SQPythonList)
-            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_DICT, SQPythonDict)
-            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_FUNCTION, SQPythonFunction)
-            __try_cast_pyuserdata_to_python(object, PythonTypeTags::TYPE_OBJECT, SQPythonObject)
+            __try_cast_userdata(object, PythonTypeTags::TYPE_LIST, SQPythonList)
+            __try_cast_userdata(object, PythonTypeTags::TYPE_DICT, SQPythonDict)
+            __try_cast_userdata(object, PythonTypeTags::TYPE_FUNCTION, SQPythonFunction)
+            __try_cast_userdata(object, PythonTypeTags::TYPE_OBJECT, SQPythonObject)
         }
     default:
         std::cout << "cast unknown obj to python: " << detail::sqobject_to_string(object) << std::endl;

@@ -67,27 +67,13 @@ namespace sqbinding {
             }
 
             static SQUserData* Create(py::list list, HSQUIRRELVM vm) {
-                // new userdata to store pythonlist
-                SQPythonList* pycontainer = new SQPythonList(list, vm);
-
-                SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonList));
-                std::memcpy(ptr, pycontainer, sizeof(SQPythonList));
-
-                // get userdata in stack top
-                SQUserData* ud = _userdata(vm->PopGet());
+                // new userdata to store py::list
+                auto result = detail::make_stack_object<SQPythonList, py::list, HSQUIRRELVM>(vm, list, vm);
+                auto pycontainer = result.first;
+                auto ud = result.second;
                 ud->SetDelegate(pycontainer->_delegate->pTable());
-                ud->_hook = release_SQPythonList;
                 ud->_typetag = (void*)PythonTypeTags::TYPE_LIST;
                 return ud;
-            }
-
-            static SQInteger release_SQPythonList(SQUserPointer ptr, SQInteger size) {
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release callback release_SQPythonList" << std::endl;
-                #endif
-                SQPythonList* ref = (SQPythonList*)(ptr);
-                ref->release();
-                return 1;
             }
         };
     }

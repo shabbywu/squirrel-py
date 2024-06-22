@@ -22,9 +22,13 @@ namespace sqbinding {
             py::list args;
             // 索引从 1 开始, 且位置 1 是 this(env)
             // 参数从索引 2 开始
+            if (nparams > 1) {
+                std::cout << "params count=" <<nparams << std::endl;
+            }
             for (int idx = 2; idx <= 1 + nparams; idx ++) {
                 auto arg = stack_get(vm, idx);
-                args.append(sqobject_topython(arg, vm));
+                auto pyarg = sqobject_topython(arg, vm);
+                args.append(pyarg);
             }
 
             PyValue result = (*func)(*args).cast<PyValue>();
@@ -135,25 +139,13 @@ namespace sqbinding {
             }
 
             static SQUserData* Create(py::function func, HSQUIRRELVM vm) {
-                // new userdata to store pythonobject
-                SQUserPointer ptr = sq_newuserdata(vm, sizeof(SQPythonFunction));
-                SQPythonFunction* pycontainer = new(ptr) SQPythonFunction(func, vm);
-
-                // get userdata in stack top
-                SQUserData* ud = _userdata(vm->PopGet());
+                // new userdata to store py::function
+                auto result = detail::make_stack_object<SQPythonFunction, py::function, HSQUIRRELVM>(vm, func, vm);
+                auto pycontainer = result.first;
+                auto ud = result.second;
                 ud->SetDelegate(pycontainer->_delegate->pTable());
-                ud->_hook = release_SQPythonFunction;
                 ud->_typetag = (void*)PythonTypeTags::TYPE_FUNCTION;
                 return ud;
-            }
-
-            static SQInteger release_SQPythonFunction(SQUserPointer ptr, SQInteger size) {
-                #ifdef TRACE_CONTAINER_GC
-                std::cout << "GC::Release callback release_SQPythonFunction" << std::endl;
-                #endif
-                SQPythonFunction* ref = (SQPythonFunction*)(ptr);
-                ref->release();
-                return 1;
             }
         };
     }

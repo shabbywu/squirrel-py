@@ -10,6 +10,7 @@
 #include <sqstdsystem.h>
 #include <sqstdstring.h>
 
+#include <chrono>
 #include <pybind11/pybind11.h>
 #include <pybind11/stl.h>
 #include "sqbinding/pybinding/types/definition.h"
@@ -47,27 +48,46 @@ namespace sqbinding {
             }
         };
 
-
-
         class BaseVM {
             public:
-                struct Holder {
-                    Holder(HSQUIRRELVM vm) : vm(vm) {
+                class Holder {
+                    public:
+                    Holder(HSQUIRRELVM vm, bool should_close = false) : vm(vm), should_close(should_close) {
+                        std::cout << "construct BaseVM::Holder" << std::endl;
                         roottable = std::make_shared<sqbinding::python::Table>(_table(vm->_roottable), vm);
                     }
-                    ~Holder(){
+                    virtual ~Holder(){
                         #ifdef TRACE_CONTAINER_GC
                         std::cout << "GC::Release BaseVM: " << vm << std::endl;
                         #endif
+                        struct time_guard{
+                            time_guard(){
+                                start = std::chrono::steady_clock::now();
+                            }
+                            ~time_guard(){
+                                std::cout << "time: " << (std::chrono::steady_clock::now() - start).count() / 1000 << "ms";
+                            }
+                            std::chrono::time_point<std::chrono::steady_clock> start;
+                        };
+                        if (should_close) {
+                            time_guard time_guard;
+                            //sq_collectgarbage(vm);
+                            sq_settop(vm, 0);
+                            //sq_collectgarbage(vm);
+                            sq_close(vm);
+                        }
                     }
+                    public:
                     HSQUIRRELVM vm;
                     std::shared_ptr<sqbinding::python::Table> roottable;
+                    bool should_close;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
                 BaseVM() = default;
-                BaseVM(HSQUIRRELVM vm) : holder(std::make_shared<Holder>(vm)) {}
+                BaseVM(HSQUIRRELVM vm) : BaseVM(vm, false) {}
+                BaseVM(HSQUIRRELVM vm, bool should_close) : holder(std::make_shared<Holder>(vm, should_close)) {}
             public:
                 std::shared_ptr<sqbinding::python::Table> getroottable() {
                     return holder->roottable;
