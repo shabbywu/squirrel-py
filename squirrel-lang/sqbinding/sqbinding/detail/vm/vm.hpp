@@ -12,6 +12,7 @@
 #include "sqbinding/detail/types/sqtable.hpp"
 #include "sqbinding/detail/types/sqobject.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
+#include "sqbinding/detail/types/sqfunction.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/cast.hpp"
 #include "sqbinding/detail/vm/printer.hpp"

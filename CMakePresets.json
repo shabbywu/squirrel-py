@@ -6,6 +6,7 @@
             "binaryDir": "${sourceDir}/build/${hostSystemName}",
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "$env{VCPKG_ROOT}/scripts/buildsystems/vcpkg.cmake",
+                "CMAKE_RUNTIME_OUTPUT_DIRECTORY": "${sourceDir}/bin/",
                 "INSTALL_PYTHON": "1",
                 "CMAKE_BUILD_TYPE": "Release",
                 "SQ_DISABLE_INTERPRETER": "ON",

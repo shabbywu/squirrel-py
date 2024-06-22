@@ -34,3 +34,8 @@ set(squall_dir ${CMAKE_CURRENT_LIST_DIR}/libs/squall)
 
 # 添加子目录
 add_subdirectory(squirrel-lang)
+# Enable VCPKG if VCPKG_ROOT defined.
+option(BUILD_CPP_TESTCASE "Build cpp test?" OFF)
+if(${BUILD_CPP_TESTCASE})
+  add_subdirectory(tests_cpp)
+endif()

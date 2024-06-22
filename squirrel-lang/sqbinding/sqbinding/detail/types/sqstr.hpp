@@ -1,4 +1,5 @@
 #pragma once
+#include "sqbinding/detail/sqdifinition.hpp"
 #include "sqvm.hpp"
 
 namespace sqbinding {

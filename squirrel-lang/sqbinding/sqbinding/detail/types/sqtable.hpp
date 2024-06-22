@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/cast.hpp"

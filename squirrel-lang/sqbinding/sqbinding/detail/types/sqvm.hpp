@@ -1,7 +1,6 @@
 #pragma once
-#include <squirrel.h>
-#include <sqvm.h>
 #include <memory>
+#include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/debug.hpp"
 
 namespace sqbinding {

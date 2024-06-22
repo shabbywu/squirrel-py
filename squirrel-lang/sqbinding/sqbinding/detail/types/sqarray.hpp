@@ -1,5 +1,5 @@
 #pragma once
-#include <squirrel.h>
+#include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqvm.hpp"
