@@ -5,6 +5,7 @@
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
 #include "sqbinding/detail/common/malloc.hpp"
+#include "sqbinding/detail/common/type_traits.hpp"
 
 namespace sqbinding {
     namespace detail {
@@ -41,6 +42,37 @@ namespace sqbinding {
                 cpp_function(Return (Class::*f)(Arg...)) {
                     initialize(
                         std::function([f](Class *c, Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); })
+                    );
+                }
+
+                /// Construct a cpp_function from a class method (non-const, lvalue ref-qualifier)
+                /// A copy of the overload for non-const functions without explicit ref-qualifier
+                /// but with an added `&`.
+                template <typename Return, typename Class, typename... Arg>
+                // NOLINTNEXTLINE(google-explicit-constructor)
+                cpp_function(Return (Class::*f)(Arg...) &) {
+                    initialize(
+                        std::function([f](Class *c, Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); })
+                    );
+                }
+
+                /// Construct a cpp_function from a class method (const, no ref-qualifier)
+                template <typename Return, typename Class, typename... Arg>
+                // NOLINTNEXTLINE(google-explicit-constructor)
+                cpp_function(Return (Class::*f)(Arg...) const) {
+                    initialize(std::function([f](const Class *c,
+                                Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); })
+                    );
+                }
+
+                /// Construct a cpp_function from a class method (const, lvalue ref-qualifier)
+                /// A copy of the overload for const functions without explicit ref-qualifier
+                /// but with an added `&`.
+                template <typename Return, typename Class, typename... Arg>
+                // NOLINTNEXTLINE(google-explicit-constructor)
+                cpp_function(Return (Class::*f)(Arg...) const &) {
+                    initialize(std::function([f](const Class *c,
+                                Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); })
                     );
                 }
 

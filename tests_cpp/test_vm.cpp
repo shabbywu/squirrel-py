@@ -25,10 +25,16 @@ void test () {
 }
 
 class A{
+    int i = 1;
     public:
-    void test () {
-        std::cout << "Hello class method" << std::endl;
-    }
+        void nonconst_method () {
+            i++;
+            std::cout << "Hello nonconst class method: " << i << std::endl;
+        }
+
+        void const_method() const {
+            std::cout << "Hello const class method: " << i << std::endl;
+        }
 };
 
 
@@ -51,7 +57,13 @@ void main(){
         wrapper.operator()<void>();
     }
     {
-        auto wrapper = sqbinding::detail::cpp_function(&A::test);
+        auto wrapper = sqbinding::detail::cpp_function(&A::nonconst_method);
+        A a;
+        wrapper.operator()<void, A*>(&a);
+    }
+
+    {
+        auto wrapper = sqbinding::detail::cpp_function(&A::const_method);
         A a;
         wrapper.operator()<void, A*>(&a);
     }
