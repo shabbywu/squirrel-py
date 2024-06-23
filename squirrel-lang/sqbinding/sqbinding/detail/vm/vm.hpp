@@ -56,6 +56,12 @@ namespace sqbinding {
                 VMProxy() = delete;
                 VMProxy(HSQUIRRELVM vm) : VMProxy(vm, false) {}
                 VMProxy(HSQUIRRELVM vm, bool should_close) : holder(std::make_shared<detail::VM>(vm, should_close)) {}
+                ~VMProxy(){
+                    #ifdef TRACE_CONTAINER_GC
+                    std::cout << "GC::Release detail::VMProxy: " << GetSQVM() << std::endl;
+                    #endif
+                    roottable = nullptr;
+                }
             public:
                 HSQUIRRELVM& GetSQVM() {return **holder;}
                 detail::VM& GetVM() {return *holder;}
@@ -198,6 +204,11 @@ namespace sqbinding {
                 GenericVM(): GenericVM(1024) {}
                 GenericVM(int size): GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
                 GenericVM(int size, unsigned int libsToLoad): detail::VMProxy(detail::open_sqvm(size, libsToLoad), true) {}
+                ~GenericVM(){
+                    #ifdef TRACE_CONTAINER_GC
+                    std::cout << "GC::Release detail::GenericVM: " << GetSQVM() << std::endl;
+                    #endif
+                }
         };
     }
 }

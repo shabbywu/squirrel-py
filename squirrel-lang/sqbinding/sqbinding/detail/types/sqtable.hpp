@@ -32,6 +32,12 @@ namespace sqbinding {
                 Table(VM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(*vm), 4), vm)) {}
                 Table(::SQTable* pTable, VM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
 
+                Table(const Table &o)
+                {
+                    std::cout << "Copying sqbinding::detial::Table" << std::endl;
+                    holder = o.holder;
+                }
+
                 SQUnsignedInteger getRefCount() {
                     return pTable() -> _uiRef;
                 }

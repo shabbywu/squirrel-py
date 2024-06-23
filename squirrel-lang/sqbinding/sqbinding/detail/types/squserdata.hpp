@@ -15,26 +15,26 @@ namespace sqbinding {
             public:
                 struct Holder {
                     Holder(::SQUserData* pUserData, VM vm) : vm(vm) {
-                        userdata = pUserData;
-                        sq_addref(*vm, &userdata);
+                        userData = pUserData;
+                        sq_addref(*vm, &userData);
                     }
                     ~Holder(){
-                        sq_release(*vm, &userdata);
+                        sq_release(*vm, &userData);
                     }
                     VM vm;
-                    ::SQUserData* userdata;
+                    SQObjectPtr userData;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                UserData(::SQUserData* pUserData, VM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
+                UserData(::SQUserData* pUserData, VM vm): holder(std::make_shared<Holder>(pUserData, vm)) {}
 
                 SQUnsignedInteger getRefCount() {
-                    return pTable() -> _uiRef;
+                    return pUserData() -> _uiRef;
                 }
 
-                ::SQTable* pTable() {
-                    return _table(holder->table);
+                ::SQUserData* pUserData() {
+                    return _userdata(holder->userData);
                 }
             public:
                 template <typename TK, typename TV>
@@ -55,7 +55,7 @@ namespace sqbinding {
 
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->table;
+                    SQObjectPtr& self = holder->userData;
 
                     sq_pushobject(*vm, self);
                     sq_pushobject(*vm, sqkey);
@@ -89,17 +89,11 @@ namespace sqbinding {
 
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->table;
+                    SQObjectPtr& self = holder->userData;
                     if (!(*vm)->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
                     return true;
-                }
-            public:
-                // bindFunc to current table
-                template<class Func>
-                void bindFunc(std::string funcname, Func&& func) {
-                    set<std::string, Func>(funcname, func);
                 }
         };
     }

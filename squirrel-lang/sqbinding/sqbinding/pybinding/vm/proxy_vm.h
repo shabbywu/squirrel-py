@@ -30,6 +30,12 @@ namespace sqbinding {
         public:
             VMProxy() = delete;
             VMProxy(HSQUIRRELVM vm): detail::VMProxy(vm) {}
+            ~VMProxy(){
+                #ifdef TRACE_CONTAINER_GC
+                std::cout << "GC::Release python::VMProxy: " << GetSQVM() << std::endl;
+                #endif
+                roottable = nullptr;
+            }
         public:
             std::shared_ptr<python::Table>& getroottable() {
                 if (roottable == nullptr) {

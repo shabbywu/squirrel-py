@@ -104,21 +104,6 @@ namespace sqbinding {
             }
         };
 
-        // template <class Return, class...Args>
-        // class GenericCast<SQObjectPtr(std::function<Return(Args...)>&)> {
-        //     public:
-        //     static SQObjectPtr cast(VM vm, std::function<Return(Args...)>& obj) {
-        //         return make_stack_object<detail::cpp_function>(vm, obj).second;
-        //     }
-        // };
-
-        // template <class Return, class...Args>
-        // class GenericCast<SQObjectPtr(Return(*)(Args...))> {
-        //     public:
-        //     static SQObjectPtr cast(VM vm, Return(*obj)(Args...)) {
-        //         return make_stack_object<detail::cpp_function>(vm, obj).second;
-        //     }
-        // };
         template <>
         class GenericCast<SQObjectPtr(cpp_function&)> {
             public:
