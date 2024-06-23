@@ -3,25 +3,12 @@
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqvm.hpp"
+#include "holder.hpp"
 
 namespace sqbinding {
     namespace detail {
         class Array {
-            public:
-                struct Holder {
-                    Holder(::SQArray* pArray, VM vm) : vm(vm) {
-                        array = pArray;
-                        sq_addref(*vm, &array);
-                    }
-                    ~Holder(){
-                        #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release Array: " << sqobject_to_string(array) << std::endl;
-                        #endif
-                        sq_release(*vm, &array);
-                    }
-                    VM vm;
-                    SQObjectPtr array;
-                };
+            using Holder = SQObjectPtrHolder<::SQArray*>;
             public:
                 std::shared_ptr<Holder> holder;
             public:
@@ -33,7 +20,7 @@ namespace sqbinding {
                 }
 
                 ::SQArray* pArray() {
-                    return _array(holder->array);
+                    return _array(holder->GetSQObjectPtr());
                 }
                 std::string to_string() {
                     return string_format("OT_ARRAY: [addr={%p}, ref=%d]", pArray(), getRefCount());
@@ -57,8 +44,8 @@ namespace sqbinding {
                 }
 
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
-                    VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->array;
+                    VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
 
                     sq_pushobject(*vm, self);
                     sq_pushobject(*vm, sqkey);
@@ -91,8 +78,8 @@ namespace sqbinding {
                 }
 
                 bool get(SQObjectPtr& idx, SQObjectPtr& ret) {
-                    VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->array;
+                    VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
                     if (!(*vm)->Get(self, idx, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }

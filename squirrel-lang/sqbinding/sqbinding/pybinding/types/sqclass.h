@@ -14,8 +14,8 @@ namespace sqbinding {
             Class (::SQClass* pClass, detail::VM vm): detail::Class(pClass, vm) {}
             void bind_this_if_need(PyValue& v);
             PyValue get(PyValue key) {
-                detail::VM& vm = holder->vm;
-                SQObjectPtr& self = holder->clazz;
+                detail::VM& vm = holder->GetVM();
+                SQObjectPtr& self = holder->GetSQObjectPtr();
                 auto v = detail::Class::get<PyValue, PyValue>(key);
                 bind_this_if_need(v);
                 return v;

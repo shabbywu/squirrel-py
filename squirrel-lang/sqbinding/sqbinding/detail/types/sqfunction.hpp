@@ -4,6 +4,7 @@
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
 #include "sqvm.hpp"
+#include "holder.hpp"
 
 namespace sqbinding {
     namespace detail {
@@ -12,28 +13,14 @@ namespace sqbinding {
 
         template <class Return, class... Args>
         class Closure<Return (Args...)> {
-            public:
-                struct Holder {
-                    Holder(::SQClosure* pClosure, VM vm) : vm(vm) {
-                        closure = pClosure;
-                        sq_addref(*vm, &closure);
-                    }
-                    ~Holder(){
-                        #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release Closure: " << sqobject_to_string(closure) << std::endl;
-                        #endif
-                        sq_release(*vm, &closure);
-                    }
-                    VM vm;
-                    SQObjectPtr closure;
-                };
+            using Holder = SQObjectPtrHolder<::SQClosure*>;
             public:
                 std::shared_ptr<Holder> holder;
                 SQObjectPtr pthis; // 'this' pointer for sq_call
             public:
                 Closure(::SQClosure* pClosure, VM vm): holder(std::make_shared<Holder>(pClosure, vm)) {};
                 ::SQClosure* pClosure() {
-                    return _closure(holder->closure);
+                    return _closure(holder->GetSQObjectPtr());
                 }
                 SQUnsignedInteger getRefCount() {
                     return pClosure() -> _uiRef;
@@ -43,12 +30,12 @@ namespace sqbinding {
                 }
 
                 Return operator()(Args... args) {
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     stack_guard stack_guard(vm);
                     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-                        sq_call_setup(vm, holder->closure, pthis, args...);
+                        sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, args...);
                     } else {
-                        sq_call_setup(vm, holder->closure, (*vm)->_roottable, args...);
+                        sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, args...);
                     }
                     return sq_call<Return>(vm, stack_guard.offset() - 1);
                 }
@@ -63,14 +50,14 @@ namespace sqbinding {
                     if(get(key, r)) {
                         return r;
                     }
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     throw sqbinding::key_error(sqobject_to_string(sqkey));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& key, TV& r) {
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     SQObjectPtr ptr;
                     if (!get(sqkey, ptr)) {
@@ -81,8 +68,8 @@ namespace sqbinding {
                 }
 
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
-                    VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->closure;
+                    VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
                     if (!(*vm)->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }
@@ -99,28 +86,14 @@ namespace sqbinding {
 
         template <class Return, class... Args>
         class NativeClosure<Return (Args...)> {
-            public:
-                struct Holder {
-                    Holder(::SQNativeClosure* pNativeClosure, VM vm) : vm(vm) {
-                        nativeClosure = pNativeClosure;
-                        sq_addref(*vm, &nativeClosure);
-                    }
-                    ~Holder(){
-                        #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release NativeClosure: " << sqobject_to_string(nativeClosure) << std::endl;
-                        #endif
-                        sq_release(*vm, &nativeClosure);
-                    }
-                    VM vm;
-                    SQObjectPtr nativeClosure;
-                };
+            using Holder = SQObjectPtrHolder<::SQNativeClosure*>;
             public:
                 std::shared_ptr<Holder> holder;
                 SQObjectPtr pthis; // 'this' pointer for sq_call
             public:
                 NativeClosure(::SQNativeClosure* pNativeClosure, VM vm): holder(std::make_shared<Holder>(pNativeClosure, vm)) {};
                 ::SQNativeClosure* pNativeClosure() {
-                    return _nativeclosure(holder->nativeClosure);
+                    return _nativeclosure(holder->GetSQObjectPtr());
                 }
                 SQUnsignedInteger getRefCount() {
                     return pNativeClosure() -> _uiRef;
@@ -130,12 +103,12 @@ namespace sqbinding {
                 }
 
                 Return operator()(Args... args) {
-                    VM vm = holder->vm;
+                    VM vm = holder->GetVM();
                     stack_guard stack_guard(vm);
                     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-                        sq_call_setup(vm, holder->nativeClosure, pthis, args...);
+                        sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, args...);
                     } else {
-                        sq_call_setup(vm, holder->nativeClosure, (*vm)->_roottable, args...);
+                        sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, args...);
                     }
                     return sq_call<Return>(vm, stack_guard.offset() - 1);
                 }
@@ -151,14 +124,14 @@ namespace sqbinding {
                     if(get(key, r)) {
                         return r;
                     }
-                    VM& vm = holder->vm;
+                    VM vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     throw sqbinding::key_error(sqobject_to_string(sqkey));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& key, TV& r) {
-                    VM& vm = holder->vm;
+                    VM vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     SQObjectPtr ptr;
                     if (!get(sqkey, ptr)) {
@@ -169,8 +142,8 @@ namespace sqbinding {
                 }
 
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
-                    VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->nativeClosure;
+                    VM vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
                     if (!(*vm)->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }

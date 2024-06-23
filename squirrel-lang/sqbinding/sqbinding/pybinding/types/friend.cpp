@@ -2,7 +2,7 @@
 #include "container.h"
 
 void sqbinding::python::Class::bind_this_if_need(PyValue& v) {
-    SQObjectPtr& self = holder->clazz;
+    SQObjectPtr& self = holder->GetSQObjectPtr();
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
         auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
         c->bindThis(self);
@@ -14,7 +14,7 @@ void sqbinding::python::Class::bind_this_if_need(PyValue& v) {
 }
 
 void sqbinding::python::Closure::bind_this_if_need(PyValue& v) {
-    SQObjectPtr& self = holder->closure;
+    SQObjectPtr& self = holder->GetSQObjectPtr();
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
         auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
         c->bindThis(self);
@@ -26,7 +26,7 @@ void sqbinding::python::Closure::bind_this_if_need(PyValue& v) {
 }
 
 void sqbinding::python::NativeClosure::bind_this_if_need(PyValue& v) {
-    SQObjectPtr& self = holder->nativeClosure;
+    SQObjectPtr& self = holder->GetSQObjectPtr();
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
         auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
         c->bindThis(self);
@@ -38,7 +38,7 @@ void sqbinding::python::NativeClosure::bind_this_if_need(PyValue& v) {
 }
 
 void sqbinding::python::Instance::bind_this_if_need(PyValue& v) {
-    SQObjectPtr& self = holder->instance;
+    SQObjectPtr& self = holder->GetSQObjectPtr();
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
         auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
         c->bindThis(self);
@@ -50,7 +50,7 @@ void sqbinding::python::Instance::bind_this_if_need(PyValue& v) {
 }
 
 void sqbinding::python::Table::bind_this_if_need(PyValue& v) {
-    SQObjectPtr& self = holder->table;
+    SQObjectPtr& self = holder->GetSQObjectPtr();
     if (std::holds_alternative<std::shared_ptr<sqbinding::python::Closure>>(v)) {
         auto& c = std::get<std::shared_ptr<sqbinding::python::Closure>>(v);
         c->bindThis(self);

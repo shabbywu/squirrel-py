@@ -34,14 +34,12 @@ namespace sqbinding {
                     VM() = default;
                     VM(HSQUIRRELVM vm, bool should_close = false): holder(std::make_shared<Holder>(vm, should_close)) {}
                 public:
-                    public:
-                        SQObjectPtr& roottable() {
-                            return holder->vm->_roottable;
-                        }
-                    public:
-                        HSQUIRRELVM& operator*(){
-                            return holder->vm;
-                        }
+                    SQObjectPtr& roottable() {
+                        return holder->vm->_roottable;
+                    }
+                    HSQUIRRELVM& operator*(){
+                        return holder->vm;
+                    }
         };
     }
 }

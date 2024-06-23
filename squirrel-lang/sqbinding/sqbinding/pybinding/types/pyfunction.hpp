@@ -54,7 +54,6 @@ namespace sqbinding {
 
         class SQPythonFunction {
         public:
-            detail::VM vm;
             py::function _val;
             // delegate table
             std::shared_ptr<sqbinding::python::Table> _delegate;
@@ -62,7 +61,6 @@ namespace sqbinding {
             std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
 
             SQPythonFunction(py::function func, detail::VM vm) {
-                this->vm = vm;
                 this->_val = func;
 
                 cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) -> PyValue {

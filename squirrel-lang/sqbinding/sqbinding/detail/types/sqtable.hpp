@@ -6,26 +6,13 @@
 #include "sqbinding/detail/common/cast_impl.hpp"
 #include "sqbinding/detail/common/stack_operation.hpp"
 #include "sqvm.hpp"
+#include "holder.hpp"
 
 
 namespace sqbinding {
     namespace detail {
         class Table: public std::enable_shared_from_this<Table> {
-            public:
-                struct Holder {
-                    Holder(::SQTable* pTable, VM vm) : vm(vm) {
-                        table = pTable;
-                        sq_addref(*vm, &table);
-                    }
-                    ~Holder(){
-                        #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release Table: " << sqobject_to_string(table) << std::endl;
-                        #endif
-                        sq_release(*vm, &table);
-                    }
-                    VM vm;
-                    SQObjectPtr table;
-                };
+            using Holder = SQObjectPtrHolder<::SQTable*>;
             public:
                 std::shared_ptr<Holder> holder;
             public:
@@ -43,12 +30,12 @@ namespace sqbinding {
                 }
 
                 ::SQTable* pTable() {
-                    return _table(holder->table);
+                    return _table(holder->GetSQObjectPtr());
                 }
             public:
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);
                     set(sqkey, sqval);
@@ -56,15 +43,15 @@ namespace sqbinding {
 
                 template <typename TK, typename TV>
                 void set(TK&& key, TV&& val) {
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);
                     set(sqkey, sqval);
                 }
 
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
-                    VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->table;
+                    VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
 
                     sq_pushobject(*vm, self);
                     sq_pushobject(*vm, sqkey);
@@ -79,14 +66,14 @@ namespace sqbinding {
                     if(get(key, r)) {
                         return r;
                     }
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     throw sqbinding::key_error(sqobject_to_string(sqkey));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& key, TV& r) {
-                    VM& vm = holder->vm;
+                    VM& vm = holder->GetVM();
                     auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     SQObjectPtr ptr;
                     if (!get(sqkey, ptr)) {
@@ -97,8 +84,8 @@ namespace sqbinding {
                 }
 
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
-                    VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->table;
+                    VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
                     if (!(*vm)->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
                     }

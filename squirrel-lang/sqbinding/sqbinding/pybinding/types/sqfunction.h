@@ -17,8 +17,8 @@ namespace sqbinding {
                 void bind_this_if_need(PyValue& v);
                 // Python API
                 PyValue get(PyValue key) {
-                    detail::VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->closure;
+                    detail::VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
                     auto v = detail::Closure<PyValue (py::args)>::get<PyValue, PyValue>(key);
                     bind_this_if_need(v);
                     return v;
@@ -38,11 +38,12 @@ namespace sqbinding {
 
 namespace sqbinding {
     namespace python {
-        class NativeClosure: public detail::NativeClosure<PyValue (py::args)> {
+        using BaseNativeClosure = detail::NativeClosure<PyValue (py::args)>;
+        class NativeClosure: public BaseNativeClosure {
             public:
-                NativeClosure(::SQNativeClosure* pNativeClosure, detail::VM vm): detail::NativeClosure<PyValue (py::args)>(pNativeClosure, vm) {
+                NativeClosure(::SQNativeClosure* pNativeClosure, detail::VM vm): BaseNativeClosure(pNativeClosure, vm) {
                 };
-                NativeClosure(std::shared_ptr<py::function> func, detail::VM vm, SQFUNCTION caller): detail::NativeClosure<PyValue (py::args)>(::SQNativeClosure::Create(_ss(*vm), caller, 1), vm) {
+                NativeClosure(std::shared_ptr<py::function> func, detail::VM vm, SQFUNCTION caller): BaseNativeClosure(::SQNativeClosure::Create(_ss(*vm), caller, 1), vm) {
                     // TODO: 重构 new userdata 的方式
                     pNativeClosure()->_nparamscheck = 0;
                     SQUserPointer ptr = sq_newuserdata(*vm, sizeof(py::function));
@@ -54,9 +55,9 @@ namespace sqbinding {
                 void bind_this_if_need(PyValue& v);
                 // Python API
                 PyValue get(PyValue key) {
-                    detail::VM& vm = holder->vm;
-                    SQObjectPtr& self = holder->nativeClosure;
-                    auto v = detail::NativeClosure<PyValue (py::args)>::get<PyValue, PyValue>(key);
+                    detail::VM& vm = holder->GetVM();
+                    SQObjectPtr& self = holder->GetSQObjectPtr();
+                    auto v = BaseNativeClosure::get<PyValue, PyValue>(key);
                     bind_this_if_need(v);
                     return v;
                 }

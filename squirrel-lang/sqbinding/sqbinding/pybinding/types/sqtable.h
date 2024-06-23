@@ -18,8 +18,8 @@ namespace sqbinding {
             void bind_this_if_need(PyValue& v);
             //
             PyValue get(PyValue& key) {
-                detail::VM& vm = holder->vm;
-                SQObjectPtr& self = holder->table;
+                detail::VM& vm = holder->GetVM();
+                SQObjectPtr& self = holder->GetSQObjectPtr();
                 auto v = detail::Table::get<PyValue, PyValue>(key);
                 bind_this_if_need(v);
                 return v;
