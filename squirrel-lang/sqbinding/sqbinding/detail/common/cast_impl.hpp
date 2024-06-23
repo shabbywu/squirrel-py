@@ -1,11 +1,11 @@
 #pragma once
-#include <type_traits>
 #include <concepts>
 #include <variant>
 #include <squirrel.h>
 #include "format.hpp"
 #include "cast_def.hpp"
 #include "errors.hpp"
+#include "sqbinding/detail/common/type_traits.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
 #include "sqbinding/detail/types/cppfunction.hpp"
 
@@ -84,19 +84,38 @@ namespace sqbinding {
             static SQObjectPtr cast(VM vm, std::string&& obj) {return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));}
         };
 
-        template <class Return, class...Args>
-        class GenericCast<SQObjectPtr(std::function<Return(Args...)>&)> {
-            public:
-            static SQObjectPtr cast(VM vm, std::function<Return(Args...)>& obj) {
-                return detail::CppFunction<Return(Args...)>::Create(obj, vm);
-            }
-        };
+        // template <class Return, class...Args>
+        // class GenericCast<SQObjectPtr(std::function<Return(Args...)>&)> {
+        //     public:
+        //     static SQObjectPtr cast(VM vm, std::function<Return(Args...)>& obj) {
+        //         return make_stack_object<detail::cpp_function>(vm, obj).second;
+        //     }
+        // };
 
-        template <class Return, class...Args>
-        class GenericCast<SQObjectPtr(Return(*)(Args...))> {
+        // template <class Return, class...Args>
+        // class GenericCast<SQObjectPtr(Return(*)(Args...))> {
+        //     public:
+        //     static SQObjectPtr cast(VM vm, Return(*obj)(Args...)) {
+        //         return make_stack_object<detail::cpp_function>(vm, obj).second;
+        //     }
+        // };
+        template <>
+        class GenericCast<SQObjectPtr(cpp_function&)> {
             public:
-            static SQObjectPtr cast(VM vm, Return(*obj)(Args...)) {
-                return detail::CppFunction<Return(Args...)>::Create(obj, vm);
+            static SQObjectPtr cast(VM vm, cpp_function& func) {
+                    SQUserPointer ptr = sq_newuserdata(*vm, sizeof(cpp_function));
+                    std::memcpy(ptr, &func, sizeof(cpp_function));
+
+                    SQRELEASEHOOK hook = [](SQUserPointer ptr, SQInteger)->SQInteger {
+                        #ifdef TRACE_CONTAINER_GC
+                        std::cout << "GC::Release " << typeid(T).name() << std::endl;
+                        #endif
+                        return 0;
+                    };
+                    sq_setreleasehook(*vm, -1, hook);
+                    // get userdata in stack top
+                    SQUserData* ud = _userdata((*vm)->PopGet());
+                    return ud;
             }
         };
 
@@ -107,12 +126,12 @@ namespace sqbinding {
                 switch (obj._type) {
                     // case tagSQObjectType::OT_NULL:
                     //     return GenericCast<void, ToType>::cast(vm, obj);
-                    // case tagSQObjectType::OT_INTEGER:
-                    //     return GenericCast<SQInteger, ToType>::cast(vm, _integer(obj));
-                    // case tagSQObjectType::OT_FLOAT:
-                    //     return GenericCast<SQFloat, ToType>::cast(vm, _float(obj));
-                    // case tagSQObjectType::OT_BOOL:
-                    //     return GenericCast<bool, ToType>::cast(vm, _integer(obj));
+                    case tagSQObjectType::OT_INTEGER:
+                        return GenericCast<ToType(SQInteger)>::cast(vm, _integer(obj));
+                    case tagSQObjectType::OT_FLOAT:
+                        return GenericCast<ToType(SQFloat)>::cast(vm, _float(obj));
+                    case tagSQObjectType::OT_BOOL:
+                        return GenericCast<ToType(SQBool)>::cast(vm, _integer(obj));
                     // case tagSQObjectType::OT_STRING:
                     //     return GenericCast<SQChar*, ToType>::cast(vm, _stringval(obj));
                     // case tagSQObjectType::OT_TABLE:
@@ -159,5 +178,31 @@ namespace sqbinding {
             static void cast(VM vm, FromType&& obj) {}
         };
 
+    }
+
+    namespace detail {
+        template <class ToType>
+        class GenericCast<ToType(SQInteger)> {
+            public:
+            static ToType cast(VM vm, SQInteger obj) {
+                return (ToType)obj;
+            }
+        };
+
+        template <class ToType>
+        class GenericCast<ToType(SQFloat)> {
+            public:
+            static ToType cast(VM vm, SQFloat obj) {
+                return (ToType)obj;
+            }
+        };
+
+        template <class ToType>
+        class GenericCast<ToType(SQBool)> {
+            public:
+            static ToType cast(VM vm, SQBool obj) {
+                return (ToType)obj;
+            }
+        };
     }
 }

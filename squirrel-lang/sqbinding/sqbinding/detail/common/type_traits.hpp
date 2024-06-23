@@ -42,7 +42,7 @@ namespace sqbinding {
 
 
         template <typename Func>
-        struct function_traits: public functor_traits<decltype(&Func::operator())> {
+        struct function_traits: public functor_traits<decltype(&std::remove_reference_t<Func>::operator())> {
             static constexpr CppFuntionType value = CppFuntionType::LambdaLike;
         };
 

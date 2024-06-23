@@ -3,4 +3,4 @@ link_libraries(squirrel_static sqstdlib_static)
 include_directories(${squirrel_dir}/include ${squirrel_dir}/squirrel ${sqbinding_dir} )
 
 
-add_executable(test_vm test_vm.cpp)
+add_executable(test_cpp_function test_cpp_function.cpp)

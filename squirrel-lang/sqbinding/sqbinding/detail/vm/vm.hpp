@@ -156,7 +156,7 @@ namespace sqbinding {
             }
 
             template <class Func>
-            void bindFunc(std::string funcname, Func func) {
+            void bindFunc(std::string funcname, Func&& func) {
                 getroottable()->bindFunc(funcname, func);
             }
         };

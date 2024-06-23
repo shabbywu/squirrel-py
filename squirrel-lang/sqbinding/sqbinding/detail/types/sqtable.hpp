@@ -100,7 +100,7 @@ namespace sqbinding {
             public:
                 // bindFunc to current table
                 template<class Func>
-                void bindFunc(std::string funcname, Func func) {
+                void bindFunc(std::string funcname, Func&& func) {
                     set<std::string, Func>(funcname, func);
                 }
         };
