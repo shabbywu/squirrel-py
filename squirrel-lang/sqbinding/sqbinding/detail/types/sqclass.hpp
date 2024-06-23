@@ -49,7 +49,6 @@ namespace sqbinding {
                     set(sqkey, sqval);
                 }
 
-                template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     VM& vm = holder->vm;
                     SQObjectPtr& self = holder->clazz;

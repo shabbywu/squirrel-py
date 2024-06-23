@@ -47,7 +47,6 @@ namespace sqbinding {
                     set(sqkey, sqval);
                 }
 
-                template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     VM& vm = holder->vm;
                     SQObjectPtr& self = holder->instance;
@@ -58,6 +57,7 @@ namespace sqbinding {
                     sq_newslot(*vm, -3, SQFalse);
                     sq_pop(*vm, 1);
                 }
+
             public:
                 template <typename TK, typename TV>
                 TV get(TK& key) {
