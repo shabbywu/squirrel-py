@@ -18,6 +18,9 @@ namespace sqbinding {
                     /// Pointer to custom destructor for 'data' (if needed)
                     void (*free_data)(Holder *ptr) = nullptr;
 
+                    /// Pointer to squirrel caller
+                    SQInteger (*caller)(HSQUIRRELVM vm) = nullptr;
+
                     ~Holder(){
                         if (free_data != nullptr) {
                             free_data(this);
@@ -98,6 +101,17 @@ namespace sqbinding {
                         holder->data[0] = new capture{std::forward<Func>(f)};
                         holder->free_data = [](Holder *r) { delete ((capture *) r->data[0]); };
                     }
+
+                    holder->caller = [](HSQUIRRELVM vm) -> SQInteger {
+                        cpp_function* func;
+                        sq_getuserdata(vm, -1, (void**)&func, NULL);
+                        int nparams = sq_gettop(vm) - 2;
+
+                        // 索引从 1 开始, 且位置 1 是 this(env)
+                        // 参数从索引 2 开始
+
+                        return 1;
+                    };
                 }
             public:
                 template <typename Return, typename... Args>
@@ -144,11 +158,11 @@ namespace sqbinding {
                     VM& vm = holder->vm;
                     stack_guard stack_guard(vm);
                     if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-                        call_setup(vm, holder->closure, pthis, args...);
+                        sq_call_setup(vm, holder->closure, pthis, args...);
                     } else {
-                        call_setup(vm, holder->closure, (*vm)->_roottable, args...);
+                        sq_call_setup(vm, holder->closure, (*vm)->_roottable, args...);
                     }
-                    return call<Return>(vm, stack_guard.offset() - 1);
+                    return sq_call<Return>(vm, stack_guard.offset() - 1);
                 }
             public:
                 static SQUserData* Create(std::function<Return(Args...)>& func, detail::VM vm) {

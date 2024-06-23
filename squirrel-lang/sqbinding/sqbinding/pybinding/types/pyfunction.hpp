@@ -1,6 +1,8 @@
 #pragma once
 #include "sqbinding/detail/common/malloc.hpp"
 #include "sqbinding/pybinding/common/cast.h"
+#include "sqbinding/pybinding/common/call_setup.h"
+#include "sqbinding/detail/types/sqvm.hpp"
 #include "definition.h"
 #include "sqfunction.h"
 #include "sqstr.hpp"
@@ -17,18 +19,11 @@ namespace sqbinding {
             py::function* func;
             sq_getuserdata(vm, -1, (void**)&func, NULL);
 
-            // TODO: 处理参数
-            int nparams = sq_gettop(vm) - 2;
-            py::list args;
-            // 索引从 1 开始, 且位置 1 是 this(env)
+            auto vm_ = detail::VM(vm);
+            // squirrel 堆栈索引从 1 开始, 且位置 1 是 this(env)
             // 参数从索引 2 开始
-            for (int idx = 2; idx <= 1 + nparams; idx ++) {
-                auto arg = stack_get(vm, idx);
-                auto pyarg = sqobject_topython(arg, vm);
-                args.append(pyarg);
-            }
-
-            PyValue result = (*func)(*args).cast<PyValue>();
+            auto args = detail::load_args<2, py::list(py::list)>::load([](py::list args) -> py::list {return args;}, vm_);
+            PyValue result = (*func)(*args()).cast<PyValue>();
             if (std::holds_alternative<py::none>(result)){
                 return 0;
             }
@@ -44,17 +39,11 @@ namespace sqbinding {
             py::function* func;
             sq_getuserdata(vm, -1, (void**)&func, NULL);
 
-            // TODO: 处理参数
-            int nparams = sq_gettop(vm) - 2;
-            py::list args;
-            // 索引从 1 开始, 且位置 1 是 this(env)
+            auto vm_ = detail::VM(vm);
+            // squirrel 堆栈索引从 1 开始, 且位置 1 是 this(env)
             // rawcall 参数从索引 1 开始
-            for (int idx = 1; idx <= 1 + nparams; idx ++) {
-                auto arg = stack_get(vm, idx);
-                args.append(sqobject_topython(arg, vm));
-            }
-
-            PyValue result = (*func)(*args).cast<PyValue>();
+            auto args = detail::load_args<1, py::list(py::list)>::load([](py::list args) -> py::list {return args;}, vm_);
+            PyValue result = (*func)(*args()).cast<PyValue>();
             if (std::holds_alternative<py::none>(result)){
                 return 0;
             }
