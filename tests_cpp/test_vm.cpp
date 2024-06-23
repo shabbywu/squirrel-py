@@ -14,8 +14,9 @@ void sig(T t) {
     std::cout << "std::is_function_v=" << std::is_function_v<decltype(t)> << std::endl;
     std::cout << "std::is_member_pointer_v=" << std::is_member_pointer_v<decltype(t)> << std::endl;
     std::cout << "std::is_pointer_v=" << std::is_pointer_v<decltype(t)> << std::endl;
-    std::cout << typeid(typename sqbinding::detail::function_traits<T>::type).name() << std::endl;
     std::cout << typeid(decltype(t)).name() << std::endl;
+    std::cout << typeid(typename sqbinding::detail::function_traits<T>::type).name() << std::endl;
+    std::cout << typeid(sqbinding::detail::function_signature_t<T>).name() << std::endl;
     std::cout << (int)sqbinding::detail::function_traits<T>::value << std::endl;;
 }
 
@@ -23,6 +24,8 @@ void sig(T t) {
 void test () {
     std::cout << "Hello vanilla function pointer" << std::endl;
 }
+
+
 
 class A{
     int i = 1;
@@ -39,11 +42,10 @@ class A{
 
 
 void main(){
-    auto func = std::function([](){
-        std::cout << "Hello lambda" << std::endl;
-    });
     {
-        auto wrapper = sqbinding::detail::cpp_function(func);
+        auto wrapper = sqbinding::detail::cpp_function(std::function([](){
+            std::cout << "Hello lambda" << std::endl;
+        }));
         wrapper.operator()<void>();
     }
     {
@@ -57,12 +59,21 @@ void main(){
         wrapper.operator()<void>();
     }
     {
+
+        auto seek = [](){
+            using Type = typename decltype(&A::nonconst_method);
+            std::cout << "Seeking" << std::endl;
+            std::cout << typeid(Type).name() << std::endl;
+            std::cout << typeid(sqbinding::detail::function_signature_t<Type>).name() << std::endl;
+        };
+        seek();
         auto wrapper = sqbinding::detail::cpp_function(&A::nonconst_method);
         A a;
         wrapper.operator()<void, A*>(&a);
     }
 
     {
+        sig(&A::const_method);
         auto wrapper = sqbinding::detail::cpp_function(&A::const_method);
         A a;
         wrapper.operator()<void, A*>(&a);

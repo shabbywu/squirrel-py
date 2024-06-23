@@ -5,11 +5,13 @@
 #include <squirrel.h>
 #include "format.hpp"
 #include "cast_def.hpp"
+#include "errors.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
 #include "sqbinding/detail/types/cppfunction.hpp"
 
 
 typedef std::variant<SQInteger, SQFloat> SafeSQType;
+
 
 namespace sqbinding {
     namespace detail {
@@ -95,6 +97,53 @@ namespace sqbinding {
             public:
             static SQObjectPtr cast(VM vm, Return(*obj)(Args...)) {
                 return detail::CppFunction<Return(Args...)>::Create(obj, vm);
+            }
+        };
+
+        template <class ToType>
+        class GenericCast<ToType(HSQOBJECT&)> {
+            public:
+            static ToType cast(VM vm, HSQOBJECT& obj) {
+                switch (obj._type) {
+                    // case tagSQObjectType::OT_NULL:
+                    //     return GenericCast<void, ToType>::cast(vm, obj);
+                    // case tagSQObjectType::OT_INTEGER:
+                    //     return GenericCast<SQInteger, ToType>::cast(vm, _integer(obj));
+                    // case tagSQObjectType::OT_FLOAT:
+                    //     return GenericCast<SQFloat, ToType>::cast(vm, _float(obj));
+                    // case tagSQObjectType::OT_BOOL:
+                    //     return GenericCast<bool, ToType>::cast(vm, _integer(obj));
+                    // case tagSQObjectType::OT_STRING:
+                    //     return GenericCast<SQChar*, ToType>::cast(vm, _stringval(obj));
+                    // case tagSQObjectType::OT_TABLE:
+                    //     return GenericCast<SQTable*, ToType>::cast(vm, _table(obj));
+                    // case tagSQObjectType::OT_ARRAY:
+                    //     return GenericCast<SQArray*, ToType>::cast(vm, _array(obj));
+                    // case tagSQObjectType::OT_USERDATA:
+                    //     return GenericCast<SQUserData*, ToType>::cast(vm, _userdataval(obj));
+                    // case tagSQObjectType::OT_CLOSURE:
+                    //     return GenericCast<SQClosure*, ToType>::cast(vm, _closure(obj));
+                    // case tagSQObjectType::OT_NATIVECLOSURE:
+                    //     return GenericCast<SQNativeClosure*, ToType>::cast(vm, _nativeclosure(obj));
+                    // case tagSQObjectType::OT_GENERATOR:
+                    //     return GenericCast<SQGenerator*, ToType>::cast(vm, _generator(obj));
+                    // case tagSQObjectType::OT_USERPOINTER:
+                    //     return GenericCast<SQUserPointer, ToType>::cast(vm, _userpointer(obj));
+                    // case tagSQObjectType::OT_THREAD:
+                    //     return GenericCast<SQVM*, ToType>::cast(vm, _thread(obj));
+                    // case tagSQObjectType::OT_FUNCPROTO:
+                    //     return GenericCast<SQFunctionProto*, ToType>::cast(vm, _funcproto(obj));
+                    // case tagSQObjectType::OT_CLASS:
+                    //     return GenericCast<SQClass*, ToType>::cast(vm, _class(obj));
+                    // case tagSQObjectType::OT_INSTANCE:
+                    //     return GenericCast<SQInstance*, ToType>::cast(vm, _instance(obj));
+                    // case tagSQObjectType::OT_WEAKREF:
+                    //     return GenericCast<SQWeakRef*, ToType>::cast(vm, _weakref(obj));
+                    // case tagSQObjectType::OT_OUTER:
+                    //     return GenericCast<SQOuter*, ToType>::cast(vm, _outer(obj));
+                    default:
+                        throw sqbinding::value_error("unsupported value");
+                }
             }
         };
 

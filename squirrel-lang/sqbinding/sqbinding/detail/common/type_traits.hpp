@@ -22,13 +22,13 @@ namespace sqbinding {
         // function from a functor method (const, no ref-qualifier)
         template <typename Return, typename Class, typename... Args>
         struct functor_traits<Return (Class::*)(Args...) const> {
-            typedef Return type(Args...) const;
+            typedef Return type(Args...);
         };
 
         // function from a functor method (const, lvalue ref-qualifier)
         template <typename Return, typename Class, typename... Args>
         struct functor_traits<Return (Class::*)(Args...) const&> {
-            typedef Return type(Args...) const&;
+            typedef Return type(Args...) &;
         };
 
         enum class CppFuntionType {
@@ -81,6 +81,37 @@ namespace sqbinding {
             typedef Return type(const Class*, Args...) const&;
             static constexpr CppFuntionType value = CppFuntionType::ClassMethodConstNoRef;
         };
+
+        /// Strip the class from a method type
+        template <typename T>
+        struct remove_class {};
+
+        template <typename C, typename R, typename... A>
+        struct remove_class<R (C::*)(A...)> {
+            using type = R(A...);
+        };
+        template <typename C, typename R, typename... A>
+        struct remove_class<R (C::*)(A...) const> {
+            using type = R(A...);
+        };
+
+        template <typename F>
+        struct strip_function_object {
+            // If you are encountering an
+            // 'error: name followed by "::" must be a class or namespace name'
+            // with the Intel compiler and a noexcept function here,
+            // try to use noexcept(true) instead of plain noexcept.
+            using type = typename remove_class<decltype(&F::operator())>::type;
+        };
+
+        // Extracts the function signature from a function, function pointer or lambda.
+        template <typename Function, typename F = std::remove_reference_t<Function>>
+        using function_signature_t = std::conditional_t<
+            std::is_function<F>::value,
+            F,
+            typename std::conditional_t<std::is_pointer<F>::value || std::is_member_pointer<F>::value,
+                                std::remove_pointer<F>,
+                                strip_function_object<F>>::type>;
 
     }
 }
