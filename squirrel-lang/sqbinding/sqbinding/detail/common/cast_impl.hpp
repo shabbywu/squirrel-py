@@ -108,7 +108,7 @@ namespace sqbinding {
 
                     SQRELEASEHOOK hook = [](SQUserPointer ptr, SQInteger)->SQInteger {
                         #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release " << typeid(T).name() << std::endl;
+                        std::cout << "GC::Release " << typeid(cpp_function).name() << std::endl;
                         #endif
                         return 0;
                     };
