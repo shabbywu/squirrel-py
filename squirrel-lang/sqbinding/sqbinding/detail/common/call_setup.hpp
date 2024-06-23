@@ -1,5 +1,6 @@
 #pragma once
 #include <squirrel.h>
+#include <functional>
 #include "cast_def.hpp"
 #include "stack_operation.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
@@ -43,57 +44,58 @@ namespace sqbinding {
         template <int index, typename Func>
         struct load_args;
 
-        template <int index, class Return, class Arg, class... Args>
-        struct load_args<index, std::function<Return(Arg, Args...)>>{
-            using InputType = std::function<Return(Arg, Args...)>;
-            static auto load(InputType func, VM vm) {
-                auto arg = generic_stack_get<Arg>(vm, index);
-                return load_args<index+1, Return, Args...>::load(std::bind(func, arg), vm);
+        template <int index, class Return>
+        struct load_args<index, std::function<Return()>> {
+            using InputType = std::function<Return()>;
+            static inline auto load(InputType func, VM vm) {
+                return func;
             }
         };
 
         template <int index, class Return, class Arg>
         struct load_args<index, std::function<Return(Arg)>>{
             using InputType = std::function<Return(Arg)>;
-            static auto load(InputType func, VM vm) {
+            static inline auto load(InputType func, VM vm) {
                 auto arg = generic_stack_get<Arg>(vm, index);
                 return std::bind(func, arg);
-            }
-        };
-
-        template <int index, class Return>
-        struct load_args<index, std::function<Return()>> {
-            using InputType = std::function<Return()>;
-            static auto load(InputType func, VM vm) {
-                return func;
             }
         };
 
         template <int index, class Return, class Arg, class... Args>
-        struct load_args<index, Return(Arg, Args...)>{
-            using InputType = Return(*)(Arg, Args...);
-            static auto load(InputType func, VM vm) {
+        struct load_args<index, std::function<Return(Arg, Args...)>>{
+            using InputType = std::function<Return(Arg, Args...)>;
+            static inline auto load(InputType func, VM vm) {
                 auto arg = generic_stack_get<Arg>(vm, index);
-                return load_args<index+1, Return, Args...>::load(std::bind(func, arg), vm);
-            }
-        };
-
-        template <int index, class Return, class Arg>
-        struct load_args<index, Return(Arg)>{
-            using InputType = Return(*)(Arg);
-            static auto load(InputType func, VM vm) {
-                auto arg = generic_stack_get<Arg>(vm, index);
-                return std::bind(func, arg);
+                return load_args<index + 1, Return(Args...)>::load(std::bind(func, arg), vm);
             }
         };
 
         template <int index, class Return>
         struct load_args<index, Return()> {
             using InputType = Return(*)();
-            static auto load(InputType func, VM vm) {
+            static inline auto load(InputType func, VM vm) {
                 return func;
             }
         };
+
+        template <int index, class Return, class Arg>
+        struct load_args<index, Return(Arg)>{
+            using InputType = Return(*)(Arg);
+            static inline auto load(InputType func, VM vm) {
+                auto arg = generic_stack_get<Arg>(vm, index);
+                return std::bind(func, arg);
+            }
+        };
+
+        template <int index, class Return, class Arg, class... Args>
+        struct load_args<index, Return(Arg, Args...)>{
+            using InputType = Return(*)(Arg, Args...);
+            static inline auto load(InputType func, VM vm) {
+                auto arg = generic_stack_get<Arg>(vm, index);
+                return load_args<index+1, Return(Args...)>::load(std::bind(func, arg), vm);
+            }
+        };
+
     }
 
     namespace detail {

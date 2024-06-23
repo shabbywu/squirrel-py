@@ -13,11 +13,11 @@ namespace sqbinding {
 
             PyValue to_python() {
                 detail::VM& vm = holder->vm;
-                return detail::GenericCast<PyValue(SQObjectPtr&)>::template cast(vm, **this);
+                return detail::GenericCast<PyValue(SQObjectPtr&)>::cast(vm, **this);
             }
             void from_python(PyValue val) {
                 detail::VM& vm = holder->vm;
-                holder = std::make_shared<detail::ObjectPtr::Holder>(detail::GenericCast<SQObjectPtr(PyValue)>::template cast(vm, val), vm);
+                holder = std::make_shared<detail::ObjectPtr::Holder>(detail::GenericCast<SQObjectPtr(PyValue)>::cast(vm, val), vm);
                 return;
             }
 

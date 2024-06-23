@@ -121,7 +121,7 @@ namespace sqbinding {
                         // 索引从 1 开始, 且位置 1 是 this(env)
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
-                        auto functor = detail::load_args<2, std::function<Return(Args...)>>::load(f, vm_);
+                        auto bound = detail::load_args<2, std::function<Return(Args...)>>::load(f, vm_);
                         return 1;
                     });
                 }

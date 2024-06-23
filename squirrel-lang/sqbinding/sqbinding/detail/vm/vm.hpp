@@ -104,7 +104,7 @@ namespace sqbinding {
                 }
 
                 ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
-                SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env&)>::template cast(GetVM(), env);
+                SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env&)>::cast(GetVM(), env);
                 closure.bindThis(pthis);
                 return closure();
             }
@@ -135,7 +135,7 @@ namespace sqbinding {
                 }
 
                 ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
-                SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env&)>::template cast(GetVM(), env);
+                SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env&)>::cast(GetVM(), env);
                 closure.bindThis(pthis);
                 return closure();
             }

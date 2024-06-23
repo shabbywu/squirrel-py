@@ -34,16 +34,16 @@ namespace sqbinding {
                 template <typename TK, typename TV>
                 void set(TK& key, TV& val) {
                     VM& vm = holder->vm;
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::template cast(vm, key);
-                    auto sqval = GenericCast<SQObjectPtr(TV&)>::template cast(vm, val);
+                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
+                    auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);
                     set(sqkey, sqval);
                 }
 
                 template <typename TK, typename TV>
                 void set(TK&& key, TV&& val) {
                     VM& vm = holder->vm;
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::template cast(vm, key);
-                    auto sqval = GenericCast<SQObjectPtr(TV&)>::template cast(vm, val);
+                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
+                    auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);
                     set(sqkey, sqval);
                 }
 
@@ -66,19 +66,19 @@ namespace sqbinding {
                         return r;
                     }
                     VM& vm = holder->vm;
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::template cast(vm, key);
+                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     throw sqbinding::key_error(sqobject_to_string(sqkey));
                 }
 
                 template <typename TK, typename TV>
                 bool get(TK& key, TV& r) {
                     VM& vm = holder->vm;
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::template cast(vm, key);
+                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
                     SQObjectPtr ptr;
                     if (!get(sqkey, ptr)) {
                         return false;
                     }
-                    r = GenericCast<TV(SQObjectPtr&)>::template cast(vm, ptr);
+                    r = GenericCast<TV(SQObjectPtr&)>::cast(vm, ptr);
                     return true;
                 }
 
