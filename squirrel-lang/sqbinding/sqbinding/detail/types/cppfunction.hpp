@@ -8,6 +8,84 @@
 
 namespace sqbinding {
     namespace detail {
+        class cpp_function {
+            public:
+                struct Holder {
+                    /// Storage for the wrapped function pointer and captured data, if any
+                    void *data[3] = {};
+
+                    /// Pointer to custom destructor for 'data' (if needed)
+                    void (*free_data)(Holder *ptr) = nullptr;
+
+                    ~Holder(){
+                        if (free_data != nullptr) {
+                            free_data(this);
+                        }
+                    }
+                };
+            public:
+                std::shared_ptr<Holder> holder;
+            public:
+                cpp_function(std::nullptr_t) {}
+
+                /// Construct a cpp_function from a vanilla function pointer
+                template <typename Return, typename... Args>
+                // NOLINTNEXTLINE(google-explicit-constructor)
+                cpp_function(Return (*func)(Args...)) {
+                    initialize(std::function(func));
+                }
+
+                /// Construct a cpp_function from a class method (non-const, no ref-qualifier)
+                template <typename Return, typename Class, typename... Arg>
+                // NOLINTNEXTLINE(google-explicit-constructor)
+                cpp_function(Return (Class::*f)(Arg...)) {
+                    initialize(
+                        std::function([f](Class *c, Arg... args) -> Return { return (c->*f)(std::forward<Arg>(args)...); })
+                    );
+                }
+
+                /// Construct a cpp_function from a lambda function (possibly with internal state)
+                template <class Func, typename = std::enable_if_t<function_traits<Func>::value == CppFuntionType::LambdaLike>>
+                cpp_function(Func func) {
+                    static_assert(function_traits<Func>::value == CppFuntionType::LambdaLike);
+                    initialize(std::function(func));
+                }
+
+            public:
+                /// Special internal constructor for functors, lambda functions, etc.
+                template <class Func>
+                void initialize(Func &&f) {
+                    struct capture {
+                        std::remove_reference_t<Func> f;
+                    };
+                    holder = std::make_shared<Holder>();
+                    /* Store the capture object directly in the function record if there is enough space */
+                    if (sizeof(capture) <= sizeof(holder->data)) {
+                        new ((capture *) &holder->data) capture{std::forward<Func>(f)};
+                    } else {
+                        holder->data[0] = new capture{std::forward<Func>(f)};
+                        holder->free_data = [](Holder *r) { delete ((capture *) r->data[0]); };
+                    }
+                }
+            public:
+                template <typename Return, typename... Args>
+                Return operator()(Args... args) {
+                    auto func = (std::function<Return(Args...)>*) holder->data[0];
+                    return (*func)(args...);
+                }
+        };
+
+        template <typename Func>
+        struct caller;
+
+        template <typename Return, typename... Args>
+        struct caller<Return(Args...)> {
+            static Return call(cpp_function* self, Args... args) {
+                Return (*func)(Args...) = (Return(*)(Args...))self->holder->data[0];
+                return func(args...);
+            }
+        };
+
         template <class T>
         class CppFunction;
 
