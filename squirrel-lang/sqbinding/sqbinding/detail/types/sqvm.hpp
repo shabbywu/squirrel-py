@@ -10,17 +10,19 @@ namespace sqbinding {
                     public:
                         Holder(HSQUIRRELVM vm, bool should_close = false) : vm(vm), should_close(should_close) {}
                         ~Holder() {
-                            if (vm == nullptr) {
-                                return;
-                            }
-                            #ifdef TRACE_CONTAINER_GC
-                            std::cout << "GC::Release VM: " << vm << std::endl;
-                            #endif
+
                             if (should_close) {
+                                #ifdef TRACE_CONTAINER_GC
+                                std::cout << "GC::Release VM: " << vm << ", close it." << std::endl;
+                                #endif
                                 detail::time_guard time_guard;
                                 sq_settop(vm, 0);
                                 sq_collectgarbage(vm);
                                 sq_close(vm);
+                            } else {
+                                #ifdef TRACE_CONTAINER_GC
+                                std::cout << "GC::Release VM Proxy: " << vm << std::endl;
+                                #endif
                             }
                         }
                     public:

@@ -25,3 +25,7 @@ set_property(TARGET sqbinding PROPERTY CXX_STANDARD 20)
 if(TRACE_CONTAINER_GC)
   target_compile_definitions(sqbinding PUBLIC TRACE_CONTAINER_GC=1)
 endif()
+
+if(TRACE_OBJECT_CAST)
+  target_compile_definitions(sqbinding PUBLIC TRACE_OBJECT_CAST=1)
+endif()

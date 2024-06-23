@@ -14,6 +14,9 @@ namespace sqbinding {
                         sq_addref(*vm, &instance);
                     }
                     ~Holder(){
+                        #ifdef TRACE_CONTAINER_GC
+                        std::cout << "GC::Release Instance: " << sqobject_to_string(instance) << std::endl;
+                        #endif
                         sq_release(*vm, &instance);
                     }
                     VM vm;

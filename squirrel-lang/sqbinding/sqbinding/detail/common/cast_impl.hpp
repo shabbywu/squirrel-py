@@ -6,8 +6,8 @@
 #include "cast_def.hpp"
 #include "errors.hpp"
 #include "sqbinding/detail/common/type_traits.hpp"
+#include "sqbinding/detail/common/cpp_function.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
-#include "sqbinding/detail/types/cppfunction.hpp"
 
 
 typedef std::variant<SQInteger, SQFloat> SafeSQType;
@@ -63,25 +63,45 @@ namespace sqbinding {
         template <>
         class GenericCast<SQObjectPtr(SQInteger&)> {
             public:
-            static SQObjectPtr cast(VM vm, SQInteger& obj) {return SQObjectPtr(obj);}
+            static SQObjectPtr cast(VM vm, SQInteger& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQInteger& to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(obj);
+            }
         };
 
         template <>
         class GenericCast<SQObjectPtr(SQInteger&&)> {
             public:
-            static SQObjectPtr cast(VM vm, SQInteger&& obj) {return SQObjectPtr(obj);}
+            static SQObjectPtr cast(VM vm, SQInteger&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQInteger&& to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(obj);
+            }
         };
 
         template <>
         class GenericCast<SQObjectPtr(std::string&)> {
             public:
-            static SQObjectPtr cast(VM vm, std::string& obj) {return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));}
+            static SQObjectPtr cast(VM vm, std::string& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast std::string& to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
+            }
         };
 
         template <>
         class GenericCast<SQObjectPtr(std::string&&)> {
             public:
-            static SQObjectPtr cast(VM vm, std::string&& obj) {return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));}
+            static SQObjectPtr cast(VM vm, std::string&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast std::string&& to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
+            }
         };
 
         // template <class Return, class...Args>
@@ -169,13 +189,21 @@ namespace sqbinding {
         template <class FromType>
         class GenericCast<void(FromType&)> {
             public:
-            static void cast(VM vm, FromType& obj) {}
+            static void cast(VM vm, FromType& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast " << typeid(std::reference_wrapper<FromType>).name() <<" to None" << std::endl;
+                #endif
+            }
         };
 
         template <class FromType>
         class GenericCast<void(FromType&&)> {
             public:
-            static void cast(VM vm, FromType&& obj) {}
+            static void cast(VM vm, FromType&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast " << typeid(std::remove_reference_t<FromType>).name() <<" to None" << std::endl;
+                #endif
+            }
         };
 
     }
@@ -185,6 +213,9 @@ namespace sqbinding {
         class GenericCast<ToType(SQInteger)> {
             public:
             static ToType cast(VM vm, SQInteger obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQInteger to" << typeid(ToType).name() << std::endl;
+                #endif
                 return (ToType)obj;
             }
         };
@@ -193,6 +224,9 @@ namespace sqbinding {
         class GenericCast<ToType(SQFloat)> {
             public:
             static ToType cast(VM vm, SQFloat obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQFloat to" << typeid(ToType).name() << std::endl;
+                #endif
                 return (ToType)obj;
             }
         };
@@ -201,6 +235,9 @@ namespace sqbinding {
         class GenericCast<ToType(SQBool)> {
             public:
             static ToType cast(VM vm, SQBool obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQBool to" << typeid(ToType).name() << std::endl;
+                #endif
                 return (ToType)obj;
             }
         };

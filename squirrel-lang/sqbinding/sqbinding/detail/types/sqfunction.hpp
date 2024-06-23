@@ -19,6 +19,9 @@ namespace sqbinding {
                         sq_addref(*vm, &closure);
                     }
                     ~Holder(){
+                        #ifdef TRACE_CONTAINER_GC
+                        std::cout << "GC::Release Closure: " << sqobject_to_string(closure) << std::endl;
+                        #endif
                         sq_release(*vm, &closure);
                     }
                     VM vm;
@@ -103,6 +106,9 @@ namespace sqbinding {
                         sq_addref(*vm, &nativeClosure);
                     }
                     ~Holder(){
+                        #ifdef TRACE_CONTAINER_GC
+                        std::cout << "GC::Release NativeClosure: " << sqobject_to_string(nativeClosure) << std::endl;
+                        #endif
                         sq_release(*vm, &nativeClosure);
                     }
                     VM vm;

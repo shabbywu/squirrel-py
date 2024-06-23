@@ -16,6 +16,9 @@ namespace sqbinding {
                         sq_addref(*vm, &obj);
                     }
                     ~Holder(){
+                        #ifdef TRACE_CONTAINER_GC
+                        std::cout << "GC::Release ObjectPtr: " << sqobject_to_string(obj) << std::endl;
+                        #endif
                         sq_release(*vm, &obj);
                     }
                     VM vm;

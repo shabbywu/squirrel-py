@@ -10,27 +10,24 @@
 
 namespace sqbinding {
     namespace detail {
-        class Table: public std::enable_shared_from_this<Table> {
+        template <class T>
+        class UserData: public std::enable_shared_from_this<UserData> {
             public:
                 struct Holder {
-                    Holder(::SQTable* pTable, VM vm) : vm(vm) {
-                        table = pTable;
-                        sq_addref(*vm, &table);
+                    Holder(::SQUserData* pUserData, VM vm) : vm(vm) {
+                        userdata = pUserData;
+                        sq_addref(*vm, &userdata);
                     }
                     ~Holder(){
-                        #ifdef TRACE_CONTAINER_GC
-                        std::cout << "GC::Release Table: " << sqobject_to_string(table) << std::endl;
-                        #endif
-                        sq_release(*vm, &table);
+                        sq_release(*vm, &userdata);
                     }
                     VM vm;
-                    SQObjectPtr table;
+                    ::SQUserData* userdata;
                 };
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Table(VM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(*vm), 4), vm)) {}
-                Table(::SQTable* pTable, VM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
+                UserData(::SQUserData* pUserData, VM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
 
                 SQUnsignedInteger getRefCount() {
                     return pTable() -> _uiRef;

@@ -51,6 +51,7 @@ class CMakeBuild(build_ext):
             f"-DPython_ROOT_DIR={os.path.dirname(sys.executable)}",
             f"-DCMAKE_BUILD_TYPE={cfg}",  # not used on MSVC, but no harm
             "-DTRACE_CONTAINER_GC=1",
+            "-DTRACE_OBJECT_CAST=1",
         ]
         build_args = []
         # Adding CMake arguments set as environment variable
