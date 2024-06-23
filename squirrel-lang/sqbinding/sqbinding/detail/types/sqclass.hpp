@@ -83,7 +83,6 @@ namespace sqbinding {
                     return true;
                 }
 
-                template <>
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     VM& vm = holder->vm;
                     SQObjectPtr& self = holder->clazz;

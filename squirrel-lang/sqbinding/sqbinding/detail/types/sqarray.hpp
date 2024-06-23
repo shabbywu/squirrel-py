@@ -53,7 +53,6 @@ namespace sqbinding {
                     set(sqkey, sqval);
                 }
 
-                template <>
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     VM& vm = holder->vm;
                     SQObjectPtr& self = holder->array;
@@ -88,7 +87,6 @@ namespace sqbinding {
                     return true;
                 }
 
-                template <>
                 bool get(SQObjectPtr& idx, SQObjectPtr& ret) {
                     VM& vm = holder->vm;
                     SQObjectPtr& self = holder->array;
