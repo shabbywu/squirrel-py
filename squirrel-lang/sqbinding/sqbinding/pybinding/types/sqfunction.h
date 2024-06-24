@@ -51,13 +51,6 @@ namespace sqbinding {
                     pNativeClosure()->_outervalues[0] = (*vm)->PopGet();
                 }
 
-                // NativeClosure(dynamic_args_function func, detail::VM vm): BaseNativeClosure(::SQNativeClosure::Create(_ss(*vm), dynamic_args_function::caller, 1), vm) {
-                //     // TODO: 重构 new userdata 的方式
-                //     pNativeClosure()->_nparamscheck = 0;
-                //     SQUserPointer ptr = sq_newuserdata(*vm, sizeof(py::function));
-                //     std::memcpy(ptr, func.get(), sizeof(py::function));
-                //     pNativeClosure()->_outervalues[0] = (*vm)->PopGet();
-                // }
             public:
                 void bind_this_if_need(PyValue& v);
                 // Python API
