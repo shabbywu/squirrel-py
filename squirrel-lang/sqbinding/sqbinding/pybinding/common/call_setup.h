@@ -11,14 +11,14 @@ namespace py = pybind11;
 namespace sqbinding {
     namespace detail {
         template <int index>
-        struct load_args<index, py::list(py::list)>{
-            static std::function<py::list()> load(std::function<py::list(py::list)> func, VM vm) {
+        struct load_args<index, py::list>{
+            static py::list load(VM vm) {
                 int nparams = sq_gettop(*vm) - 2;
                 py::list args;
                 for (int idx = index; idx <= 1 + nparams; idx ++) {
                     args.append(generic_stack_get<PyValue>(vm, idx));
                 }
-                return std::bind(func, args);
+                return args;
             }
         };
     }

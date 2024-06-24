@@ -22,8 +22,8 @@ namespace sqbinding {
             auto vm_ = detail::VM(vm);
             // squirrel 堆栈索引从 1 开始, 且位置 1 是 this(env)
             // 参数从索引 2 开始
-            auto args = detail::load_args<2, py::list(py::list)>::load([](py::list args) -> py::list {return args;}, vm_);
-            PyValue result = (*func)(*args()).cast<PyValue>();
+            auto args = detail::load_args<2, py::list>::load(vm_);
+            PyValue result = (*func)(*args).cast<PyValue>();
             if (std::holds_alternative<py::none>(result)){
                 return 0;
             }
@@ -42,8 +42,8 @@ namespace sqbinding {
             auto vm_ = detail::VM(vm);
             // squirrel 堆栈索引从 1 开始, 且位置 1 是 this(env)
             // rawcall 参数从索引 1 开始
-            auto args = detail::load_args<1, py::list(py::list)>::load([](py::list args) -> py::list {return args;}, vm_);
-            PyValue result = (*func)(*args()).cast<PyValue>();
+            auto args = detail::load_args<1, py::list>::load(vm_);
+            PyValue result = (*func)(*args).cast<PyValue>();
             if (std::holds_alternative<py::none>(result)){
                 return 0;
             }
@@ -64,10 +64,18 @@ namespace sqbinding {
 
             SQPythonFunction(py::function func, detail::VM vm) {
                 this->_val = func;
+                _delegate = std::make_shared<python::Table>(python::Table(vm));
 
-                cppfunction_holders["_get"] = std::make_shared<detail::cpp_function>([this](detail::string key) -> PyValue {
-                    return this->_val.attr("__getattribute__")(key).cast<PyValue>();
-                });
+                {
+                    auto pair = detail::make_stack_object<detail::NativeClosure<PyValue(detail::string)>>(vm, detail::cpp_function([this](detail::string key) -> PyValue {
+                        return this->_val.attr("__getattribute__")(key).cast<PyValue>();
+                    }), vm);
+                    _delegate->bindFunc("_get", pair.second);
+                }
+
+                // cppfunction_holders["_get"] = std::make_shared<detail::cpp_function>([this](detail::string key) -> PyValue {
+                //     return this->_val.attr("__getattribute__")(key).cast<PyValue>();
+                // });
 
                 cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](detail::string key) -> PyValue {
                     return this->_val.attr("__getattribute__")(key).cast<PyValue>();
@@ -86,6 +94,14 @@ namespace sqbinding {
                 cppfunction_handlers["_call"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
                     return this->_val.attr("__call__")(*args).cast<PyValue>();
                 });
+
+                // {
+                //     auto pair = detail::make_stack_object<detail::NativeClosure<PyValue(PyValue, py::args)>>(vm, detail::cpp_function([this](PyValue env, py::args args) -> PyValue {
+                //     return this->_val.attr("__call__")(*args).cast<PyValue>();
+                //     }), vm);
+                //     _delegate->bindFunc("_call", pair.second);
+                // }
+
                 cppfunction_handlers["_rawcall"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
                     return this->_val.attr("__call__")(*args).cast<PyValue>();
                 });
@@ -111,7 +127,6 @@ namespace sqbinding {
 
                 }
 
-                _delegate = std::make_shared<python::Table>(python::Table(vm));
                 for(auto pair: nativeclosure_handlers) {
                     _delegate->bindFunc(pair.first, pair.second);
                 }

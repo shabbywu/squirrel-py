@@ -4,8 +4,10 @@
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
+#include "sqbinding/detail/common/cpp_function.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
+
 
 namespace sqbinding {
     namespace detail {
@@ -71,6 +73,10 @@ namespace sqbinding {
                 SQObjectPtr pthis; // 'this' pointer for sq_call
             public:
                 NativeClosure(::SQNativeClosure* pNativeClosure, VM vm): holder(std::make_shared<Holder>(pNativeClosure, vm)) {};
+                NativeClosure(detail::cpp_function& func, VM& vm) {
+
+                }
+
                 ::SQNativeClosure* pNativeClosure() {
                     return _nativeclosure(holder->GetSQObjectPtr());
                 }

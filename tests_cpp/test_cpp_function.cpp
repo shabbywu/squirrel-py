@@ -21,7 +21,8 @@ void sig(T t) {
 }
 
 
-void test () {
+void test (int i) {
+    std::cout << "i: " << i << std::endl;
     std::cout << "Hello vanilla function pointer" << std::endl;
 }
 
@@ -42,22 +43,22 @@ class A{
 
 
 void main(){
-    // {
-    //     auto wrapper = sqbinding::detail::cpp_function(std::function([](){
-    //         std::cout << "Hello lambda" << std::endl;
-    //     }));
-    //     wrapper.operator()<void>();
-    // }
-    // {
-    //     auto wrapper = sqbinding::detail::cpp_function([](){
-    //         std::cout << "Hello lambda" << std::endl;
-    //     });
-    //     wrapper.operator()<void>();
-    // }
-    // {
-    //     auto wrapper = sqbinding::detail::cpp_function(&test);
-    //     wrapper.operator()<void>();
-    // }
+    {
+        auto wrapper = sqbinding::detail::cpp_function(std::function([](){
+            std::cout << "Hello lambda" << std::endl;
+        }));
+        wrapper.operator()<void>();
+    }
+    {
+        auto wrapper = sqbinding::detail::cpp_function([](){
+            std::cout << "Hello lambda" << std::endl;
+        });
+        wrapper.operator()<void>();
+    }
+    {
+        auto wrapper = sqbinding::detail::cpp_function(&test);
+        wrapper.operator()<void>(1);
+    }
     // {
 
     //     auto seek = [](){
@@ -81,10 +82,13 @@ void main(){
 
     auto vm = sqbinding::detail::GenericVM();
     auto wrapper = sqbinding::detail::cpp_function(&test);
+    auto sqvm = vm.GetSQVM();
     vm.bindFunc("test", wrapper);
+
+
     try
     {
-        vm.ExecuteString<void>("test(); return 1;");
+        vm.ExecuteString<void>("test(1); return 1;");
     }
     catch(const std::exception& e)
     {

@@ -98,13 +98,13 @@ namespace sqbinding {
 
             public:
                 /// Special internal constructor for functors, lambda functions, etc.
-                template <bool functor, class Func, typename Return, typename... Args, std::enable_if_t<functor, bool> = true>
+                template <bool functor, class Func, typename Return, typename... Args>
                 void initialize(Func&& f, Return (*signature)(Args...)) {
                     struct capture {
                         std::remove_reference_t<Func> f;
                     };
                     holder = std::make_shared<Holder>();
-                    holder->functor = true;
+                    holder->functor = functor;
 
                     /* Store the capture object directly in the function record if there is enough space */
                     if (sizeof(capture) <= sizeof(holder->data)) {
@@ -114,64 +114,37 @@ namespace sqbinding {
                         holder->free_data = [](Holder *r) { delete ((capture *) r->data[0]); };
                     }
 
-                    holder->caller = std::function([f, this](HSQUIRRELVM vm) -> SQInteger {
-                        cpp_function* func;
-                        sq_getuserdata(vm, -1, (void**)&func, NULL);
-                        int nparams = sq_gettop(vm) - 2;
-
-                        // 索引从 1 开始, 且位置 1 是 this(env)
-                        // 参数从索引 2 开始
-                        auto vm_ = detail::VM(vm);
-                        auto bound = detail::load_args<2, std::function<Return(Args...)>>::load(f, vm_);
-                        return 1;
-                    });
-                }
-
-                template <bool functor, class Func, typename Return, typename... Args, std::enable_if_t<!functor, bool> = true>
-                void initialize(Func&& f, Return (*signature)(Args...)) {
-                    struct capture {
-                        std::remove_reference_t<Func> f;
-                    };
-                    holder = std::make_shared<Holder>();
-                    holder->functor = false;
-
-                    /* Store the capture object directly in the function record if there is enough space */
-                    if (sizeof(capture) <= sizeof(holder->data)) {
-                        new ((capture *) &holder->data) capture{std::forward<Func>(f)};
-                    } else {
-                        holder->data[0] = new capture{std::forward<Func>(f)};
-                        holder->free_data = [](Holder *r) { delete ((capture *) r->data[0]); };
-                    }
-
-                    holder->caller = build_caller<functor>(f);
+                    holder->caller = build_caller<Func, Return, Args...>(std::forward<Func>(f));
                 }
 
             public:
-                template <bool functor, class Func, typename Return, typename... Args, std::enable_if_t<!functor, bool> = true>
-                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f) {
+                template <class Func, typename Return, typename... Args>
+                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f, typename std::enable_if_t<std::is_void_v<Return>, Return>* = nullptr) {
                     return std::function([f, this](HSQUIRRELVM vm) -> SQInteger{
                         // 索引从 1 开始, 且位置 1 是 this(env)
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
-                        auto load_func = detail::load_args<2, Return(Args...)>::load(f, vm_);
-                        Return v = load_func();
-                        generic_stack_push(vm, v);
-                        return 1;
-                    });
-                }
-
-                template <bool functor, class Func, typename... Args, std::enable_if_t<!functor, bool> = true>
-                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f) {
-                    return std::function([f, this](HSQUIRRELVM vm) -> SQInteger{
-                        // 索引从 1 开始, 且位置 1 是 this(env)
-                        // 参数从索引 2 开始
-                        auto vm_ = detail::VM(vm);
-                        auto load_func = detail::load_args<2, void(Args...)>::load(f, vm_);
-                        load_func();
+                        auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
+                        std::cout << "Func: " << typeid(decltype(f)).name() << std::endl;
+                        std::cout << "Args: " << typeid(decltype(args)).name() << std::endl;
+                        std::cout << "Args: " << typeid(typename std::tuple<Args...>).name() << std::endl;
+                        std::apply(f, args);
                         return 0;
                     });
                 }
 
+                template <class Func, typename Return, typename... Args>
+                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f, typename std::enable_if_t<!std::is_void_v<Return>, Return>* = nullptr) {
+                    return std::function([f, this](HSQUIRRELVM vm) -> SQInteger{
+                        // 索引从 1 开始, 且位置 1 是 this(env)
+                        // 参数从索引 2 开始
+                        auto vm_ = detail::VM(vm);
+                        auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
+                        Return v = std::apply(f, args);
+                        generic_stack_push(vm, v);
+                        return 1;
+                    });
+                }
             public:
                 template <typename Return, typename... Args>
                 Return operator()(Args... args) {
