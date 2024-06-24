@@ -11,7 +11,7 @@
 #include "sqbinding/detail/types/sqvm.hpp"
 
 
-typedef std::variant<SQInteger, SQFloat, bool> SafeSQType;
+typedef std::variant<SQFloat, bool> SafeSQType;
 
 namespace sqbinding {
     namespace detail {
@@ -61,6 +61,29 @@ namespace sqbinding {
 
     // cast any to SQObjectPtr
     namespace detail {
+        // cast integer
+        template<typename Integer>
+        class GenericCast<SQObjectPtr(Integer&), typename std::enable_if_t<std::is_integral_v<Integer>>> {
+            public:
+            static SQObjectPtr cast(VM vm, Integer& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast " << typeid(Integer&).name() << " to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr((SQInteger)obj);
+            }
+        };
+
+        template<typename Integer>
+        class GenericCast<SQObjectPtr(Integer), typename std::enable_if_t<std::is_integral_v<Integer>>> {
+            public:
+            static SQObjectPtr cast(VM vm, Integer obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast " << typeid(Integer).name() << " to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr((SQInteger)obj);
+            }
+        };
+
         // generic case
         template<typename Type>
         class GenericCast<SQObjectPtr(Type&), typename std::enable_if_t<std::is_convertible_v<Type, SafeSQType>>> {

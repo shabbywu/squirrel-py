@@ -11,11 +11,6 @@
 namespace sqbinding {
     namespace detail {
         class cpp_function {
-            private:
-                enum class FunctorOptions {
-                    _false,
-                    _true,
-                };
             public:
                 struct Holder {
                     /// Storage for the wrapped function pointer and captured data, if any
@@ -119,22 +114,19 @@ namespace sqbinding {
 
             public:
                 template <class Func, typename Return, typename... Args>
-                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f, typename std::enable_if_t<std::is_void_v<Return>, Return>* = nullptr) {
+                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f, Return (*signature)(Args...) = nullptr, typename std::enable_if_t<std::is_void_v<Return>, Return>* = nullptr) {
                     return std::function([f, this](HSQUIRRELVM vm) -> SQInteger{
                         // 索引从 1 开始, 且位置 1 是 this(env)
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
                         auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
-                        std::cout << "Func: " << typeid(decltype(f)).name() << std::endl;
-                        std::cout << "Args: " << typeid(decltype(args)).name() << std::endl;
-                        std::cout << "Args: " << typeid(typename std::tuple<Args...>).name() << std::endl;
                         std::apply(f, args);
                         return 0;
                     });
                 }
 
                 template <class Func, typename Return, typename... Args>
-                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f, typename std::enable_if_t<!std::is_void_v<Return>, Return>* = nullptr) {
+                std::function<SQInteger(HSQUIRRELVM)> build_caller(Func&& f, Return (*signature)(Args...) = nullptr, typename std::enable_if_t<!std::is_void_v<Return>, Return>* = nullptr) {
                     return std::function([f, this](HSQUIRRELVM vm) -> SQInteger{
                         // 索引从 1 开始, 且位置 1 是 this(env)
                         // 参数从索引 2 开始

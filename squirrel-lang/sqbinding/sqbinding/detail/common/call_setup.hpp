@@ -49,7 +49,7 @@ namespace sqbinding {
             static std::tuple<Arg, Args...> load(VM vm) {
                 return std::tuple_cat(
                     load_args<index, std::tuple<Arg>>::load(vm),
-                    load_args::load<index + 1, std::tuple<Args...>>::load(vm));
+                    load_args<index + 1, std::tuple<Args...>>::load(vm));
             }
         };
 

@@ -10,10 +10,7 @@ namespace sqbinding {
         public:
             std::shared_ptr<python::Table> roottable;
         public:
-            GenericVM(HSQUIRRELVM vm): detail::GenericVM(vm) {};
-            GenericVM(): GenericVM(1024) {}
-            GenericVM(int size): GenericVM(size, (unsigned int)detail::SquirrelLibs::LIB_ALL) {}
-            GenericVM(int size, unsigned int libsToLoad): detail::GenericVM(size, libsToLoad) {}
+            using detail::GenericVM::GenericVM;
             ~GenericVM(){
                 #ifdef TRACE_CONTAINER_GC
                 std::cout << "GC::Release python::GenericVM: " << GetSQVM() << std::endl;

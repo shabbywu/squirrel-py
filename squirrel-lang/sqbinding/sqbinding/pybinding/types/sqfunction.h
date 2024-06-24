@@ -5,6 +5,7 @@
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
 #include "sqbinding/detail/types/sqfunction.hpp"
+#include "sqbinding/pybinding/common/dynamic_args_function.h"
 #include "definition.h"
 
 namespace sqbinding {
@@ -41,8 +42,7 @@ namespace sqbinding {
         using BaseNativeClosure = detail::NativeClosure<PyValue (py::args)>;
         class NativeClosure: public BaseNativeClosure {
             public:
-                NativeClosure(::SQNativeClosure* pNativeClosure, detail::VM vm): BaseNativeClosure(pNativeClosure, vm) {
-                };
+                NativeClosure(::SQNativeClosure* pNativeClosure, detail::VM vm): BaseNativeClosure(pNativeClosure, vm) {};
                 NativeClosure(std::shared_ptr<py::function> func, detail::VM vm, SQFUNCTION caller): BaseNativeClosure(::SQNativeClosure::Create(_ss(*vm), caller, 1), vm) {
                     // TODO: 重构 new userdata 的方式
                     pNativeClosure()->_nparamscheck = 0;
@@ -51,6 +51,13 @@ namespace sqbinding {
                     pNativeClosure()->_outervalues[0] = (*vm)->PopGet();
                 }
 
+                // NativeClosure(dynamic_args_function func, detail::VM vm): BaseNativeClosure(::SQNativeClosure::Create(_ss(*vm), dynamic_args_function::caller, 1), vm) {
+                //     // TODO: 重构 new userdata 的方式
+                //     pNativeClosure()->_nparamscheck = 0;
+                //     SQUserPointer ptr = sq_newuserdata(*vm, sizeof(py::function));
+                //     std::memcpy(ptr, func.get(), sizeof(py::function));
+                //     pNativeClosure()->_outervalues[0] = (*vm)->PopGet();
+                // }
             public:
                 void bind_this_if_need(PyValue& v);
                 // Python API
@@ -69,6 +76,15 @@ namespace sqbinding {
                 }
                 std::string __repr__() {
                     return "NativeClosure(" + to_string() + ")";
+                }
+            public:
+                template<class Wrapper, class Func>
+                static std::shared_ptr<NativeClosure> Create(Func&& func, detail::VM vm, SQFUNCTION caller) {
+                    auto pair = detail::make_stack_object<Wrapper>(vm, func);
+                    std::shared_ptr<NativeClosure> closure = std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), caller, 1), vm);
+                    closure->pNativeClosure()->_outervalues[0] = pair.second;
+                    closure->pNativeClosure()->_nparamscheck = 0;
+                    return closure;
                 }
         };
     }

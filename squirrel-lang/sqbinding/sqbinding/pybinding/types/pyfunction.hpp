@@ -3,6 +3,7 @@
 #include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/pybinding/common/call_setup.h"
 #include "sqbinding/detail/types/sqvm.hpp"
+#include "sqbinding/pybinding/common/dynamic_args_function.h"
 #include "definition.h"
 #include "sqfunction.h"
 #include "sqstr.hpp"
@@ -60,56 +61,51 @@ namespace sqbinding {
             std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
             std::map<std::string, std::shared_ptr<python::NativeClosure>> nativeclosure_handlers;
 
-            std::map<std::string, std::shared_ptr<detail::cpp_function>> cppfunction_holders;
-
             SQPythonFunction(py::function func, detail::VM vm) {
                 this->_val = func;
                 _delegate = std::make_shared<python::Table>(python::Table(vm));
 
-                {
-                    auto pair = detail::make_stack_object<detail::NativeClosure<PyValue(detail::string)>>(vm, detail::cpp_function([this](detail::string key) -> PyValue {
-                        return this->_val.attr("__getattribute__")(key).cast<PyValue>();
-                    }), vm);
-                    _delegate->bindFunc("_get", pair.second);
-                }
+                // TODO: 部分固定参数的函数替换成 detail::cpp_function
+                nativeclosure_handlers["_get"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                    [this](py::list args) -> PyValue {
+                        // detail::string key, PyValue value
+                        return this->_val.attr("__getattribute__")(*args);
+                    }, vm, python::dynamic_args_function<2>::caller);
 
-                // cppfunction_holders["_get"] = std::make_shared<detail::cpp_function>([this](detail::string key) -> PyValue {
-                //     return this->_val.attr("__getattribute__")(key).cast<PyValue>();
-                // });
+                nativeclosure_handlers["_set"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                    [this](py::list args) -> SQBool {
+                        // detail::string key, PyValue value
+                        this->_val.attr("__setattr__")(*args);
+                        return 0;
+                    }, vm, python::dynamic_args_function<2>::caller);
 
-                cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](detail::string key) -> PyValue {
-                    return this->_val.attr("__getattribute__")(key).cast<PyValue>();
-                });
-                cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](detail::string key, PyValue value) -> SQBool {
-                    this->_val.attr("__setattr__")(key, value);
-                    return 0;
-                });
-                cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](detail::string key, PyValue value){
-                    this->_val.attr("__setattr__")(key, value);
-                });
-                cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](detail::string key) {
-                    this->_val.attr("__delattr__")(key);
-                });
+                nativeclosure_handlers["_newslot"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                    [this](py::list args) {
+                        // detail::string key, PyValue value
+                        this->_val.attr("__setattr__")(*args);
+                    }, vm, python::dynamic_args_function<2>::caller);
 
-                cppfunction_handlers["_call"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
-                    return this->_val.attr("__call__")(*args).cast<PyValue>();
-                });
+                nativeclosure_handlers["_delslot"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                    [this](py::list args) {
+                        // detail::string key
+                        this->_val.attr("__delattr__")(*args);
+                    }, vm, python::dynamic_args_function<2>::caller);
 
-                // {
-                //     auto pair = detail::make_stack_object<detail::NativeClosure<PyValue(PyValue, py::args)>>(vm, detail::cpp_function([this](PyValue env, py::args args) -> PyValue {
-                //     return this->_val.attr("__call__")(*args).cast<PyValue>();
-                //     }), vm);
-                //     _delegate->bindFunc("_call", pair.second);
-                // }
+                nativeclosure_handlers["_call"] = python::NativeClosure::Create<python::dynamic_args_function<3>>(
+                    [this](py::list args) -> PyValue {
+                        return this->_val.attr("__call__")(*args).cast<PyValue>();
+                    }, vm, python::dynamic_args_function<3>::caller);
 
-                cppfunction_handlers["_rawcall"] = std::make_shared<py::cpp_function>([this](PyValue env, py::args args) -> PyValue {
-                    return this->_val.attr("__call__")(*args).cast<PyValue>();
-                });
+                nativeclosure_handlers["_rawcall"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                    [this](py::list args) -> PyValue {
+                        return this->_val.attr("__call__")(*args).cast<PyValue>();
+                    }, vm, python::dynamic_args_function<2>::caller);
 
-                cppfunction_handlers["_typeof"] = std::make_shared<py::cpp_function>([this]() -> std::string {
-                    py::type type_ = py::type::of(this->_val);
-                    return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
-                });
+                nativeclosure_handlers["_typeof"] = python::NativeClosure::Create<python::dynamic_args_function<3>>(
+                    [this](py::list args) -> PyValue {
+                        py::type type_ = py::type::of(this->_val);
+                        return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
+                    }, vm, python::dynamic_args_function<3>::caller);
 
                 for(auto& [ k, func ]: cppfunction_handlers) {
                     auto withenv = k == "_rawcall";
