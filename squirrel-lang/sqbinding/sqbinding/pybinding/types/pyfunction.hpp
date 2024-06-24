@@ -59,9 +59,7 @@ namespace sqbinding {
             // delegate table
             std::shared_ptr<python::Table> _delegate;
 
-            SQPythonFunction(py::function func, detail::VM vm) {
-                this->_val = func;
-                _delegate = std::make_shared<python::Table>(python::Table(vm));
+            SQPythonFunction(py::function func, detail::VM vm): _val(func), _delegate(std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm))) {
 
                 // TODO: 部分固定参数的函数替换成 detail::cpp_function
                 _delegate->bindFunc("_get", python::NativeClosure::Create<python::dynamic_args_function<2>>(

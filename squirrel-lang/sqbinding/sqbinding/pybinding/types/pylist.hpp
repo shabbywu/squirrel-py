@@ -17,9 +17,7 @@ namespace sqbinding {
             std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
             std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
 
-            SQPythonList(py::list list, detail::VM vm) {
-                this->_val = list;
-                _delegate = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm));
+            SQPythonList(py::list list, detail::VM vm): _val(list), _delegate(std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm))) {
 
                 _delegate->bindFunc("_get", python::NativeClosure::Create<python::dynamic_args_function<2>>(
                 [this](py::list args) -> PyValue {

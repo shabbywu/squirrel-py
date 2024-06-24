@@ -14,9 +14,7 @@ namespace sqbinding {
             // delegate table
             std::shared_ptr<sqbinding::python::Table> _delegate;
 
-            SQPythonDict(py::dict dict, detail::VM vm) {
-                _val = dict;
-                _delegate = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm));
+            SQPythonDict(py::dict dict, detail::VM vm):_val(dict), _delegate(std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm))) {
 
                 _delegate->bindFunc("_get", python::NativeClosure::Create<python::dynamic_args_function<2>>(
                 [this](py::list args) -> PyValue {
