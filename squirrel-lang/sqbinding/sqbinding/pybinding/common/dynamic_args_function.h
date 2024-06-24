@@ -33,7 +33,9 @@ namespace sqbinding {
                     bool functor = false;
 
                     ~Holder(){
-                        std::cout << "[TRACING] free dynamic_args_function" << std::endl;
+                        #ifdef TRACE_CONTAINER_GC
+                            std::cout << "GC::Release " << typeid(Holder).name() << std::endl;
+                        #endif
                         if (free_data != nullptr) {
                             free_data(this);
                         }
@@ -137,7 +139,6 @@ namespace sqbinding {
                     return std::function([f, this](HSQUIRRELVM vm) -> SQInteger{
                         auto vm_ = detail::VM(vm);
                         auto args = detail::load_args<paramsbase, py::list>::load(vm_);
-                        py::print(args);
                         Return v = this->operator()<Return>(args);
                         detail::generic_stack_push(vm, v);
                         return 1;
@@ -156,8 +157,6 @@ namespace sqbinding {
                 }
 
             static SQInteger caller(HSQUIRRELVM vm) {
-                std::cout << "calling dynamic_args_function::caller" << std::endl;
-                vm->dumpstack(vm->_stackbase);
                 py::gil_scoped_acquire acquire;
                 struct StackObjectHolder {
                     std::shared_ptr<dynamic_args_function<paramsbase>> instance;

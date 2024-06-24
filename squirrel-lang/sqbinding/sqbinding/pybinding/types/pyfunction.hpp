@@ -58,74 +58,61 @@ namespace sqbinding {
             py::function _val;
             // delegate table
             std::shared_ptr<python::Table> _delegate;
-            std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
-            std::map<std::string, std::shared_ptr<python::NativeClosure>> nativeclosure_handlers;
 
             SQPythonFunction(py::function func, detail::VM vm) {
                 this->_val = func;
                 _delegate = std::make_shared<python::Table>(python::Table(vm));
 
                 // TODO: 部分固定参数的函数替换成 detail::cpp_function
-                nativeclosure_handlers["_get"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
-                    [this](py::list args) -> PyValue {
-                        // detail::string key, PyValue value
-                        return this->_val.attr("__getattribute__")(*args);
-                    }, vm, python::dynamic_args_function<2>::caller);
+                _delegate->bindFunc("_get", python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                [this](py::list args) -> PyValue {
+                    // detail::string key, PyValue value
+                    return this->_val.attr("__getattribute__")(*args);
+                }, vm, python::dynamic_args_function<2>::caller));
 
-                nativeclosure_handlers["_set"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
-                    [this](py::list args) -> SQBool {
-                        // detail::string key, PyValue value
-                        this->_val.attr("__setattr__")(*args);
-                        return 0;
-                    }, vm, python::dynamic_args_function<2>::caller);
+                _delegate->bindFunc("_set", python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                [this](py::list args) -> SQBool {
+                    // detail::string key, PyValue value
+                    this->_val.attr("__setattr__")(*args);
+                    return 0;
+                }, vm, python::dynamic_args_function<2>::caller));
 
-                nativeclosure_handlers["_newslot"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
-                    [this](py::list args) {
-                        // detail::string key, PyValue value
-                        this->_val.attr("__setattr__")(*args);
-                    }, vm, python::dynamic_args_function<2>::caller);
+                _delegate->bindFunc("_newslot", python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                [this](py::list args) {
+                    // detail::string key, PyValue value
+                    this->_val.attr("__setattr__")(*args);
+                }, vm, python::dynamic_args_function<2>::caller));
 
-                nativeclosure_handlers["_delslot"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
-                    [this](py::list args) {
-                        // detail::string key
-                        this->_val.attr("__delattr__")(*args);
-                    }, vm, python::dynamic_args_function<2>::caller);
+                _delegate->bindFunc("_delslot", python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                [this](py::list args) {
+                    // detail::string key
+                    this->_val.attr("__delattr__")(*args);
+                }, vm, python::dynamic_args_function<2>::caller));
 
-                nativeclosure_handlers["_call"] = python::NativeClosure::Create<python::dynamic_args_function<3>>(
+                {
+                    auto closure = python::NativeClosure::Create<python::dynamic_args_function<3>>(
                     [this](py::list args) -> PyValue {
                         return this->_val.attr("__call__")(*args).cast<PyValue>();
                     }, vm, python::dynamic_args_function<3>::caller);
 
-                nativeclosure_handlers["_rawcall"] = python::NativeClosure::Create<python::dynamic_args_function<2>>(
-                    [this](py::list args) -> PyValue {
-                        return this->_val.attr("__call__")(*args).cast<PyValue>();
-                    }, vm, python::dynamic_args_function<2>::caller);
+                    try {
+                        auto funcName = _val.attr("__name__").cast<py::str>();
+                        closure->pNativeClosure()->_name = pyvalue_tosqobject(funcName, vm);
+                    } catch (const std::exception& e) {}
 
-                nativeclosure_handlers["_typeof"] = python::NativeClosure::Create<python::dynamic_args_function<3>>(
-                    [this](py::list args) -> PyValue {
-                        py::type type_ = py::type::of(this->_val);
-                        return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
-                    }, vm, python::dynamic_args_function<3>::caller);
-
-                for(auto& [ k, func ]: cppfunction_handlers) {
-                    auto withenv = k == "_rawcall";
-                    nativeclosure_handlers[k] = std::make_shared<python::NativeClosure>(python::NativeClosure{func, vm, withenv? &PythonNativeRawCall: &PythonNativeCall});
+                    _delegate->bindFunc("_call", std::move(closure));
                 }
 
-                try
-                {
-                    auto _call = nativeclosure_handlers["_call"];
-                    auto funcName = _val.attr("__name__").cast<py::str>();
-                    _call->pNativeClosure()->_name = pyvalue_tosqobject(funcName, vm);
-                }
-                catch(const std::exception& e)
-                {
+                _delegate->bindFunc("_rawcall", python::NativeClosure::Create<python::dynamic_args_function<2>>(
+                [this](py::list args) -> PyValue {
+                    return this->_val.attr("__call__")(*args).cast<PyValue>();
+                }, vm, python::dynamic_args_function<2>::caller));
 
-                }
-
-                for(auto pair: nativeclosure_handlers) {
-                    _delegate->bindFunc(pair.first, pair.second);
-                }
+                _delegate->bindFunc("_typeof", python::NativeClosure::Create<python::dynamic_args_function<3>>(
+                [this](py::list args) -> PyValue {
+                    py::type type_ = py::type::of(this->_val);
+                    return std::string(type_.attr("__module__").cast<std::string>() + "." + type_.attr("__name__").cast<std::string>());
+                }, vm, python::dynamic_args_function<3>::caller));
             }
 
             static SQUserData* Create(py::function func, detail::VM vm) {
