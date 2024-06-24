@@ -2,6 +2,8 @@
 #include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
+#include "sqbinding/detail/common/template_getter.hpp"
+#include "sqbinding/detail/common/template_setter.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
 
@@ -27,22 +29,7 @@ namespace sqbinding {
                 }
 
             public:
-                template <typename TK, typename TV>
-                void set(TK& key, TV& val) {
-                    VM& vm = holder->vm;
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
-                    auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);
-                    set(sqkey, sqval);
-                }
-
-                template <typename TK, typename TV>
-                void set(TK&& key, TV&& val) {
-                    VM& vm = holder->vm;
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
-                    auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);
-                    set(sqkey, sqval);
-                }
-
+                SQOBJECTPTR_SETTER_TEMPLATE
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
                     VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();

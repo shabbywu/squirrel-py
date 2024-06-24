@@ -25,8 +25,6 @@ namespace sqbinding {
                 SQObjectPtr& operator* () {
                     return (holder->GetSQObjectPtr());
                 }
-
-
         };
     }
 }

@@ -3,6 +3,7 @@
 #include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
+#include "sqbinding/detail/common/template_getter.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
 
@@ -44,29 +45,7 @@ namespace sqbinding {
                     return string_format("OT_CLOSURE: [addr={%p}, ref=%d]", pClosure(), getRefCount());
                 }
             public:
-                template <typename TK, typename TV>
-                TV get(TK& key) {
-                    TV r;
-                    if(get(key, r)) {
-                        return r;
-                    }
-                    VM& vm = holder->GetVM();
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
-                    throw sqbinding::key_error(sqobject_to_string(sqkey));
-                }
-
-                template <typename TK, typename TV>
-                bool get(TK& key, TV& r) {
-                    VM& vm = holder->GetVM();
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
-                    SQObjectPtr ptr;
-                    if (!get(sqkey, ptr)) {
-                        return false;
-                    }
-                    r = GenericCast<TV(SQObjectPtr&)>::cast(vm, ptr);
-                    return true;
-                }
-
+                SQOBJECTPTR_GETTER_TEMPLATE
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();
@@ -118,31 +97,9 @@ namespace sqbinding {
                     return string_format("OT_NATIVECLOSURE: [addr={%p}, ref=%d]", pNativeClosure(), getRefCount());
                 }
             public:
-                template <typename TK, typename TV>
-                TV get(TK& key) {
-                    TV r;
-                    if(get(key, r)) {
-                        return r;
-                    }
-                    VM vm = holder->GetVM();
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
-                    throw sqbinding::key_error(sqobject_to_string(sqkey));
-                }
-
-                template <typename TK, typename TV>
-                bool get(TK& key, TV& r) {
-                    VM vm = holder->GetVM();
-                    auto sqkey = GenericCast<SQObjectPtr(TK&)>::cast(vm, key);
-                    SQObjectPtr ptr;
-                    if (!get(sqkey, ptr)) {
-                        return false;
-                    }
-                    r = GenericCast<TV(SQObjectPtr&)>::cast(vm, ptr);
-                    return true;
-                }
-
+                SQOBJECTPTR_GETTER_TEMPLATE
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
-                    VM vm = holder->GetVM();
+                    VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();
                     if (!(*vm)->Get(self, key, ret, false, DONT_FALL_BACK)) {
                         return false;
