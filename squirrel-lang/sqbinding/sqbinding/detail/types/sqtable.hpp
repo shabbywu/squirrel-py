@@ -60,7 +60,7 @@ namespace sqbinding {
                 // bindFunc to current table
                 template<class Func>
                 void bindFunc(std::string funcname, Func&& func, bool withenv = false) {
-                    set<std::string, Func>(funcname, func);
+                    set(funcname, NativeClosure<detail::function_signature_t<Func>>::Create<cpp_function, Func>(func, holder->GetVM(), cpp_function::caller));
                 }
         };
     }

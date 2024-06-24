@@ -1,6 +1,6 @@
 set(sqbinding_dir ${CMAKE_CURRENT_LIST_DIR}/../squirrel-lang/sqbinding)
 link_libraries(squirrel_static sqstdlib_static)
 include_directories(${squirrel_dir}/include ${squirrel_dir}/squirrel ${sqbinding_dir} )
-
+add_compile_definitions(TRACE_CONTAINER_GC=1 TRACE_OBJECT_CAST=1)
 
 add_executable(test_cpp_function test_cpp_function.cpp)

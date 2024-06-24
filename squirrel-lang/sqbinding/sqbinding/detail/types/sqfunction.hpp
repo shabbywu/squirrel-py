@@ -109,6 +109,30 @@ namespace sqbinding {
                     }
                     return true;
                 }
+            public:
+                template<class Wrapper, class Func>
+                static std::shared_ptr<NativeClosure> Create(Func&& func, detail::VM vm, SQFUNCTION caller) {
+                    auto pair = detail::make_stack_object<Wrapper>(vm, func);
+                    std::shared_ptr<NativeClosure> closure = std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), caller, 1), vm);
+                    closure->pNativeClosure()->_outervalues[0] = pair.second;
+                    closure->pNativeClosure()->_nparamscheck = 0;
+                    return closure;
+                }
+        };
+    }
+
+    // cast to SQObjectPtr
+    namespace detail {
+
+        template <class Return, class... Args>
+        class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Return(Args...)>>&)> {
+            public:
+            static SQObjectPtr cast(VM vm, std::shared_ptr<NativeClosure<Return(Args...)>>& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast " << typeid(NativeClosure<Return(Args...)>&).name() << " to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(obj->pNativeClosure());
+            }
         };
     }
 }

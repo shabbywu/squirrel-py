@@ -5,6 +5,7 @@
 #include <functional>
 #include <sqbinding/detail/vm/vm.hpp>
 #include <sqbinding/detail/common/type_traits.hpp>
+#include <sqbinding/detail/types/sqfunction.hpp>
 
 
 
@@ -15,9 +16,9 @@ void sig(T t) {
     std::cout << "std::is_member_pointer_v=" << std::is_member_pointer_v<decltype(t)> << std::endl;
     std::cout << "std::is_pointer_v=" << std::is_pointer_v<decltype(t)> << std::endl;
     std::cout << typeid(decltype(t)).name() << std::endl;
-    std::cout << typeid(typename sqbinding::detail::function_traits<T>::type).name() << std::endl;
     std::cout << typeid(sqbinding::detail::function_signature_t<T>).name() << std::endl;
-    std::cout << (int)sqbinding::detail::function_traits<T>::value << std::endl;;
+    std::cout << typeid(sqbinding::detail::function_traits<T>::type).name() << std::endl;
+    std::cout << (int)(sqbinding::detail::function_traits<T>::value) << std::endl;
 }
 
 
@@ -43,24 +44,24 @@ class A{
 
 
 void main(){
-    {
-        auto wrapper = sqbinding::detail::cpp_function(std::function([](){
-            std::cout << "Hello lambda" << std::endl;
-        }));
-        wrapper.operator()<void>();
-    }
-    {
-        auto wrapper = sqbinding::detail::cpp_function([](){
-            std::cout << "Hello lambda" << std::endl;
-        });
-        wrapper.operator()<void>();
-    }
-    {
-        auto wrapper = sqbinding::detail::cpp_function(&test);
-        wrapper.operator()<void>(1);
-    }
     // {
+    //     auto wrapper = sqbinding::detail::cpp_function(std::function([](){
+    //         std::cout << "Hello lambda" << std::endl;
+    //     }));
+    //     wrapper.operator()<void>();
+    // }
+    // {
+    //     auto wrapper = sqbinding::detail::cpp_function([](){
+    //         std::cout << "Hello lambda" << std::endl;
+    //     });
+    //     wrapper.operator()<void>();
+    // }
+    // {
+    //     auto wrapper = sqbinding::detail::cpp_function(&test);
+    //     wrapper.operator()<void>(1);
+    // }
 
+    // {
     //     auto seek = [](){
     //         using Type = typename decltype(&A::nonconst_method);
     //         std::cout << "Seeking" << std::endl;
@@ -69,8 +70,6 @@ void main(){
     //     };
     //     seek();
     //     auto wrapper = sqbinding::detail::cpp_function(&A::nonconst_method);
-    //     A a;
-    //     wrapper.operator()<void, A*>(&a);
     // }
 
     // {
@@ -79,16 +78,28 @@ void main(){
     //     A a;
     //     wrapper.operator()<void, A*>(&a);
     // }
-
+    int a = 1;
     auto vm = sqbinding::detail::GenericVM();
-    auto wrapper = sqbinding::detail::cpp_function(&test);
-    auto sqvm = vm.GetSQVM();
-    vm.bindFunc("test", wrapper);
-
+    {
+        using namespace sqbinding::detail;
+        vm.bindFunc("static_func", &test);
+        vm.bindFunc("lambda_func", [](int i) -> int {
+            std::cout << "call from sq: " << i << std::endl;
+            return 2;
+        });
+        vm.bindFunc("capture_func", [&a](int i) {
+            a+=i;
+            std::cout << "a + i =" << a + i << std::endl;
+        });
+    }
 
     try
     {
-        vm.ExecuteString<void>("test(1); return 1;");
+        vm.ExecuteString<void>("static_func(10086); return 1;");
+        auto ret = vm.ExecuteString<int>("lambda_func(10086); return 2;");
+        std::cout <<"retuen value: " << ret << std::endl;
+        std::cout <<"before execute" << std::endl;
+        vm.ExecuteString("print(capture_func); capture_func(1); capture_func(2);");
     }
     catch(const std::exception& e)
     {

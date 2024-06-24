@@ -25,6 +25,9 @@ namespace sqbinding {
                     bool functor = false;
 
                     ~Holder(){
+                       #ifdef TRACE_CONTAINER_GC
+                            std::cout << "GC::Release " << typeid(Holder).name() << std::endl;
+                        #endif
                         if (free_data != nullptr) {
                             free_data(this);
                         }
@@ -120,7 +123,13 @@ namespace sqbinding {
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
                         auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
-                        std::apply(f, args);
+                        if (holder->functor) {
+                            auto func = (std::function<Return(Args...)>*) holder->data[0];
+                            std::apply(*func, args);
+                        } else {
+                            auto func = (Return(*)(Args...)) holder->data[0];
+                            std::apply(*func, args);
+                        }
                         return 0;
                     });
                 }
@@ -132,8 +141,15 @@ namespace sqbinding {
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
                         auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
-                        Return v = std::apply(f, args);
-                        generic_stack_push(vm, v);
+                        if (holder->functor) {
+                            auto func = (std::function<Return(Args...)>*) holder->data[0];
+                            Return v = std::apply(*func, args);
+                            generic_stack_push(vm, v);
+                        } else {
+                            auto func = (Return(*)(Args...)) holder->data[0];
+                            Return v = std::apply(*func, args);
+                            generic_stack_push(vm, v);
+                        }
                         return 1;
                     });
                 }
@@ -148,6 +164,14 @@ namespace sqbinding {
                         return (*func)(args...);
                     }
                 }
+            public:
+            static SQInteger caller(HSQUIRRELVM vm) {
+                struct StackObjectHolder {
+                    std::shared_ptr<cpp_function> instance;
+                }* ud_holder;
+                sq_getuserdata(vm, -1, (void**)&ud_holder, NULL);
+                return ud_holder->instance->holder->caller(vm);
+            }
         };
     }
 }

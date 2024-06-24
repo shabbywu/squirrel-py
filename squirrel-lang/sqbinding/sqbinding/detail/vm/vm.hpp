@@ -115,7 +115,7 @@ namespace sqbinding {
                 return closure();
             }
 
-            template <class Return>
+            template <class Return = void>
             std::remove_reference_t<Return> ExecuteString(std::string sourcecode) {
                 typedef detail::Closure<std::remove_reference_t<Return> ()> ClosureType;
                 HSQUIRRELVM& vm = GetSQVM();
