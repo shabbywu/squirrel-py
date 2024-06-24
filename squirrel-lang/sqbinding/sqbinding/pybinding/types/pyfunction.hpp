@@ -13,46 +13,6 @@ namespace py = pybind11;
 
 namespace sqbinding {
     namespace python {
-        // PythonNativeCall: wrapper for python function, will not pass squirrel env to python object.
-        // this function will be used to call python func in SQVM and return result to SQVM
-        static SQInteger PythonNativeCall(HSQUIRRELVM vm) {
-            py::gil_scoped_acquire acquire;
-            py::function* func;
-            sq_getuserdata(vm, -1, (void**)&func, NULL);
-
-            auto vm_ = detail::VM(vm);
-            // squirrel 堆栈索引从 1 开始, 且位置 1 是 this(env)
-            // 参数从索引 2 开始
-            auto args = detail::load_args<2, py::list>::load(vm_);
-            PyValue result = (*func)(*args).cast<PyValue>();
-            if (std::holds_alternative<py::none>(result)){
-                return 0;
-            }
-            sq_pushobject(vm, pyvalue_tosqobject(result, vm));
-            return 1;
-        }
-
-
-        // PythonNativeRawCall: wrapper for python function, will pass squirrel env to python object.
-        // this function will be used to call python func in SQVM and return result to SQVM
-        static SQInteger PythonNativeRawCall(HSQUIRRELVM vm) {
-            py::gil_scoped_acquire acquire;
-            py::function* func;
-            sq_getuserdata(vm, -1, (void**)&func, NULL);
-
-            auto vm_ = detail::VM(vm);
-            // squirrel 堆栈索引从 1 开始, 且位置 1 是 this(env)
-            // rawcall 参数从索引 1 开始
-            auto args = detail::load_args<1, py::list>::load(vm_);
-            PyValue result = (*func)(*args).cast<PyValue>();
-            if (std::holds_alternative<py::none>(result)){
-                return 0;
-            }
-            sq_pushobject(vm, pyvalue_tosqobject(result, vm));
-            return 1;
-        }
-
-
         class SQPythonFunction {
         public:
             py::function _val;

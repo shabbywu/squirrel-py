@@ -57,3 +57,16 @@ def test_get():
     assert a_say() == "hello a"
     assert b_say() == "hello b"
     assert glboal_say() == "hello world"
+
+
+def test_bindfunc():
+    vm = SQVM()
+    table = vm.execute("return {}")
+
+    def say():
+        return "hello world"
+
+    table.bindfunc("say", say)
+    rt = vm.get_roottable()
+    rt.table = table
+    assert vm.execute("return table.say()") == "hello world"

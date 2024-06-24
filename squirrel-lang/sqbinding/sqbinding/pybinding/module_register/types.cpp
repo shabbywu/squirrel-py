@@ -58,7 +58,7 @@ void register_squirrel_type(py::module_ &m) {
         .def("__delattr__", &sqbinding::python::Table::__delitem__, py::arg("key"))
         .def("keys", &sqbinding::python::Table::keys, py::return_value_policy::take_ownership)
         .def("__len__", &sqbinding::python::Table::__len__)
-        .def("bindfunc", &sqbinding::python::Table::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"))
+        .def("bindfunc", &sqbinding::python::Table::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"), py::arg("withenv") = false)
         .def("get_ref_count", &sqbinding::python::Table::getRefCount)
         ;
     }
@@ -69,7 +69,7 @@ void register_squirrel_type(py::module_ &m) {
     .def("__getattr__", &sqbinding::python::Class::__getitem__, py::arg("key"), py::return_value_policy::move)
     .def("__setattr__", &sqbinding::python::Class::__setitem__, py::arg("key"), py::arg("val"), py::return_value_policy::reference)
     .def("keys", &sqbinding::python::Class::keys, py::return_value_policy::take_ownership)
-    .def("bindfunc", &sqbinding::python::Class::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"))
+    .def("bindfunc", &sqbinding::python::Class::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"), py::arg("withenv") = false)
     ;
 
     py::class_<sqbinding::python::Instance, std::shared_ptr<sqbinding::python::Instance>>(m, "SQInstance")
@@ -78,7 +78,7 @@ void register_squirrel_type(py::module_ &m) {
     .def("__getattr__", &sqbinding::python::Instance::__getitem__, py::arg("key"), py::return_value_policy::move)
     .def("__setattr__", &sqbinding::python::Instance::__setitem__, py::arg("key"), py::arg("val"), py::return_value_policy::reference)
     .def("keys", &sqbinding::python::Instance::keys, py::return_value_policy::take_ownership)
-    .def("bindfunc", &sqbinding::python::Instance::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"))
+    .def("bindfunc", &sqbinding::python::Instance::bindFunc<PyValue&>, py::arg("funcname"), py::arg("func"), py::arg("withenv") = false)
     .def("__str__", &sqbinding::python::Instance::__str__)
     .def("__repr__", &sqbinding::python::Instance::__repr__)
     ;

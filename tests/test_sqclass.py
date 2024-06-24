@@ -52,3 +52,37 @@ def test_decorate_sqfunc():
 
     rt.Class.say = say
     assert vm.execute('return i.say("world")') == "你好 world"
+
+
+def test_bindfunc():
+    vm = SQVM()
+    rt = vm.get_roottable()
+    vm.execute(
+        """
+    class Class {
+        prefix = null
+        constructor(prefix){
+            this.prefix = prefix
+        }
+    }
+    i <- Class("hello ")
+    """
+    )
+
+    say = vm.execute(
+        """
+    local say = function (who) {return prefix + who}
+    return say;
+    """
+    )
+    rt.Class.bindfunc("say", say)
+    assert vm.execute('return i.say("world")') == "hello world"
+
+    def rawcall(env, who):
+        return env.prefix + who
+
+    # TODO: support better callway
+    # rt.Class.bindfunc("_rawcall", rawcall, withenv = True)
+    # vm.execute('return i._rawcall("world")') == "hello world"
+    rt.Class.bindfunc("_rawcall", rawcall)
+    assert vm.execute('return i._rawcall._rawcall(i, "world")') == "hello world"

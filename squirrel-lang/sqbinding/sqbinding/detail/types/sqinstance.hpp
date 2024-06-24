@@ -47,7 +47,7 @@ namespace sqbinding {
             public:
             // bindFunc to current instance
             template <typename Func>
-            void bindFunc(std::string funcname, Func func) {
+            void bindFunc(std::string funcname, Func func, bool withenv = false) {
                 set<std::string, Func>(funcname, func);
             }
         };

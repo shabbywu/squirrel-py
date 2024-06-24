@@ -162,8 +162,8 @@ namespace sqbinding {
             }
 
             template <class Func>
-            void bindFunc(std::string funcname, Func&& func) {
-                getroottable()->bindFunc(funcname, func);
+            void bindFunc(std::string funcname, Func&& func, bool withenv = false) {
+                getroottable()->bindFunc(funcname, func, withenv);
             }
         };
 
