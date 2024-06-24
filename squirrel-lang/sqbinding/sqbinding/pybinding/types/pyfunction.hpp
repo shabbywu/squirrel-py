@@ -56,24 +56,30 @@ namespace sqbinding {
         public:
             py::function _val;
             // delegate table
-            std::shared_ptr<sqbinding::python::Table> _delegate;
+            std::shared_ptr<python::Table> _delegate;
             std::map<std::string, std::shared_ptr<py::cpp_function>> cppfunction_handlers;
-            std::map<std::string, std::shared_ptr<sqbinding::python::NativeClosure>> nativeclosure_handlers;
+            std::map<std::string, std::shared_ptr<python::NativeClosure>> nativeclosure_handlers;
+
+            std::map<std::string, std::shared_ptr<detail::cpp_function>> cppfunction_holders;
 
             SQPythonFunction(py::function func, detail::VM vm) {
                 this->_val = func;
 
-                cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) -> PyValue {
+                cppfunction_holders["_get"] = std::make_shared<detail::cpp_function>([this](detail::string key) -> PyValue {
                     return this->_val.attr("__getattribute__")(key).cast<PyValue>();
                 });
-                cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value) -> SQBool {
+
+                cppfunction_handlers["_get"] = std::make_shared<py::cpp_function>([this](detail::string key) -> PyValue {
+                    return this->_val.attr("__getattribute__")(key).cast<PyValue>();
+                });
+                cppfunction_handlers["_set"] = std::make_shared<py::cpp_function>([this](detail::string key, PyValue value) -> SQBool {
                     this->_val.attr("__setattr__")(key, value);
                     return 0;
                 });
-                cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key, PyValue value){
+                cppfunction_handlers["_newslot"] = std::make_shared<py::cpp_function>([this](detail::string key, PyValue value){
                     this->_val.attr("__setattr__")(key, value);
                 });
-                cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](sqbinding::detail::string key) {
+                cppfunction_handlers["_delslot"] = std::make_shared<py::cpp_function>([this](detail::string key) {
                     this->_val.attr("__delattr__")(key);
                 });
 
@@ -91,7 +97,7 @@ namespace sqbinding {
 
                 for(auto& [ k, func ]: cppfunction_handlers) {
                     auto withenv = k == "_rawcall";
-                    nativeclosure_handlers[k] = std::make_shared<sqbinding::python::NativeClosure>(sqbinding::python::NativeClosure{func, vm, withenv? &PythonNativeRawCall: &PythonNativeCall});
+                    nativeclosure_handlers[k] = std::make_shared<python::NativeClosure>(python::NativeClosure{func, vm, withenv? &PythonNativeRawCall: &PythonNativeCall});
                 }
 
                 try
@@ -105,7 +111,7 @@ namespace sqbinding {
 
                 }
 
-                _delegate = std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm));
+                _delegate = std::make_shared<python::Table>(python::Table(vm));
                 for(auto pair: nativeclosure_handlers) {
                     _delegate->bindFunc(pair.first, pair.second);
                 }

@@ -1,6 +1,7 @@
 #pragma once
 #include <concepts>
 #include <variant>
+#include <string>
 #include <squirrel.h>
 #include "format.hpp"
 #include "cast_def.hpp"
@@ -10,8 +11,7 @@
 #include "sqbinding/detail/types/sqvm.hpp"
 
 
-typedef std::variant<SQInteger, SQFloat> SafeSQType;
-
+typedef std::variant<SQInteger, SQFloat, bool> SafeSQType;
 
 namespace sqbinding {
     namespace detail {
@@ -59,29 +59,21 @@ namespace sqbinding {
         }
     }
 
+    // cast any to SQObjectPtr
     namespace detail {
-        template <>
-        class GenericCast<SQObjectPtr(SQInteger&)> {
+        // generic case
+        template<typename Type>
+        class GenericCast<SQObjectPtr(Type&), typename std::enable_if_t<std::is_convertible_v<Type, SafeSQType>>> {
             public:
-            static SQObjectPtr cast(VM vm, SQInteger& obj) {
+            static SQObjectPtr cast(VM vm, Type& obj) {
                 #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast SQInteger& to SQObjectPtr" << std::endl;
+                std::cout << "[TRACING] cast " << typeid(Type&).name() << " to SQObjectPtr" << std::endl;
                 #endif
                 return SQObjectPtr(obj);
             }
         };
 
-        template <>
-        class GenericCast<SQObjectPtr(SQInteger&&)> {
-            public:
-            static SQObjectPtr cast(VM vm, SQInteger&& obj) {
-                #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast SQInteger&& to SQObjectPtr" << std::endl;
-                #endif
-                return SQObjectPtr(obj);
-            }
-        };
-
+        // cast std::string
         template <>
         class GenericCast<SQObjectPtr(std::string&)> {
             public:
@@ -123,60 +115,15 @@ namespace sqbinding {
                     return ud;
             }
         };
+    }
 
-        template <class ToType>
-        class GenericCast<ToType(HSQOBJECT&)> {
-            public:
-            static ToType cast(VM vm, HSQOBJECT& obj) {
-                switch (obj._type) {
-                    // case tagSQObjectType::OT_NULL:
-                    //     return GenericCast<void, ToType>::cast(vm, obj);
-                    case tagSQObjectType::OT_INTEGER:
-                        return GenericCast<ToType(SQInteger)>::cast(vm, _integer(obj));
-                    case tagSQObjectType::OT_FLOAT:
-                        return GenericCast<ToType(SQFloat)>::cast(vm, _float(obj));
-                    case tagSQObjectType::OT_BOOL:
-                        return GenericCast<ToType(SQBool)>::cast(vm, _integer(obj));
-                    // case tagSQObjectType::OT_STRING:
-                    //     return GenericCast<SQChar*, ToType>::cast(vm, _stringval(obj));
-                    // case tagSQObjectType::OT_TABLE:
-                    //     return GenericCast<SQTable*, ToType>::cast(vm, _table(obj));
-                    // case tagSQObjectType::OT_ARRAY:
-                    //     return GenericCast<SQArray*, ToType>::cast(vm, _array(obj));
-                    // case tagSQObjectType::OT_USERDATA:
-                    //     return GenericCast<SQUserData*, ToType>::cast(vm, _userdataval(obj));
-                    // case tagSQObjectType::OT_CLOSURE:
-                    //     return GenericCast<SQClosure*, ToType>::cast(vm, _closure(obj));
-                    // case tagSQObjectType::OT_NATIVECLOSURE:
-                    //     return GenericCast<SQNativeClosure*, ToType>::cast(vm, _nativeclosure(obj));
-                    // case tagSQObjectType::OT_GENERATOR:
-                    //     return GenericCast<SQGenerator*, ToType>::cast(vm, _generator(obj));
-                    // case tagSQObjectType::OT_USERPOINTER:
-                    //     return GenericCast<SQUserPointer, ToType>::cast(vm, _userpointer(obj));
-                    // case tagSQObjectType::OT_THREAD:
-                    //     return GenericCast<SQVM*, ToType>::cast(vm, _thread(obj));
-                    // case tagSQObjectType::OT_FUNCPROTO:
-                    //     return GenericCast<SQFunctionProto*, ToType>::cast(vm, _funcproto(obj));
-                    // case tagSQObjectType::OT_CLASS:
-                    //     return GenericCast<SQClass*, ToType>::cast(vm, _class(obj));
-                    // case tagSQObjectType::OT_INSTANCE:
-                    //     return GenericCast<SQInstance*, ToType>::cast(vm, _instance(obj));
-                    // case tagSQObjectType::OT_WEAKREF:
-                    //     return GenericCast<SQWeakRef*, ToType>::cast(vm, _weakref(obj));
-                    // case tagSQObjectType::OT_OUTER:
-                    //     return GenericCast<SQOuter*, ToType>::cast(vm, _outer(obj));
-                    default:
-                        throw sqbinding::value_error("unsupported value");
-                }
-            }
-        };
-
+    namespace detail {
         template <class FromType>
         class GenericCast<void(FromType&)> {
             public:
             static void cast(VM vm, FromType& obj) {
                 #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast " << typeid(std::reference_wrapper<FromType>).name() <<" to None" << std::endl;
+                std::cout << "[TRACING] cast " << typeid(FromType&).name() <<" to None" << std::endl;
                 #endif
             }
         };
@@ -186,44 +133,73 @@ namespace sqbinding {
             public:
             static void cast(VM vm, FromType&& obj) {
                 #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast " << typeid(std::remove_reference_t<FromType>).name() <<" to None" << std::endl;
+                std::cout << "[TRACING] cast " << typeid(FromType&&).name() <<" to None" << std::endl;
                 #endif
             }
         };
-
     }
 
+    // cast SQObject to Any
     namespace detail {
-        template <class ToType>
-        class GenericCast<ToType(SQInteger)> {
+        // cast SQInteger
+        template<typename Integer>
+        class GenericCast<Integer(HSQOBJECT&), typename std::enable_if_t<std::is_integral_v<Integer>>> {
             public:
-            static ToType cast(VM vm, SQInteger obj) {
+            static Integer cast(VM vm, HSQOBJECT& obj) {
                 #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast SQInteger to" << typeid(ToType).name() << std::endl;
+                std::cout << "[TRACING] cast SQInteger to" << typeid(Integer).name() << std::endl;
                 #endif
-                return (ToType)obj;
+                if (obj._type == tagSQObjectType::OT_INTEGER) return _integer(obj);
+                throw sqbinding::value_error("unsupported value");
             }
         };
 
-        template <class ToType>
-        class GenericCast<ToType(SQFloat)> {
+        template<typename Integer>
+        class GenericCast<Integer(SQObjectPtr&), typename std::enable_if_t<std::is_integral_v<Integer>>> {
             public:
-            static ToType cast(VM vm, SQFloat obj) {
+            static Integer cast(VM vm, SQObjectPtr& obj) {
                 #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast SQFloat to" << typeid(ToType).name() << std::endl;
+                std::cout << "[TRACING] cast SQInteger to" << typeid(Integer).name() << std::endl;
                 #endif
-                return (ToType)obj;
+                if (obj._type == tagSQObjectType::OT_INTEGER) return _integer(obj);
+                throw sqbinding::value_error("unsupported value");
             }
         };
 
-        template <class ToType>
-        class GenericCast<ToType(SQBool)> {
+        // cast SQFloat
+        template<typename Floating>
+        class GenericCast<Floating(HSQOBJECT&), typename std::enable_if_t<std::is_floating_point_v<Floating>>> {
             public:
-            static ToType cast(VM vm, SQBool obj) {
+            static Floating cast(VM vm, HSQOBJECT& obj) {
                 #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast SQBool to" << typeid(ToType).name() << std::endl;
+                std::cout << "[TRACING] cast SQFloat to" << typeid(Floating).name() << std::endl;
                 #endif
-                return (ToType)obj;
+                if (obj._type == tagSQObjectType::OT_FLOAT) return _float(obj);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<bool(HSQOBJECT&)> {
+            public:
+            static bool cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQBool to bool" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_BOOL) return _integer(obj);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<std::string(HSQOBJECT&)> {
+            public:
+            static std::string cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to std::string" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_STRING) return _stringval(obj);
+                throw sqbinding::value_error("unsupported value");
             }
         };
     }

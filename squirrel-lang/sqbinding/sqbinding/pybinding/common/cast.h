@@ -15,18 +15,14 @@ namespace sqbinding {
     }
 
     namespace detail {
-        template <typename FromType> requires (std::is_convertible_v<FromType, PyValue>)
-        class GenericCast<SQObjectPtr(FromType)> {
+        template <typename FromType>
+        class GenericCast<SQObjectPtr(FromType), typename std::enable_if_t<std::is_convertible_v<FromType, PyValue>>> {
             public:
-            static SQObjectPtr cast(VM vm, FromType& obj) {
+            static SQObjectPtr cast(VM vm, std::remove_reference_t<FromType>& obj) {
                 return python::pyvalue_tosqobject(obj, vm);
             }
-        };
 
-        template <typename FromType> requires (std::is_convertible_v<FromType, PyValue>)
-        class GenericCast<SQObjectPtr(FromType&)> {
-            public:
-            static SQObjectPtr cast(VM vm, FromType& obj) {
+            static SQObjectPtr cast(VM vm, std::remove_reference_t<FromType>&& obj) {
                 return python::pyvalue_tosqobject(obj, vm);
             }
         };

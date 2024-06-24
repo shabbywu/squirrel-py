@@ -84,7 +84,7 @@ void main(){
     vm.bindFunc("test", wrapper);
     try
     {
-        vm.ExecuteString<int>("test(); return 1;");
+        vm.ExecuteString<void>("test(); return 1;");
     }
     catch(const std::exception& e)
     {

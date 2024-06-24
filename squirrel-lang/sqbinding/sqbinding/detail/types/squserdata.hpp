@@ -9,6 +9,7 @@
 #include "sqbinding/detail/common/template_setter.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
+#include "sqtable.h"
 
 
 namespace sqbinding {
@@ -18,8 +19,10 @@ namespace sqbinding {
             using Holder = SQObjectPtrHolder<::SQUserData*>;
             public:
                 std::shared_ptr<Holder> holder;
+                std::shared_ptr<sqbinding::detail::Table> delegate;
             public:
                 UserData(::SQUserData* pUserData, VM vm): holder(std::make_shared<Holder>(pUserData, vm)) {}
+                UserData(::SQUserData* pUserData, sqbinding::detail::Table delegate, VM vm): holder(std::make_shared<Holder>(pUserData, vm), delegate(delegate)) {}
 
                 SQUnsignedInteger getRefCount() {
                     return pUserData() -> _uiRef;
@@ -27,6 +30,13 @@ namespace sqbinding {
 
                 ::SQUserData* pUserData() {
                     return _userdata(holder->GetSQObjectPtr());
+                }
+
+                std::shared_ptr<sqbinding::detail::Table> GetDelegate() {
+                    return delegate;
+                }
+                void SetDelegate(std::shared_ptr<sqbinding::detail::Table> delegate) {
+                    this->delegate = delegate;
                 }
             public:
                 SQOBJECTPTR_SETTER_TEMPLATE
