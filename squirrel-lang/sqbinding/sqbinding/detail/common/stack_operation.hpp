@@ -26,7 +26,7 @@ namespace sqbinding {
 
         template <class Arg> inline
         void generic_stack_push(VM vm, Arg arg) {
-            sq_pushobject(*vm, arg);
+            sq_pushobject(*vm, GenericCast<SQObjectPtr(Arg)>::cast(vm, arg));
         }
 
         template <class Return> inline
