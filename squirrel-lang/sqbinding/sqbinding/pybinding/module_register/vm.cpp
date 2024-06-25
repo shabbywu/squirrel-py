@@ -43,9 +43,7 @@ void register_squirrel_vm(py::module_ &m) {
         // base api
         .def_property("top", &StaticVM::GetTop, &StaticVM::SetTop, py::return_value_policy::reference_internal)
         .def("get_roottable", &StaticVM::getroottable, py::return_value_policy::copy)
-        .def("collectgarbage", [](StaticVM* vm) -> int {
-            return sq_collectgarbage(vm->GetSQVM());
-        })
+        .def("collectgarbage", &StaticVM::CollectGarbage)
         ;
 
     py::class_<GenericVM, std::shared_ptr<GenericVM>>(m, "SQVM")
@@ -70,9 +68,7 @@ void register_squirrel_vm(py::module_ &m) {
         // base api
         .def_property("top", &GenericVM::GetTop, &GenericVM::SetTop, py::return_value_policy::reference_internal)
         .def("get_roottable", &GenericVM::getroottable, py::return_value_policy::copy)
-        .def("collectgarbage", [](GenericVM* vm) -> int {
-            return sq_collectgarbage(vm->GetSQVM());
-        })
+        .def("collectgarbage", &GenericVM::CollectGarbage)
         ;
 
     m.def("compile", [](std::string& sourcecode, std::string& sourcename) -> py::bytes {

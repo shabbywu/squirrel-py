@@ -98,6 +98,10 @@ namespace sqbinding {
                 void SetTop(SQInteger top) {
                     return sq_settop(GetSQVM(), top);
                 }
+
+                SQInteger CollectGarbage() {
+                    return sq_collectgarbage(GetSQVM());
+                }
             public:
             template <class Return, class Env>
             std::remove_reference_t<Return> ExecuteString(std::string sourcecode, Env& env) {

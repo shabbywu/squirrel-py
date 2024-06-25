@@ -41,9 +41,18 @@ namespace sqbinding {
     }
 
     namespace detail {
+        // load_args will load args from sqvm stack into cpp memory
         template <int index, class ReturnType>
         struct load_args;
 
+        // default implement, will load args as std::tuple
+        //
+        // Example to call cpp_func with args in sqvm stack
+        // template<class Return, class... Args>
+        // Return call_func(Return(*func)(Args...)) {
+        //    std::tuple<Args...> args = load_args<Args...>(vm);
+        //    return std::apply(func, args);
+        // }
         template <int index, typename Arg, typename... Args>
         struct load_args<index, std::tuple<Arg, Args...>> {
             static std::tuple<Arg, Args...> load(VM vm) {
@@ -67,33 +76,5 @@ namespace sqbinding {
                 return std::make_tuple();
             }
         };
-    }
-
-    namespace detail {
-        // template <int index, class Return, typename Class, class Arg, class... Args>
-        // struct load_args<index, Return (Class::*)(Arg, Args...)>{
-        //     using InputType = Return(Class::*)(Arg, Args...);
-        //     static auto load(InputType func, VM vm) {
-        //         auto arg = generic_stack_get<Arg>(vm, index);
-        //         return load_args<index+1, Return, Args...>::load(std::bind(func, arg), vm);
-        //     }
-        // };
-
-        // template <int index, class Return, typename Class, class Arg>
-        // struct load_args<index, Return (Class::*)(Arg)>{
-        //     using InputType = Return(Class::*)(Arg);
-        //     static auto load(InputType func, VM vm) {
-        //         auto arg = generic_stack_get<Arg>(vm, index);
-        //         return std::bind(func, arg);
-        //     }
-        // };
-
-        // template <int index, class Return, typename Class>
-        // struct load_args<index, Return(Class::*)()> {
-        //     using InputType = Return(Class::*)();
-        //     static auto load(InputType func, VM vm) {
-        //         return func;
-        //     }
-        // };
     }
 }
