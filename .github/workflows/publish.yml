@@ -26,9 +26,16 @@ jobs:
       with:
         submodules: 'true'
 
+    - uses: lukka/get-cmake@latest
+      if: matrix.os != 'ubuntu-latest'
+    - name: Setup anew (or from cache) vcpkg (and does not build any package)
+      if: matrix.os != 'ubuntu-latest'
+      uses: lukka/run-vcpkg@v11 # Always specify the specific _version_ of the
+                                # action you need, `v11` in this case to stay up
+                                # to date with fixes on the v11 branch.
+
     - uses: pypa/cibuildwheel@v2.17
       env:
-        CIBW_ARCHS_MACOS: auto universal2
         # Disable building PyPy wheels on all platforms
         CIBW_SKIP: pp*
         MACOSX_DEPLOYMENT_TARGET: 10.14
