@@ -14,14 +14,21 @@ namespace sqbinding {
         class SQPythonObject {
         public:
             py::object _val;
+            bool is_class = false;
             // delegate table
             std::shared_ptr<sqbinding::python::Table> _delegate;
 
             SQPythonObject(py::object object, detail::VM vm): _val(object), _delegate(std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm)))  {
-
+                py::type type_ = py::type::of(this->_val);
+                if (type_.attr("__name__").cast<std::string>() == "type") {
+                    is_class = true;
+                }
                 _delegate->bindFunc("_get", python::NativeClosure::Create<python::dynamic_args_function<2>>(
                 [this](py::list args) -> PyValue {
                     // (detail::string key) -> PyValue
+                    if (is_class) {
+                        return this->_val.attr("__dict__").cast<py::dict>().attr("__getitem__")(*args).cast<PyValue>();
+                    }
                     return this->_val.attr("__getattribute__")(*args);
                 }, vm, python::dynamic_args_function<2>::caller));
 
@@ -46,6 +53,11 @@ namespace sqbinding {
                 {
                     auto closure = python::NativeClosure::Create<python::dynamic_args_function<3>>(
                     [this](py::list args) -> PyValue {
+                        if (is_class) {
+                            auto instance = _val.attr("__new__")(_val);
+                            _val.attr("__init__")(instance, *args);
+                            return instance.cast<PyValue>();
+                        }
                         return this->_val.attr("__call__")(*args).cast<PyValue>();
                     }, vm, python::dynamic_args_function<3>::caller);
 

@@ -40,3 +40,26 @@ def test_read_from_squirrel():
     vm.execute("assert(pyobject.a == 1)")
     vm.execute("assert(pyobject.b == 1.2)")
     vm.execute('assert(typeof(pyobject) == "test_pyobject.Dummy")')
+
+
+class Puppy:
+    def __init__(self, name):
+        self.name = name
+
+    def get_name(self):
+        return self.name
+
+
+def test_construct():
+    vm = SQVM()
+    rt = vm.get_roottable()
+    rt.Dummy = Dummy
+    vm.execute("dummy <- Dummy(1, 2.2)")
+    dummy = rt.dummy
+    assert dummy.a == 1
+    assert math.isclose(dummy.b, 2.2, rel_tol=1e-6)
+    rt.Puppy = Puppy
+    vm.execute('puppy <- Puppy("husky")')
+    puppy = rt.puppy
+    assert isinstance(puppy, Puppy)
+    assert puppy.get_name() == "husky"

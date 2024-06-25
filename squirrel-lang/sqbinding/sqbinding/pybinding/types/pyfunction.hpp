@@ -16,14 +16,21 @@ namespace sqbinding {
         class SQPythonFunction {
         public:
             py::function _val;
+            bool is_class = false;
             // delegate table
             std::shared_ptr<python::Table> _delegate;
 
             SQPythonFunction(py::function func, detail::VM vm): _val(func), _delegate(std::make_shared<sqbinding::python::Table>(sqbinding::python::Table(vm))) {
-
+                py::type type_ = py::type::of(this->_val);
+                if (type_.attr("__name__").cast<std::string>() == "type") {
+                    is_class = true;
+                }
                 // TODO: 部分固定参数的函数替换成 detail::cpp_function
                 _delegate->bindFunc("_get", python::NativeClosure::Create<python::dynamic_args_function<2>>(
                 [this](py::list args) -> PyValue {
+                    if (is_class) {
+                        return this->_val.attr("__dict__").cast<py::dict>().attr("__getitem__")(*args).cast<PyValue>();
+                    }
                     // detail::string key, PyValue value
                     return this->_val.attr("__getattribute__")(*args);
                 }, vm, python::dynamic_args_function<2>::caller));
@@ -50,6 +57,11 @@ namespace sqbinding {
                 {
                     auto closure = python::NativeClosure::Create<python::dynamic_args_function<3>>(
                     [this](py::list args) -> PyValue {
+                        if (is_class) {
+                            auto instance = _val.attr("__new__")(_val);
+                            _val.attr("__init__")(instance, *args);
+                            return instance.cast<PyValue>();
+                        }
                         return this->_val.attr("__call__")(*args).cast<PyValue>();
                     }, vm, python::dynamic_args_function<3>::caller);
 
