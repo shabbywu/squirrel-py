@@ -44,8 +44,8 @@ namespace sqbinding {
                     set<int, PyValue>(idx, val);
                     return val;
                 }
-                std::shared_ptr<ArrayIterator> __iter__() {
-                    return std::make_shared<ArrayIterator>(pArray(), holder->GetVM());
+                ArrayIterator __iter__() {
+                    return ArrayIterator(holder, 0);
                 }
                 SQInteger __len__() {
                     return size();

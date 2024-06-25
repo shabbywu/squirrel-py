@@ -27,10 +27,10 @@ namespace sqbinding {
                 ArrayIterator(::SQArray* pArray, detail::VM vm): holder(std::make_shared<Holder>(pArray, vm)), idx(0) {}
                 ArrayIterator(std::shared_ptr<Holder> holder, SQInteger idx): holder(holder), idx(idx) {}
             public:
-                ::SQArray* pArray() {
+                ::SQArray* pArray() const {
                     return _array(holder->GetSQObjectPtr());
                 }
-                SQInteger size() {
+                SQInteger size() const {
                     return pArray()->Size();
                 }
             public:
@@ -45,7 +45,7 @@ namespace sqbinding {
                         SQObjectPtr& self = holder->GetSQObjectPtr();
                         SQObjectPtr ret;
                         if (!(*vm)->Get(self, idx, ret, false, DONT_FALL_BACK)) {
-                            throw sqbinding::index_error(string_format("%d is out of range", idx));
+                            throw sqbinding::stop_iteration();
                         }
                         return ret;
                 }
@@ -55,7 +55,6 @@ namespace sqbinding {
                     return ArrayIterator(holder, size());
                 }
         };
-
 
         class Array {
             using Holder = SQObjectPtrHolder<::SQArray*>;
@@ -77,6 +76,9 @@ namespace sqbinding {
                 }
                 SQInteger size() {
                     return pArray()->Size();
+                }
+                ArrayIterator iterator() {
+                    return ArrayIterator(holder, 0);
                 }
 
             public:

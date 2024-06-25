@@ -20,4 +20,9 @@ namespace sqbinding {
             index_error(std::string& message): std::runtime_error(message) {};
             index_error(std::string&& message): std::runtime_error(message) {};
     };
+
+    class stop_iteration: public std::exception {
+        public:
+            stop_iteration(): std::exception(){};
+    };
 }

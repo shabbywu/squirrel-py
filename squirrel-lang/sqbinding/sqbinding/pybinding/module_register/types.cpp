@@ -109,7 +109,7 @@ void register_squirrel_type(py::module_ &m) {
 
     py::class_<sqbinding::python::Array, std::shared_ptr<sqbinding::python::Array>>(m, "SQArray")
     .def(py::init([](HSQUIRRELVM vm) { return std::make_shared<sqbinding::python::Array>(sqbinding::python::Array(vm)); }))
-    .def("__iter__", &sqbinding::python::Array::__iter__, py::return_value_policy::reference_internal)
+    .def("__iter__", &sqbinding::python::Array::__iter__, py::return_value_policy::take_ownership)
     .def("__getitem__", &sqbinding::python::Array::__getitem__, py::arg("idx"), py::return_value_policy::move)
     .def("__setitem__", &sqbinding::python::Array::__setitem__, py::arg("idx"), py::arg("val"), py::return_value_policy::reference)
     .def("append", &sqbinding::python::Array::append<PyValue>, py::arg("val"))

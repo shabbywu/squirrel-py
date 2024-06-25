@@ -70,3 +70,21 @@ def test_bindfunc():
     rt = vm.get_roottable()
     rt.table = table
     assert vm.execute("return table.say()") == "hello world"
+
+
+def test_iterator():
+    vm = SQVM()
+    table = vm.execute(
+        """
+    return {
+        one = 1
+        two = 2
+        three = 3
+    }
+    """
+    )
+    expected = {"one": 1, "two": 2, "three": 3}
+    for k, v in table:
+        print(k, v)
+        assert expected[k] == v
+    assert sorted(table.keys()) == ["one", "three", "two"]
