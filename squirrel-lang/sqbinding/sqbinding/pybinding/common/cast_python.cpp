@@ -157,21 +157,17 @@ if (_userdata(object)->_typetag == (void*)typetag) {\
 #ifdef TRACE_OBJECT_CAST
 #define __try_cast_userdata(object, typetag, cpp_type) \
 if (_userdata(object)->_typetag == (void*)typetag) {\
-    struct Holder {\
-        std::shared_ptr<cpp_type> instance;\
-    };\
+    using Holder = detail::StackObjectHolder<cpp_type>;\
     Holder* holder = ((Holder*)(sq_aligning(_userdata(object) + 1)));\
-    std::cout << "[TRACING] cast SQObjectPtr to " << typeid(decltype(holder->instance->_val)).name() << std::endl;\
-    return holder->instance->_val;\
+    std::cout << "[TRACING] cast SQObjectPtr to " << typeid(decltype(holder->GetInstance()._val)).name() << std::endl;\
+    return holder->GetInstance()._val;\
 }
 #else
 #define __try_cast_userdata(object, typetag, cpp_type) \
 if (_userdata(object)->_typetag == (void*)typetag) {\
-    struct Holder {\
-        std::shared_ptr<cpp_type> instance;\
-    };\
+    using Holder = detail::StackObjectHolder<cpp_type>;\
     Holder* holder = ((Holder*)(sq_aligning(_userdata(object) + 1)));\
-    return holder->instance->_val;\
+    return holder->GetInstance()._val;\
 }
 #endif
 

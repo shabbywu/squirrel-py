@@ -10,6 +10,7 @@
 
 namespace sqbinding {
     namespace detail {
+        template <int paramsbase>
         class cpp_function {
             public:
                 struct Holder {
@@ -122,7 +123,7 @@ namespace sqbinding {
                         // 索引从 1 开始, 且位置 1 是 this(env)
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
-                        auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
+                        auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm_);
                         if (holder->functor) {
                             auto func = (std::function<Return(Args...)>*) holder->data[0];
                             std::apply(*func, args);
@@ -140,7 +141,7 @@ namespace sqbinding {
                         // 索引从 1 开始, 且位置 1 是 this(env)
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
-                        auto args = detail::load_args<2, std::tuple<Args...>>::load(vm_);
+                        auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm_);
                         if (holder->functor) {
                             auto func = (std::function<Return(Args...)>*) holder->data[0];
                             Return v = std::apply(*func, args);
@@ -166,11 +167,10 @@ namespace sqbinding {
                 }
             public:
             static SQInteger caller(HSQUIRRELVM vm) {
-                struct StackObjectHolder {
-                    std::shared_ptr<cpp_function> instance;
-                }* ud_holder;
+                using Holder = detail::StackObjectHolder<cpp_function>;
+                Holder* ud_holder;
                 sq_getuserdata(vm, -1, (void**)&ud_holder, NULL);
-                return ud_holder->instance->holder->caller(vm);
+                return ud_holder->GetInstance().holder->caller(vm);
             }
         };
     }

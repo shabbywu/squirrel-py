@@ -158,11 +158,10 @@ namespace sqbinding {
 
             static SQInteger caller(HSQUIRRELVM vm) {
                 py::gil_scoped_acquire acquire;
-                struct StackObjectHolder {
-                    std::shared_ptr<dynamic_args_function<paramsbase>> instance;
-                }* ud_holder;
+                using Holder = detail::StackObjectHolder<dynamic_args_function<paramsbase>>;
+                Holder* ud_holder;
                 sq_getuserdata(vm, -1, (void**)&ud_holder, NULL);
-                return ud_holder->instance->holder->caller(vm);
+                return ud_holder->GetInstance().holder->caller(vm);
             }
         };
     }

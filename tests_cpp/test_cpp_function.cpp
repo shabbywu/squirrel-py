@@ -78,7 +78,8 @@ void main(){
     //     A a;
     //     wrapper.operator()<void, A*>(&a);
     // }
-    int a = 1;
+    int global_args = 1;
+    A a;
     auto vm = sqbinding::detail::GenericVM();
     {
         using namespace sqbinding::detail;
@@ -87,19 +88,24 @@ void main(){
             std::cout << "call from sq: " << i << std::endl;
             return 2;
         });
-        vm.bindFunc("capture_func", [&a](int i) {
-            a+=i;
-            std::cout << "a + i =" << a + i << std::endl;
+        vm.bindFunc("capture_func", [&global_args](int i) {
+            global_args +=i;
+            std::cout << "global_args + i =" << global_args + i << std::endl;
         });
+        vm.bindFunc("nonconst_method", &A::nonconst_method);
+        vm.getroottable()->set(std::string("a"), &a);
+        A* a = vm.getroottable()->get<std::string, A*>(std::string("a"));
+
     }
 
     try
     {
+        vm.ExecuteString("a.nonconst_method <- nonconst_method");
         vm.ExecuteString<void>("static_func(10086); return 1;");
         auto ret = vm.ExecuteString<int>("lambda_func(10086); return 2;");
         std::cout <<"retuen value: " << ret << std::endl;
-        std::cout <<"before execute" << std::endl;
         vm.ExecuteString("print(capture_func); capture_func(1); capture_func(2);");
+        // vm.ExecuteString("nonconst_method()");
     }
     catch(const std::exception& e)
     {
