@@ -36,7 +36,7 @@ jobs:
 
     - uses: pypa/cibuildwheel@v2.17
       env:
-        CIBW_SKIP: pp* *_i686
+        CIBW_SKIP: pp* *_i686 *musllinux*
         MACOSX_DEPLOYMENT_TARGET: 10.14
 
     - name: Verify clean directory
