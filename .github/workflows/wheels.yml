@@ -2,10 +2,11 @@ name: Wheels
 
 on:
   workflow_dispatch:
-  # pull_request:
-  # push:
-  #   branches:
-  #    - main
+    inputs:
+      do-publish:
+        description: "publish to pypi when build successfully?"
+        required: true
+        type: boolean
   release:
     types:
       - published
@@ -74,7 +75,7 @@ jobs:
     name: Upload if release
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'published' || ${{ inputs.do-publish }}
 
     steps:
     - uses: actions/setup-python@v4
