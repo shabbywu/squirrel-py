@@ -132,7 +132,7 @@ namespace sqbinding {
                 void bindFunc(std::string funcname, Func&& func, bool withenv = false) {
                     set(funcname,
                     detail::NativeClosure<detail::function_signature_t<Func>>::template Create<detail::cpp_function<2>, Func>(
-                        func, holder->GetVM(), detail::cpp_function<2>::caller
+                        std::forward<Func>(func), holder->GetVM(), detail::cpp_function<2>::caller
                     ));
                 }
 
