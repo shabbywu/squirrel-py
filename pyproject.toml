@@ -6,6 +6,29 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-test-command = "cd {project} && make test"
-test-skip = "*universal2:arm64"
+environment = { SYSTEM_VERSION_COMPAT="0" }
 test-requires = ["pytest"]
+test-command = "pytest {project}/tests/"
+test-skip = "*universal2:arm64"
+
+[tool.cibuildwheel.linux]
+environment = { VCPKG_ROOT="~/.vcpkg/vcpkg" }
+before-all = [
+  "mkdir ~/.vcpkg",
+  "git clone https://github.com/microsoft/vcpkg.git ~/.vcpkg/vcpkg",
+  "~/.vcpkg/vcpkg/bootstrap-vcpkg.sh",
+]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-manylinux*"
+inherit.before-all = "prepend"
+before-all = [
+  "yum install curl zip unzip tar -y",
+]
+
+[[tool.cibuildwheel.overrides]]
+select = "*-musllinux*"
+inherit.before-all = "prepend"
+before-all = [
+  "apk add build-base cmake ninja zip unzip curl git",
+]
