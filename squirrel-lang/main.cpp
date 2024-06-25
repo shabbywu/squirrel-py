@@ -8,10 +8,12 @@ namespace py = pybind11;
 
 void register_squirrel_type(py::module_ &m);
 void register_squirrel_vm(py::module_ &m);
+void register_squirrel_exceptions(py::module_ &m);
 
 
 PYBIND11_MODULE(_squirrel, m) {
     register_squirrel_vm(m);
+    register_squirrel_exceptions(m);
 
     py::module mTypes = m.def_submodule("types", "types for sq");
     register_squirrel_type(mTypes);

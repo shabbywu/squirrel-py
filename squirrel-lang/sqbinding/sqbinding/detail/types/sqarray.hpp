@@ -1,4 +1,6 @@
 #pragma once
+#include <iterator>
+#include <stdexcept>
 #include "sqbinding/detail/sqdifinition.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
@@ -9,6 +11,52 @@
 
 namespace sqbinding {
     namespace detail {
+        class ArrayIterator: public std::iterator<
+                                        std::input_iterator_tag,
+                                        SQInteger,
+                                        SQInteger,
+                                        SQObjectPtr*,
+                                        SQObjectPtr
+                                    > {
+            using Holder = SQObjectPtrHolder<::SQArray*>;
+
+            public:
+                std::shared_ptr<Holder> holder;
+                SQInteger idx = 0;
+            public:
+                ArrayIterator(::SQArray* pArray, detail::VM vm): holder(std::make_shared<Holder>(pArray, vm)), idx(0) {}
+                ArrayIterator(std::shared_ptr<Holder> holder, SQInteger idx): holder(holder), idx(idx) {}
+            public:
+                ::SQArray* pArray() {
+                    return _array(holder->GetSQObjectPtr());
+                }
+                SQInteger size() {
+                    return pArray()->Size();
+                }
+            public:
+                ArrayIterator& operator++() { idx ++; return *this; }
+                ArrayIterator operator++(int) { ArrayIterator retval = *this; ++(*this); return retval; }
+                bool operator==(ArrayIterator other) const {
+                    return holder == other.holder && idx == other.idx;
+                }
+                bool operator!=(ArrayIterator other) const { return !(*this == other); }
+                reference operator*() const {
+                        VM& vm = holder->GetVM();
+                        SQObjectPtr& self = holder->GetSQObjectPtr();
+                        SQObjectPtr ret;
+                        if (!(*vm)->Get(self, idx, ret, false, DONT_FALL_BACK)) {
+                            throw sqbinding::index_error(string_format("%d is out of range", idx));
+                        }
+                        return ret;
+                }
+
+                ArrayIterator begin() { return ArrayIterator(holder, 0); }
+                ArrayIterator end() {
+                    return ArrayIterator(holder, size());
+                }
+        };
+
+
         class Array {
             using Holder = SQObjectPtrHolder<::SQArray*>;
             public:
@@ -26,6 +74,9 @@ namespace sqbinding {
                 }
                 std::string to_string() {
                     return string_format("OT_ARRAY: [addr={%p}, ref=%d]", pArray(), getRefCount());
+                }
+                SQInteger size() {
+                    return pArray()->Size();
                 }
 
             public:

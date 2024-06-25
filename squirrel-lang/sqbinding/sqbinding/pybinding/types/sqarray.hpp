@@ -9,7 +9,27 @@
 
 namespace sqbinding {
     namespace python {
-        class ArrayIterator;
+        class ArrayIterator: public detail::ArrayIterator {
+            public:
+            using detail::ArrayIterator::ArrayIterator;
+            PyValue operator*() const {
+                    SQObjectPtr ret = detail::ArrayIterator::operator*();
+                    return detail::GenericCast<PyValue(SQObjectPtr&)>::cast(holder->GetVM(), ret);
+            }
+            PyValue __next__() {
+                if (idx < 0) {
+                    throw py::stop_iteration();
+                }
+                PyValue result;
+                try {
+                    result = **this;
+                } catch(const sqbinding::index_error& e) {
+                    throw py::stop_iteration();
+                }
+                idx++;
+                return result;
+            }
+        };
         class Array: public detail::Array, public std::enable_shared_from_this<Array> {
             public:
                 // create a array in vm stack
@@ -25,10 +45,10 @@ namespace sqbinding {
                     return val;
                 }
                 std::shared_ptr<ArrayIterator> __iter__() {
-                    return std::make_shared<ArrayIterator>(this);
+                    return std::make_shared<ArrayIterator>(pArray(), holder->GetVM());
                 }
                 SQInteger __len__() {
-                    return pArray()->Size();
+                    return size();
                 }
 
                 std::string __str__() {
@@ -38,27 +58,6 @@ namespace sqbinding {
                 std::string __repr__() {
                     return "SQArray(" + to_string() + ")";
                 }
-        };
-
-        class ArrayIterator {
-        public:
-            sqbinding::python::Array* obj;
-            SQInteger idx = 0;
-
-            ArrayIterator(sqbinding::python::Array *obj): obj(obj) {};
-            PyValue __next__() {
-                if (idx < 0) {
-                    throw py::stop_iteration();
-                }
-                PyValue result;
-                try {
-                    result = obj->__getitem__(idx);
-                } catch(const py::index_error& e) {
-                    throw py::stop_iteration();
-                }
-                idx++;
-                return result;
-            }
         };
     }
 }
