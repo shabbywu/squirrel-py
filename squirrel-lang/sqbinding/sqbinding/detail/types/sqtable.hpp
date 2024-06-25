@@ -7,6 +7,8 @@
 #include "sqbinding/detail/common/stack_operation.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
 #include "sqbinding/detail/common/template_setter.hpp"
+#include "sqbinding/detail/common/cpp_function.hpp"
+#include "sqbinding/detail/types/sqfunction.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
 
@@ -60,7 +62,10 @@ namespace sqbinding {
                 // bindFunc to current table
                 template<class Func>
                 void bindFunc(std::string funcname, Func&& func, bool withenv = false) {
-                    set(funcname, NativeClosure<detail::function_signature_t<Func>>::Create<cpp_function, Func>(func, holder->GetVM(), cpp_function::caller));
+                    set(funcname,
+                    detail::NativeClosure<detail::function_signature_t<Func>>::template Create<detail::cpp_function, Func>(
+                        func, holder->GetVM(), detail::cpp_function::caller
+                    ));
                 }
         };
     }
