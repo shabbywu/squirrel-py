@@ -95,11 +95,12 @@ void main(){
         vm.bindFunc("nonconst_method", &A::nonconst_method);
         vm.getroottable()->set(std::string("a"), &a);
         A* a = vm.getroottable()->get<std::string, A*>(std::string("a"));
-
+        a->nonconst_method();
     }
 
     try
     {
+        // TODO: 支持创建 cpp class 以及绑定 cpp method
         vm.ExecuteString("a.nonconst_method <- nonconst_method");
         vm.ExecuteString<void>("static_func(10086); return 1;");
         auto ret = vm.ExecuteString<int>("lambda_func(10086); return 2;");
