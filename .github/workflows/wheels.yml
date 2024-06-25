@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       do-publish:
-        description: "publish to pypi when build successfully?"
+        description: "publish to pypi when build successfully"
         required: true
         type: boolean
   release:
@@ -75,7 +75,7 @@ jobs:
     name: Upload if release
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published' || ${{ inputs.do-publish }}
+    if: github.event_name == 'release' && github.event.action == 'published' || ${{ inputs.do-publish == 'true'}}
 
     steps:
     - uses: actions/setup-python@v4
