@@ -61,7 +61,7 @@ namespace sqbinding {
             public:
                 std::shared_ptr<Holder> holder;
             public:
-                Array(VM vm): holder(std::make_shared<Holder>(SQArray::Create(_ss(*vm), 4), vm)) {}
+                Array(VM vm): holder(std::make_shared<Holder>(SQArray::Create(_ss(*vm), 0), vm)) {}
                 Array(::SQArray* pArray, VM vm): holder(std::make_shared<Holder>(pArray, vm)) {}
 
                 SQUnsignedInteger getRefCount() {
@@ -148,6 +148,31 @@ namespace sqbinding {
 
     namespace detail {
         // cast SQObject to array
+        template<>
+        class GenericCast<detail::Array(HSQOBJECT&)> {
+            public:
+            static detail::Array cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to detail::Array" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_ARRAY) return detail::Array(_array(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<detail::Array(HSQOBJECT&&)> {
+            public:
+            static detail::Array cast(VM vm, HSQOBJECT&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to detail::Array" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_ARRAY) return detail::Array(_array(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+    
+        // cast SQObjectPtr to array
         template<>
         class GenericCast<detail::Array(SQObjectPtr&)> {
             public:

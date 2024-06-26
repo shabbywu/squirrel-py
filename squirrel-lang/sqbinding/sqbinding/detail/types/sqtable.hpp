@@ -85,12 +85,6 @@ namespace sqbinding {
                 Table(VM vm): holder(std::make_shared<Holder>(SQTable::Create(_ss(*vm), 4), vm)) {}
                 Table(::SQTable* pTable, VM vm): holder(std::make_shared<Holder>(pTable, vm)) {}
 
-                Table(const Table &o)
-                {
-                    std::cout << "Copying sqbinding::detial::Table" << std::endl;
-                    holder = o.holder;
-                }
-
                 SQUnsignedInteger getRefCount() {
                     return pTable() -> _uiRef;
                 }
@@ -153,6 +147,31 @@ namespace sqbinding {
 
     namespace detail {
         // cast SQObject to Table
+        template<>
+        class GenericCast<detail::Table(HSQOBJECT&)> {
+            public:
+            static detail::Table cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to detail::Table" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_TABLE) return detail::Table(_table(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<detail::Table(HSQOBJECT&&)> {
+            public:
+            static detail::Table cast(VM vm, HSQOBJECT&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to detail::Table" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_TABLE) return detail::Table(_table(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        // cast SQObjectPtr to Table
         template<>
         class GenericCast<detail::Table(SQObjectPtr&)> {
             public:

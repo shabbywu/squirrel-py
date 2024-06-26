@@ -251,6 +251,17 @@ namespace sqbinding {
         };
 
         template<>
+        class GenericCast<SQObjectPtr(HSQOBJECT&)> {
+            public:
+            static SQObjectPtr cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to SQObjectPtr" << std::endl;
+                #endif
+                return obj;
+            }
+        };
+
+        template<>
         class GenericCast<std::string(SQObjectPtr&)> {
             public:
             static std::string cast(VM vm, SQObjectPtr& obj) {
