@@ -104,6 +104,9 @@ namespace sqbinding {
                 SQInteger capacity() {
                     return pTable()->_numofnodes;
                 }
+                TableIterator iterator() {
+                    return TableIterator(holder, 0);
+                }
             public:
                 SQOBJECTPTR_SETTER_TEMPLATE
                 void set(SQObjectPtr& sqkey, SQObjectPtr& sqval) {
@@ -145,6 +148,45 @@ namespace sqbinding {
                         func, holder->GetVM(), detail::cpp_function<1>::caller
                     ));
                 }
+        };
+    }
+
+    namespace detail {
+        // cast SQObject to Table
+        template<>
+        class GenericCast<detail::Table(SQObjectPtr&)> {
+            public:
+            static detail::Table cast(VM vm, SQObjectPtr& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to detail::Table" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_TABLE) return detail::Table(_table(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<detail::Table(SQObjectPtr&&)> {
+            public:
+            static detail::Table cast(VM vm, SQObjectPtr&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to detail::Table" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_TABLE) return detail::Table(_table(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        // cast Table to SQObjectPtr
+        template<>
+        class GenericCast<SQObjectPtr(detail::Table&)> {
+            public:
+            static SQObjectPtr cast(VM vm, detail::Table& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast detail::Table to SQObjectPtr" << std::endl;
+                #endif
+                return obj.pTable();
+            }
         };
     }
 }

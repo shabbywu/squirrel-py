@@ -34,6 +34,9 @@ namespace sqbinding {
                     VM() = default;
                     VM(HSQUIRRELVM vm, bool should_close = false): holder(std::make_shared<Holder>(vm, should_close)) {}
                 public:
+                    HSQUIRRELVM& vm() {
+                        return holder->vm;
+                    }
                     SQObjectPtr& roottable() {
                         return holder->vm->_roottable;
                     }

@@ -145,4 +145,43 @@ namespace sqbinding {
                 }
         };
     }
+
+    namespace detail {
+        // cast SQObject to array
+        template<>
+        class GenericCast<detail::Array(SQObjectPtr&)> {
+            public:
+            static detail::Array cast(VM vm, SQObjectPtr& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to detail::Array" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_ARRAY) return detail::Array(_array(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<detail::Array(SQObjectPtr&&)> {
+            public:
+            static detail::Array cast(VM vm, SQObjectPtr&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to detail::Array" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_ARRAY) return detail::Array(_array(obj), vm);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        // cast Array to SQObjectPtr
+        template<>
+        class GenericCast<SQObjectPtr(detail::Array&)> {
+            public:
+            static SQObjectPtr cast(VM vm, detail::Array& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast detail::Array to SQObjectPtr" << std::endl;
+                #endif
+                return obj.pArray();
+            }
+        };
+    }
 }

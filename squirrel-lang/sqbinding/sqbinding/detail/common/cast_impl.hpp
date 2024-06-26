@@ -59,6 +59,25 @@ namespace sqbinding {
         }
     }
 
+    // cast anything to itself
+    namespace detail {
+        template<typename T>
+        class GenericCast<T(T&)> {
+            public:
+            static inline T cast(VM vm, T& obj) {
+                return obj;
+            }
+        };
+
+        template<typename T>
+        class GenericCast<T(T)> {
+            public:
+            static inline T cast(VM vm, T obj) {
+                return obj;
+            }
+        };
+    }
+
     // cast any to SQObjectPtr
     namespace detail {
         // cast integer
@@ -106,9 +125,18 @@ namespace sqbinding {
             }
         };
 
-
-
         // cast std::string
+        template <>
+        class GenericCast<SQObjectPtr(std::string)> {
+            public:
+            static SQObjectPtr cast(VM vm, std::string obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast std::string&& to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
+            }
+        };
+
         template <>
         class GenericCast<SQObjectPtr(std::string&)> {
             public:
@@ -130,28 +158,9 @@ namespace sqbinding {
                 return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
             }
         };
-
-        // template <>
-        // class GenericCast<SQObjectPtr(cpp_function&)> {
-        //     public:
-        //     static SQObjectPtr cast(VM vm, cpp_function& func) {
-        //             SQUserPointer ptr = sq_newuserdata(*vm, sizeof(cpp_function));
-        //             std::memcpy(ptr, &func, sizeof(cpp_function));
-
-        //             SQRELEASEHOOK hook = [](SQUserPointer ptr, SQInteger)->SQInteger {
-        //                 #ifdef TRACE_CONTAINER_GC
-        //                 std::cout << "GC::Release " << typeid(cpp_function).name() << std::endl;
-        //                 #endif
-        //                 return 0;
-        //             };
-        //             sq_setreleasehook(*vm, -1, hook);
-        //             // get userdata in stack top
-        //             SQUserData* ud = _userdata((*vm)->PopGet());
-        //             return ud;
-        //     }
-        // };
     }
 
+    // cast anything to void
     namespace detail {
         template <class FromType>
         class GenericCast<void(FromType&)> {
@@ -214,6 +223,7 @@ namespace sqbinding {
             }
         };
 
+        // cast bool
         template<>
         class GenericCast<bool(HSQOBJECT&)> {
             public:
@@ -226,12 +236,26 @@ namespace sqbinding {
             }
         };
 
+
+        // cast string
         template<>
         class GenericCast<std::string(HSQOBJECT&)> {
             public:
             static std::string cast(VM vm, HSQOBJECT& obj) {
                 #ifdef TRACE_OBJECT_CAST
                 std::cout << "[TRACING] cast HSQOBJECT to std::string" << std::endl;
+                #endif
+                if (obj._type == tagSQObjectType::OT_STRING) return _stringval(obj);
+                throw sqbinding::value_error("unsupported value");
+            }
+        };
+
+        template<>
+        class GenericCast<std::string(SQObjectPtr&)> {
+            public:
+            static std::string cast(VM vm, SQObjectPtr& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to std::string" << std::endl;
                 #endif
                 if (obj._type == tagSQObjectType::OT_STRING) return _stringval(obj);
                 throw sqbinding::value_error("unsupported value");
