@@ -56,7 +56,7 @@ jobs:
                                 # action you need, `v11` in this case to stay up
                                 # to date with fixes on the v11 branch.
 
-    - uses: pypa/cibuildwheel@v2.17
+    - uses: pypa/cibuildwheel@v2.20
       env:
         CIBW_SKIP: pp* *_i686 *musllinux*
         MACOSX_DEPLOYMENT_TARGET: 10.14
