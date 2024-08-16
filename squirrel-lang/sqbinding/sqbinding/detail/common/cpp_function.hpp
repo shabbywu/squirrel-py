@@ -124,12 +124,19 @@ namespace sqbinding {
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
                         auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm_);
-                        if (holder->functor) {
-                            auto func = (std::function<Return(Args...)>*) holder->data[0];
-                            std::apply(*func, args);
-                        } else {
-                            auto func = (Return(*)(Args...)) holder->data[0];
-                            std::apply(*func, args);
+                        try
+                        {
+                            if (holder->functor) {
+                                auto func = (std::function<Return(Args...)>*) holder->data[0];
+                                std::apply(*func, args);
+                            } else {
+                                auto func = (Return(*)(Args...)) holder->data[0];
+                                std::apply(*func, args);
+                            }
+                        }
+                        catch(const std::exception& e)
+                        {   
+                            return sq_throwerror(vm, e.what());
                         }
                         return 0;
                     });
@@ -142,15 +149,23 @@ namespace sqbinding {
                         // 参数从索引 2 开始
                         auto vm_ = detail::VM(vm);
                         auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm_);
-                        if (holder->functor) {
-                            auto func = (std::function<Return(Args...)>*) holder->data[0];
-                            Return v = std::apply(*func, args);
-                            generic_stack_push(vm, v);
-                        } else {
-                            auto func = (Return(*)(Args...)) holder->data[0];
-                            Return v = std::apply(*func, args);
-                            generic_stack_push(vm, v);
+                        try
+                        {
+                            if (holder->functor) {
+                                auto func = (std::function<Return(Args...)>*) holder->data[0];
+                                Return v = std::apply(*func, args);
+                                generic_stack_push(vm, v);
+                            } else {
+                                auto func = (Return(*)(Args...)) holder->data[0];
+                                Return v = std::apply(*func, args);
+                                generic_stack_push(vm, v);
+                            }
                         }
+                        catch(const std::exception& e)
+                        {
+                            return sq_throwerror(vm, e.what());
+                        }
+                        
                         return 1;
                     });
                 }
