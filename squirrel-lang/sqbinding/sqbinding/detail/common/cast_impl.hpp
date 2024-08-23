@@ -272,46 +272,5 @@ namespace sqbinding {
                 throw sqbinding::value_error("unsupported value");
             }
         };
-
-        template <class T>
-        class GenericCast<T*(HSQOBJECT&), typename std::enable_if_t<std::is_class_v<T>>> {
-            public:
-            static T* cast(VM vm, HSQOBJECT& obj) {
-                #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast HSQOBJECT to " << typeid(T*).name() << std::endl;
-                #endif
-                if (obj._type == tagSQObjectType::OT_USERDATA)  {
-                    auto holder = (StackObjectHolder<T>*)_userdataval(obj);
-                    return &(holder->GetInstance());
-                }
-                throw sqbinding::value_error("unsupported value");
-            }
-        };
-
-        template <class T>
-        class GenericCast<T*(SQObjectPtr&), typename std::enable_if_t<std::is_class_v<T>>> {
-            public:
-            static T* cast(VM vm, SQObjectPtr& obj) {
-                #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast SQObjectPtr to " << typeid(T*).name() << std::endl;
-                #endif
-                if (obj._type == tagSQObjectType::OT_USERDATA)  {
-                    auto holder = (StackObjectHolder<T>*)_userdataval(obj);
-                    return &(holder->GetInstance());
-                }
-                throw sqbinding::value_error("unsupported value");
-            }
-        };
-
-        template <class T>
-        class GenericCast<SQObjectPtr(T*&), typename std::enable_if_t<std::is_class_v<T>>> {
-            public:
-            static SQObjectPtr cast(VM vm, T*& obj) {
-                #ifdef TRACE_OBJECT_CAST
-                std::cout << "[TRACING] cast "<< typeid(T*).name() << " to SQObjectPtr" << std::endl;
-                #endif
-                return SQObjectPtr(detail::make_userdata(vm, std::forward<T*>(obj)));
-            }
-        };
     }
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "sqbinding/detail/types/sqvm.hpp"
+#include <map>
 
 namespace sqbinding {
     namespace detail {

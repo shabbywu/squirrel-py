@@ -6,7 +6,8 @@
 #include <sqbinding/detail/vm/vm.hpp>
 #include <sqbinding/detail/common/type_traits.hpp>
 #include <sqbinding/detail/types/sqfunction.hpp>
-
+#include <sqbinding/detail/types/sqclass.hpp>
+#include <sqbinding/detail/common/cast_object.hpp>
 
 
 template <class T>
@@ -92,21 +93,25 @@ void main(){
             global_args +=i;
             std::cout << "global_args + i =" << global_args + i << std::endl;
         });
-        vm.bindFunc("nonconst_method", &A::nonconst_method);
-        vm.getroottable()->set(std::string("a"), &a);
-        A* a = vm.getroottable()->get<std::string, A*>(std::string("a"));
-        a->nonconst_method();
     }
 
     try
     {
-        // TODO: 支持创建 cpp class 以及绑定 cpp method
-        vm.ExecuteString("a.nonconst_method <- nonconst_method");
+        sqbinding::detail::Klass<A> class_a(vm.GetVM(), std::string("A"));
+        class_a.bindFunc("nonconst_method", &A::nonconst_method);
+        auto rt = vm.getroottable();
+        rt->set(std::string("a"), &a);
+        std::cout << "----------" << std::endl;
+        vm.ExecuteString("a.nonconst_method()");
+        A* a = vm.getroottable()->get<std::string, A*>(std::string("a"));
+        a->nonconst_method();
+
         vm.ExecuteString<void>("static_func(10086); return 1;");
         auto ret = vm.ExecuteString<int>("lambda_func(10086); return 2;");
         std::cout <<"retuen value: " << ret << std::endl;
         vm.ExecuteString("print(capture_func); capture_func(1); capture_func(2);");
-        // vm.ExecuteString("nonconst_method()");
+
+        vm.ExecuteString("a.field <- 222");
     }
     catch(const std::exception& e)
     {
