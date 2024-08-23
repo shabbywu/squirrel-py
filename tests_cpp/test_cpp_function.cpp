@@ -99,19 +99,28 @@ void main(){
     {
         sqbinding::detail::Klass<A> class_a(vm.GetVM(), std::string("A"));
         class_a.bindFunc("nonconst_method", &A::nonconst_method);
+        class_a.set(std::string("attribute"), 2);
         auto rt = vm.getroottable();
         rt->set(std::string("a"), &a);
-        std::cout << "----------" << std::endl;
+        std::cout << "--------- call a.nonconst_method()" << std::endl;
         vm.ExecuteString("a.nonconst_method()");
         A* a = vm.getroottable()->get<std::string, A*>(std::string("a"));
         a->nonconst_method();
+        std::cout << "========= call a.nonconst_method()" << std::endl;
+
+        std::cout << "--------- get a.attribute " << std::endl;
+        vm.ExecuteString("print(a.attribute)");
+        std::cout << "========= get a.attribute " << std::endl;
+
+        // TODO: 支持设置实例属性 (get/set table)
+        // std::cout << "--------- set a.attribute " << std::endl;
+        // vm.ExecuteString("a.attribute = 3; print(a.attribute)");
+        // std::cout << "========= set a.attribute " << std::endl;
 
         vm.ExecuteString<void>("static_func(10086); return 1;");
         auto ret = vm.ExecuteString<int>("lambda_func(10086); return 2;");
         std::cout <<"retuen value: " << ret << std::endl;
         vm.ExecuteString("print(capture_func); capture_func(1); capture_func(2);");
-
-        vm.ExecuteString("a.field <- 222");
     }
     catch(const std::exception& e)
     {
