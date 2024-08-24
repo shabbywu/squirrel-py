@@ -204,7 +204,8 @@ namespace sqbinding {
                 #ifdef TRACE_OBJECT_CAST
                 std::cout << "[TRACING] cast SQInteger to" << typeid(Integer).name() << std::endl;
                 #endif
-                if (obj._type == tagSQObjectType::OT_INTEGER) return _integer(obj);
+                if (obj._type == tagSQObjectType::OT_INTEGER || obj._type == tagSQObjectType::OT_BOOL) return _integer(obj);
+                if (obj._type == tagSQObjectType::OT_FLOAT) return _float(obj);
                 throw sqbinding::value_error("unsupported value");
             }
         };
@@ -216,7 +217,8 @@ namespace sqbinding {
                 #ifdef TRACE_OBJECT_CAST
                 std::cout << "[TRACING] cast SQInteger to" << typeid(Integer).name() << std::endl;
                 #endif
-                if (obj._type == tagSQObjectType::OT_INTEGER) return _integer(obj);
+                if (obj._type == tagSQObjectType::OT_INTEGER || obj._type == tagSQObjectType::OT_BOOL) return _integer(obj);
+                if (obj._type == tagSQObjectType::OT_FLOAT) return _float(obj);
                 throw sqbinding::value_error("unsupported value");
             }
         };
@@ -230,6 +232,7 @@ namespace sqbinding {
                 std::cout << "[TRACING] cast SQFloat to" << typeid(Floating).name() << std::endl;
                 #endif
                 if (obj._type == tagSQObjectType::OT_FLOAT) return _float(obj);
+                if (obj._type == tagSQObjectType::OT_INTEGER || obj._type == tagSQObjectType::OT_BOOL) return _integer(obj);
                 throw sqbinding::value_error("unsupported value");
             }
         };
@@ -243,7 +246,7 @@ namespace sqbinding {
                 std::cout << "[TRACING] cast SQBool to bool" << std::endl;
                 #endif
                 if (obj._type == tagSQObjectType::OT_BOOL) return _integer(obj);
-                throw sqbinding::value_error("unsupported value");
+                return _integer(obj);
             }
         };
 
