@@ -8,6 +8,7 @@
         auto sqval = GenericCast<SQObjectPtr(TV&)>::cast(vm, val);\
         set(sqkey, sqval);\
     }\
+\
     template <typename TK, typename TV>\
     void set(TK&& key, TV&& val) {\
         VM& vm = holder->GetVM();\
