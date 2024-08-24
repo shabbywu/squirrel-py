@@ -58,9 +58,8 @@ namespace sqbinding { namespace detail {
                     _delegate = std::make_shared<Table>(holder->GetVM());
                     auto _get = [this](std::string property) -> SQObjectPtr
                     {
-                        std::string key = property + ".fget";
                         SQObjectPtr v;
-                        if (!_delegate->get(key, v))
+                        if (!_delegate->get(property + ".fget", v))
                         {
                             ::sq_getstackobj(holder->GetSQVM(), 1, &v);
 
@@ -77,9 +76,8 @@ namespace sqbinding { namespace detail {
                         return v;
                     };
                     auto _set = [this](std::string property, SQObjectPtr value) {
-                        std::string key = property + ".fset";
                         SQObjectPtr setter;
-                        if (!_delegate->get(key, setter))
+                        if (!_delegate->get(property + ".fset", setter))
                         {
                             _delegate->set(property, value);
                             return;
