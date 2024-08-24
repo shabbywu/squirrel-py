@@ -32,7 +32,7 @@ void main(){
     std::cout << "=========" << std::endl;
     {
         sqbinding::detail::ClassDef<A> class_a(vm.GetVM(), "A");
-        class_a.bindFunc("nonconst_method", &A::nonconst_method)->defProperty("field", &A::field);
+        class_a.bindFunc("nonconst_method", &A::nonconst_method).defProperty("field", &A::field);
         // class_a.set(std::string("attribute"), 2);
     }
     std::cout << "=========" << std::endl;

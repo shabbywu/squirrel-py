@@ -210,24 +210,24 @@ namespace sqbinding { namespace detail {
             }
         public:
             template<typename P>
-            ClassDef<C, Base>* defProperty(std::string property, P C::* pm) {
+            ClassDef<C, Base>& defProperty(std::string property, P C::* pm) {
                 holder->defProperty<C, P>(property, pm);
-                return this;
+                return *this;
             }
 
         public:
             // bindFunc to current class
             template<class Func>
-            ClassDef<C, Base>* bindFunc(std::string funcname, Func&& func, bool withenv = false) {
+            ClassDef<C, Base>& bindFunc(std::string funcname, Func&& func, bool withenv = false) {
                 if (!holder->closed) holder->bindFunc<Func>(funcname, func, withenv);
-                return this;
+                return *this;
             }
 
             /// bindFunc a cpp_function from a class method (non-const, no ref-qualifier)
             template <typename Return, typename Class, typename... Args>
-            ClassDef<C, Base>* bindFunc(std::string funcname, Return (Class::*func)(Args...), bool withenv = false) {
+            ClassDef<C, Base>& bindFunc(std::string funcname, Return (Class::*func)(Args...), bool withenv = false) {
                 if (!holder->closed) holder->bindFunc<Return, Class, Args...>(funcname, func, withenv);
-                return this;
+                return *this;
             }
     };
 }}
