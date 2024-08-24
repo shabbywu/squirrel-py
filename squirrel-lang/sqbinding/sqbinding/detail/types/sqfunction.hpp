@@ -1,6 +1,6 @@
 #pragma once
 
-#include "sqbinding/detail/sqdifinition.hpp"
+#include "sqbinding/detail/sqdefinition.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"

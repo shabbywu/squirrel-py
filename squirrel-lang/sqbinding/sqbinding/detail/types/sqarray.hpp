@@ -1,7 +1,7 @@
 #pragma once
 #include <iterator>
 #include <stdexcept>
-#include "sqbinding/detail/sqdifinition.hpp"
+#include "sqbinding/detail/sqdefinition.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
@@ -171,7 +171,7 @@ namespace sqbinding {
                 throw sqbinding::value_error("unsupported value");
             }
         };
-    
+
         // cast SQObjectPtr to array
         template<>
         class GenericCast<detail::Array(SQObjectPtr&)> {

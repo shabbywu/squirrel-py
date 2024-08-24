@@ -1,5 +1,5 @@
 #pragma once
-#include "sqbinding/detail/sqdifinition.hpp"
+#include "sqbinding/detail/sqdefinition.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
 

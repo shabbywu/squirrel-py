@@ -1,6 +1,6 @@
 #pragma once
 #include <memory>
-#include "sqbinding/detail/sqdifinition.hpp"
+#include "sqbinding/detail/sqdefinition.hpp"
 #include "sqbinding/detail/common/debug.hpp"
 
 namespace sqbinding {

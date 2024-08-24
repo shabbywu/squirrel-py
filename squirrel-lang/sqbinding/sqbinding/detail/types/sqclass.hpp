@@ -1,7 +1,7 @@
 #pragma once
 #include <memory>
 #include "sqbinding/detail/common/cast_def.hpp"
-#include "sqbinding/detail/sqdifinition.hpp"
+#include "sqbinding/detail/sqdefinition.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
 #include "sqbinding/detail/common/template_setter.hpp"
@@ -62,7 +62,10 @@ namespace sqbinding { namespace detail {
                         SQObjectPtr v;
                         if (!_delegate->get(key, v))
                         {
-                            if (_delegate->get(property, v)) {
+                            ::sq_getstackobj(holder->GetSQVM(), 1, &v);
+
+                            if (_delegate->get(property, v))
+                            {
                                 return v;
                             }
                             throw sqbinding::key_error(property + " does not found.");
