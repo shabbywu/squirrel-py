@@ -69,4 +69,23 @@ namespace sqbinding{ namespace detail {
         }
     };
 
+    template <class T>
+    class GenericCast<SQObjectPtr(T*), typename std::enable_if_t<std::is_class_v<T>>> {
+        public:
+        static SQObjectPtr cast(VM vm, T* obj) {
+            #ifdef TRACE_OBJECT_CAST
+            std::cout << "[TRACING] cast "<< typeid(T*).name() << " to SQObjectPtr" << std::endl;
+            #endif
+            auto clazz = ClassRegistry::getInstance(vm)->find_class_object<T>();
+            if (clazz != nullptr) {
+                auto pClass = clazz->pClass();
+                auto instance = pClass->CreateInstance();
+                instance->_userpointer = obj;
+                return instance;
+            }
+            // fallback
+            return SQObjectPtr(detail::make_userdata(vm, std::forward<T *>(obj)));
+        }
+    };
+
 }} // namespace sqbinding.detail
