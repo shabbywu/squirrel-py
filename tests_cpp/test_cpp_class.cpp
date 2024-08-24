@@ -39,9 +39,11 @@ void main(){
     try
     {
         auto rt = vm.getroottable();
-        A a;
-        a.field = 10086;
-        rt->set(std::string("a"), &a);
+        A a1;
+        A a2;
+        a1.field = 10086;
+        a2.field = 999;
+        rt->set(std::string("a"), &a1);
         std::cout << "--------- call a.nonconst_method() start" << std::endl;
         vm.ExecuteString("print(typeof a); a.nonconst_method()");
         A* a_ptr = vm.getroottable()->get<std::string, A*>(std::string("a"));
@@ -52,13 +54,23 @@ void main(){
         vm.ExecuteString("print(a.field + \"\\n\")");
         vm.ExecuteString("a.field = 222");
         vm.ExecuteString("print(a.field + \"\\n\")");
-        std::cout << a.field << std::endl;
+        std::cout << a1.field << std::endl;
         std::cout << "========= access a.field " << std::endl;
 
-        // TODO: 支持设置实例属性 (get/set table)
-        // std::cout << "--------- set a.attribute " << std::endl;
-        // vm.ExecuteString("a.attribute = 3; print(a.attribute)");
-        // std::cout << "========= set a.attribute " << std::endl;
+        std::cout << "--------- set a.attribute " << std::endl;
+        vm.ExecuteString("a.attribute = 3;");
+        vm.ExecuteString("print(a.attribute + \"\\n\")");
+        std::cout << "========= set a.attribute " << std::endl;
+
+        rt->set(std::string("a2"), &a2);
+        std::cout << "--------- access a2.field " << std::endl;
+        vm.ExecuteString("print(a2.field + \"\\n\")");
+        std::cout << a2.field << std::endl;
+        std::cout << "========= access a2.field " << std::endl;
+
+        std::cout << "--------- set a2.attribute " << std::endl;
+        vm.ExecuteString("print(a2.attribute + \"\\n\")");
+        std::cout << "========= set a2.attribute " << std::endl;
     }
     catch(const std::exception& e)
     {

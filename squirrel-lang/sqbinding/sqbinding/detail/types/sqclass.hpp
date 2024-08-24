@@ -62,6 +62,9 @@ namespace sqbinding { namespace detail {
                         SQObjectPtr v;
                         if (!_delegate->get(key, v))
                         {
+                            if (_delegate->get(property, v)) {
+                                return v;
+                            }
                             throw sqbinding::key_error(property + " does not found.");
                         }
                         ::sq_pushobject(holder->GetSQVM(), v);
@@ -75,7 +78,8 @@ namespace sqbinding { namespace detail {
                         SQObjectPtr setter;
                         if (!_delegate->get(key, setter))
                         {
-                            throw sqbinding::key_error(property + " does not found.");
+                            _delegate->set(property, value);
+                            return;
                         }
                         ::sq_pushobject(holder->GetSQVM(), setter);
                         ::sq_push(holder->GetSQVM(), 1);
