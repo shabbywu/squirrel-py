@@ -57,7 +57,7 @@ namespace sqbinding{ namespace detail {
             #ifdef TRACE_OBJECT_CAST
             std::cout << "[TRACING] cast "<< typeid(T*).name() << " to SQObjectPtr" << std::endl;
             #endif
-            std::shared_ptr<ClassImplBase> clazz = ClassRegistry::getInstance(vm)->find_class_object<T>();
+            auto clazz = ClassRegistry::getInstance(vm)->find_class_object<T>();
             if (clazz != nullptr) {
                 auto pClass = clazz->pClass();
                 auto instance = pClass->CreateInstance();

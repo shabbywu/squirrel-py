@@ -10,6 +10,13 @@ namespace sqbinding {
     namespace python {
         class Class: public detail::Class, public std::enable_shared_from_this<Class> {
             public:
+                // bindFunc to current class
+                template <typename Func>
+                void bindFunc(std::string funcname, Func func, bool withenv = false) {
+                    set<std::string, Func>(funcname, func);
+                }
+
+            public:
             // link to a existed table in vm stack
             Class (::SQClass* pClass, detail::VM vm): detail::Class(pClass, vm) {}
             void bind_this_if_need(PyValue& v);

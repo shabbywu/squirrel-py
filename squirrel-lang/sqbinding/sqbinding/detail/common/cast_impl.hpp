@@ -158,6 +158,17 @@ namespace sqbinding {
                 return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
             }
         };
+
+        template <>
+        class GenericCast<SQObjectPtr(const std::string&)> {
+            public:
+            static SQObjectPtr cast(VM vm, const std::string& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast std::string&& to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(SQString::Create(_ss(*vm), obj.c_str(), obj.size()));
+            }
+        };
     }
 
     // cast anything to void
