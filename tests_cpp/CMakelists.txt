@@ -4,3 +4,4 @@ include_directories(${squirrel_dir}/include ${squirrel_dir}/squirrel ${sqbinding
 
 add_executable(test_cpp_function test_cpp_function.cpp)
 add_executable(test_cpp_class test_cpp_class.cpp)
+add_executable(test_cast test_cast.cpp)

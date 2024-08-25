@@ -58,6 +58,69 @@ namespace sqbinding {
                 }
         };
     }
+
+
+
+    namespace detail {
+        // cast SQObject to Closure
+        template <class Return, class... Args>
+        class GenericCast<Closure<Return(Args...)>(HSQOBJECT&)> {
+            public:
+            static Closure<Return(Args...)> cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to " << typeid(Closure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return Closure<Return(Args...)>(_closure(obj), vm);
+            }
+        };
+
+        template <class Return, class... Args>
+        class GenericCast<Closure<Return(Args...)>(HSQOBJECT&&)> {
+            public:
+            static Closure<Return(Args...)> cast(VM vm, HSQOBJECT&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to " << typeid(Closure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return Closure<Return(Args...)>(_closure(obj), vm);
+            }
+        };
+
+        // cast SQObjectPtr to Closure
+        template <class Return, class... Args>
+        class GenericCast<Closure<Return(Args...)>(SQObjectPtr&)> {
+            public:
+            static Closure<Return(Args...)> cast(VM vm, SQObjectPtr& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to " << typeid(Closure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return Closure<Return(Args...)>(_closure(obj), vm);
+            }
+        };
+
+        template <class Return, class... Args>
+        class GenericCast<Closure<Return(Args...)>(SQObjectPtr&&)> {
+            public:
+            static Closure<Return(Args...)> cast(VM vm, SQObjectPtr&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to " << typeid(Closure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return Closure<Return(Args...)>(_closure(obj), vm);
+            }
+        };
+
+        // cast Closure to SQObjectPtr
+        template <class Return, class... Args>
+        class GenericCast<SQObjectPtr(std::shared_ptr<Closure<Return(Args...)>>&)> {
+            public:
+            static SQObjectPtr cast(VM vm, std::shared_ptr<Closure<Return(Args...)>>& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast " << typeid(Closure<Return(Args...)>&).name() << " to SQObjectPtr" << std::endl;
+                #endif
+                return SQObjectPtr(obj->pClosure());
+            }
+        };
+    }
+
 }
 
 namespace sqbinding {
@@ -123,7 +186,6 @@ namespace sqbinding {
 
     // cast to SQObjectPtr
     namespace detail {
-
         template <class Return, class... Args>
         class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Return(Args...)>>&)> {
             public:
