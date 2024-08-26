@@ -81,4 +81,5 @@ namespace sqbinding { namespace detail {
         bindThisIfNeed(v, holder->GetSQObjectPtr());                                                \
         return true;                                                                                \
     }                                                                                               \
+
 #endif
