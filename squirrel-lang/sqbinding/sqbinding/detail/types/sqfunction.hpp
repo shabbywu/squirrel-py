@@ -15,7 +15,7 @@ namespace sqbinding {
         class Closure;
 
         template <class Return, class... Args>
-        class Closure<Return (Args...)> {
+        class Closure<Return (Args...)> : public ClosureBase {
             using Holder = SQObjectPtrHolder<::SQClosure*>;
             public:
                 std::shared_ptr<Holder> holder;
@@ -28,10 +28,14 @@ namespace sqbinding {
                 SQUnsignedInteger getRefCount() {
                     return pClosure() -> _uiRef;
                 }
-                void bindThis(SQObjectPtr &pthis) {
+            public:
+                virtual void bindThis(SQObjectPtr &pthis) {
                     this -> pthis = pthis;
                 }
-
+                virtual void bindThis(SQObjectPtr &&pthis) {
+                    this -> pthis = pthis;
+                }
+            public:
                 Return operator()(Args... args) {
                     VM& vm = holder->GetVM();
                     stack_guard stack_guard(vm);
@@ -58,8 +62,6 @@ namespace sqbinding {
                 }
         };
     }
-
-
 
     namespace detail {
         // cast SQObject to Closure
@@ -129,7 +131,7 @@ namespace sqbinding {
         class NativeClosure;
 
         template <class Return, class... Args>
-        class NativeClosure<Return (Args...)> {
+        class NativeClosure<Return (Args...)>: ClosureBase {
             using Holder = SQObjectPtrHolder<::SQNativeClosure*>;
             public:
                 std::shared_ptr<Holder> holder;
@@ -143,10 +145,14 @@ namespace sqbinding {
                 SQUnsignedInteger getRefCount() {
                     return pNativeClosure() -> _uiRef;
                 }
-                void bindThis(SQObjectPtr &pthis) {
+            public:
+                virtual void bindThis(SQObjectPtr &pthis) {
                     this -> pthis = pthis;
                 }
-
+                virtual void bindThis(SQObjectPtr &&pthis) {
+                    this -> pthis = pthis;
+                }
+            public:
                 Return operator()(Args... args) {
                     VM vm = holder->GetVM();
                     stack_guard stack_guard(vm);
@@ -184,8 +190,54 @@ namespace sqbinding {
         };
     }
 
-    // cast to SQObjectPtr
     namespace detail {
+        // cast SQObject to NativeClosure
+        template <class Return, class... Args>
+        class GenericCast<NativeClosure<Return(Args...)>(HSQOBJECT&)> {
+            public:
+            static NativeClosure<Return(Args...)> cast(VM vm, HSQOBJECT& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to " << typeid(NativeClosure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+            }
+        };
+
+        template <class Return, class... Args>
+        class GenericCast<NativeClosure<Return(Args...)>(HSQOBJECT&&)> {
+            public:
+            static NativeClosure<Return(Args...)> cast(VM vm, HSQOBJECT&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast HSQOBJECT to " << typeid(NativeClosure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+            }
+        };
+
+        // cast SQObjectPtr to NativeClosure
+        template <class Return, class... Args>
+        class GenericCast<NativeClosure<Return(Args...)>(SQObjectPtr&)> {
+            public:
+            static NativeClosure<Return(Args...)> cast(VM vm, SQObjectPtr& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to " << typeid(NativeClosure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+            }
+        };
+
+        template <class Return, class... Args>
+        class GenericCast<NativeClosure<Return(Args...)>(SQObjectPtr&&)> {
+            public:
+            static NativeClosure<Return(Args...)> cast(VM vm, SQObjectPtr&& obj) {
+                #ifdef TRACE_OBJECT_CAST
+                std::cout << "[TRACING] cast SQObjectPtr to " << typeid(NativeClosure<Return(Args...)>&).name() << std::endl;
+                #endif
+                return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+            }
+        };
+
+        // cast NativeClosure to SQObjectPtr
         template <class Return, class... Args>
         class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Return(Args...)>>&)> {
             public:
