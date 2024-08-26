@@ -22,6 +22,15 @@ namespace sqbinding {
                 SQObjectPtr pthis; // 'this' pointer for sq_call
             public:
                 Closure(::SQClosure* pClosure, VM vm): holder(std::make_shared<Holder>(pClosure, vm)) {};
+            public:
+                std::shared_ptr<Closure<Return(Args...)>> to_ptr() {
+                    auto ptr = std::make_shared<Closure<Return(Args...)>>(pClosure(), holder->GetVM());
+                    if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
+                        ptr->pthis = pthis;
+                    }
+                    return ptr;
+                };
+
                 ::SQClosure* pClosure() {
                     return _closure(holder->GetSQObjectPtr());
                 }
@@ -52,6 +61,7 @@ namespace sqbinding {
                 }
             public:
                 SQOBJECTPTR_GETTER_TEMPLATE
+            protected:
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();
@@ -122,7 +132,6 @@ namespace sqbinding {
             }
         };
     }
-
 }
 
 namespace sqbinding {
@@ -138,7 +147,14 @@ namespace sqbinding {
                 SQObjectPtr pthis; // 'this' pointer for sq_call
             public:
                 NativeClosure(::SQNativeClosure* pNativeClosure, VM vm): holder(std::make_shared<Holder>(pNativeClosure, vm)) {};
-
+                std::shared_ptr<NativeClosure<Return(Args...)>> to_ptr() {
+                    auto ptr = std::make_shared<NativeClosure<Return(Args...)>>(pNativeClosure(), holder->GetVM());
+                    if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
+                        ptr->pthis = pthis;
+                    }
+                    return ptr;
+                };
+            public:
                 ::SQNativeClosure* pNativeClosure() {
                     return _nativeclosure(holder->GetSQObjectPtr());
                 }
@@ -170,6 +186,7 @@ namespace sqbinding {
                 }
             public:
                 SQOBJECTPTR_GETTER_TEMPLATE
+            protected:
                 bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                     VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();

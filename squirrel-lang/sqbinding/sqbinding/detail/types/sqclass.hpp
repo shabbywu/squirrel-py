@@ -43,6 +43,7 @@ namespace sqbinding { namespace detail {
             }
         public:
             SQOBJECTPTR_GETTER_TEMPLATE
+        protected:
             bool get(SQObjectPtr& key, SQObjectPtr& ret) {
                 VM& vm = holder->GetVM();
                 SQObjectPtr& self = holder->GetSQObjectPtr();
