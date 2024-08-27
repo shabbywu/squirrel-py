@@ -170,7 +170,7 @@ class VMProxy {
         return closure();
     }
 
-    template <class Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         getroottable()->bindFunc(funcname, std::forward<Func>(func), withenv);
     }
 };

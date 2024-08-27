@@ -28,7 +28,7 @@ class Table : public detail::Table, public std::enable_shared_from_this<Table> {
   public:
     // bindFunc to current table
     // FIXME: 让 bindfunc 只支持绑定 python 方法?
-    template <class Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         // TODO: 实装支持 withenv
         set(funcname, func);
     }

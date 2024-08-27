@@ -45,7 +45,7 @@ class VMProxy : public detail::VMProxy {
         return roottable;
     }
     // FIXME: 让 bindfunc 支持绑定 python 方法?
-    template <class Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         getroottable()->bindFunc(funcname, std::forward<Func>(func), withenv);
     }
 };

@@ -202,7 +202,7 @@ template <class C, class Base = void> class ClassDef {
 
   public:
     // bindFunc to current class
-    template <class Func> ClassDef<C, Base> &bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+    template <typename Func> ClassDef<C, Base> &bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         if (!holder->closed)
             holder->bindFunc<Func>(funcname, std::forward<Func>(func), withenv);
         return *this;

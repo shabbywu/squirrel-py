@@ -269,7 +269,7 @@ template <typename Func> static auto CreateNativeClosure(Func &&func, detail::VM
 
 namespace detail {
 // cast SQObject to NativeClosure
-template <class Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &)> {
+template <typename Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &)> {
   public:
     static NativeClosure<Func> cast(VM vm, HSQOBJECT &obj) {
 #ifdef TRACE_OBJECT_CAST
@@ -279,7 +279,7 @@ template <class Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &)> {
     }
 };
 
-template <class Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &&)> {
+template <typename Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &&)> {
   public:
     static NativeClosure<Func> cast(VM vm, HSQOBJECT &&obj) {
 #ifdef TRACE_OBJECT_CAST
@@ -290,7 +290,7 @@ template <class Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &&)> {
 };
 
 // cast SQObjectPtr to NativeClosure
-template <class Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &)> {
+template <typename Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &)> {
   public:
     static NativeClosure<Func> cast(VM vm, SQObjectPtr &obj) {
 #ifdef TRACE_OBJECT_CAST
@@ -300,7 +300,7 @@ template <class Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &)> {
     }
 };
 
-template <class Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &&)> {
+template <typename Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &&)> {
   public:
     static NativeClosure<Func> cast(VM vm, SQObjectPtr &&obj) {
 #ifdef TRACE_OBJECT_CAST
@@ -311,7 +311,7 @@ template <class Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &&)> {
 };
 
 // cast NativeClosure to SQObjectPtr
-template <class Func> class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Func>> &)> {
+template <typename Func> class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Func>> &)> {
   public:
     static SQObjectPtr cast(VM vm, std::shared_ptr<NativeClosure<Func>> &obj) {
 #ifdef TRACE_OBJECT_CAST
