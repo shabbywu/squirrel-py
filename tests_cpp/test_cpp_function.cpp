@@ -12,15 +12,17 @@
 #include <sqbinding/detail/types/sqfunction.hpp>
 #include <sqbinding/detail/vm/vm.hpp>
 
+using namespace sqbinding;
+
 template <class T> void sig(T t) {
     std::cout << typeid(T).name() << std::endl;
     std::cout << "std::is_function_v=" << std::is_function_v<decltype(t)> << std::endl;
     std::cout << "std::is_member_pointer_v=" << std::is_member_pointer_v<decltype(t)> << std::endl;
     std::cout << "std::is_pointer_v=" << std::is_pointer_v<decltype(t)> << std::endl;
     std::cout << typeid(decltype(t)).name() << std::endl;
-    std::cout << typeid(sqbinding::detail::function_signature_t<T>).name() << std::endl;
-    std::cout << typeid(sqbinding::detail::function_traits<T>::type).name() << std::endl;
-    std::cout << (int)(sqbinding::detail::function_traits<T>::value) << std::endl;
+    std::cout << typeid(detail::function_signature_t<T>).name() << std::endl;
+    std::cout << typeid(detail::function_traits<T>::type).name() << std::endl;
+    std::cout << (int)(detail::function_traits<T>::value) << std::endl;
 }
 
 void vanillaFuncitonPointer(int i) {
@@ -70,47 +72,47 @@ void test_cast_function_to_cpp_function() {
     // testcase for cast function to cpp_function
     {
         auto wrapper =
-            sqbinding::detail::cpp_function<1>(std::function([]() { std::cout << "Hello lambda" << std::endl; }));
+            detail::cpp_function<1>(std::function([]() { std::cout << "Hello lambda" << std::endl; }));
         wrapper.operator()<void>();
     }
     {
-        auto wrapper = sqbinding::detail::cpp_function<1>([]() { std::cout << "Hello lambda" << std::endl; });
+        auto wrapper = detail::cpp_function<1>([]() { std::cout << "Hello lambda" << std::endl; });
         wrapper.operator()<void>();
     }
     {
-        auto wrapper = sqbinding::detail::cpp_function<1>(&vanillaFuncitonPointer);
+        auto wrapper = detail::cpp_function<1>(&vanillaFuncitonPointer);
         wrapper.operator()<void>(1);
     }
 
     {
         std::cout << "[*] calling A::static_method" << std::endl;
         A a;
-        auto wrapper = sqbinding::detail::cpp_function<1>(&A::static_method);
+        auto wrapper = detail::cpp_function<1>(&A::static_method);
         wrapper.operator()<void>();
     }
 
     {
         std::cout << "[*] calling A::nonconst_method" << std::endl;
         A a;
-        auto wrapper = sqbinding::detail::cpp_function<2>(&A::nonconst_method);
+        auto wrapper = detail::cpp_function<2>(&A::nonconst_method);
         wrapper.operator()<void>(&a);
     }
 
     {
         std::cout << "[*] calling A::const_method" << std::endl;
         A a;
-        auto wrapper = sqbinding::detail::cpp_function<2>(&A::const_method);
+        auto wrapper = detail::cpp_function<2>(&A::const_method);
         wrapper.operator()<void>(&a);
     }
 }
 
 void test_call_non_class_function_in_vm() {
-    auto vm = sqbinding::detail::GenericVM();
+    auto vm = detail::GenericVM();
 
     int global_args = 1;
     // step: bind cpp function to squirrel
     {
-        using namespace sqbinding::detail;
+        using namespace detail;
         vm.bindFunc("static_func", &vanillaFuncitonPointer);
         vm.bindFunc("lambda_func", [](int i) -> int {
             std::cout << "call from sq: " << i << std::endl;

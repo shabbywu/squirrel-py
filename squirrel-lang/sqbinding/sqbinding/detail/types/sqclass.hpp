@@ -100,13 +100,12 @@ class Class : public std::enable_shared_from_this<Class> {
 
   public:
     template <typename TClass, typename P> void defProperty(std::string property, P TClass::*pm) {
-        auto fget = detail::NativeClosure<P(TClass *)>::template Create<detail::cpp_function<1>>(
-            [=](TClass *self) -> P { return self->*pm; }, holder->GetVM(), detail::cpp_function<1>::caller);
-        auto fset = detail::NativeClosure<void(TClass *, P)>::template Create<detail::cpp_function<1>>(
-            [=](TClass *self, P value) { self->*pm = value; }, holder->GetVM(), detail::cpp_function<1>::caller);
-
-        getDelegate()->set(property + ".fget", fget);
-        getDelegate()->set(property + ".fset", fset);
+        auto fget = detail::to_cpp_function<1>([=](TClass *self) -> P { return self->*pm; });
+        auto fset = detail::to_cpp_function<1>([=](TClass *self, P value) { self->*pm = value; });
+        getDelegate()->set(property + ".fget",
+                           detail::NativeClosure<P(TClass *)>::template Create(fget, holder->GetVM()));
+        getDelegate()->set(property + ".fset",
+                           detail::NativeClosure<void(TClass *, P)>::template Create(fset, holder->GetVM()));
     }
 
   public:

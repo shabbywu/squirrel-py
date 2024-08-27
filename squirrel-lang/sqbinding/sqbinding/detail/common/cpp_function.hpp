@@ -10,12 +10,15 @@
 namespace sqbinding {
 namespace detail {
 class cpp_function_metadata {
+    using Caller = SQInteger(HSQUIRRELVM);
+
   public:
-    virtual std::function<SQInteger(HSQUIRRELVM)> get_caller() = 0;
+    virtual std::function<Caller> get_caller_impl() = 0;
+    virtual Caller *get_static_caller() = 0;
     virtual int get_nargs() = 0;
 };
 
-template <int paramsbase> class cpp_function : cpp_function_metadata {
+template <int paramsbase> class cpp_function : public cpp_function_metadata {
   protected:
     struct Holder {
         /// Storage for the wrapped function pointer and captured data, if any
@@ -44,11 +47,15 @@ template <int paramsbase> class cpp_function : cpp_function_metadata {
     int nargs;
 
   public:
-    virtual std::function<SQInteger(HSQUIRRELVM)> get_caller() {
+    using Caller = SQInteger(HSQUIRRELVM);
+    virtual std::function<Caller> get_caller_impl() {
         return holder->caller;
     }
     virtual int get_nargs() {
         return nargs;
+    }
+    virtual Caller *get_static_caller() {
+        return &cpp_function::caller;
     }
 
   public:
@@ -211,6 +218,21 @@ template <int paramsbase> class cpp_function : cpp_function_metadata {
     }
 };
 
+template <int stackbase, typename Func> static std::shared_ptr<cpp_function_metadata> to_cpp_function(Func &&func) {
+    return std::make_shared<cpp_function<stackbase>>(std::forward<Func>(func));
+}
+
+template <typename Func> static std::shared_ptr<cpp_function_metadata> to_cpp_function(Func &&func) {
+    if (detail::function_traits<Func>::value == detail::CppFuntionType::LambdaLike ||
+        detail::function_traits<Func>::value == detail::CppFuntionType::VanillaFunctionPointer) {
+        return to_cpp_function<2, Func>(std::forward<Func>(func));
+    } else {
+        return to_cpp_function<1, Func>(std::forward<Func>(func));
+    }
+}
+
+} // namespace detail
+namespace detail {
 class overloaded_function {
   private:
     std::map<SQInteger, std::shared_ptr<cpp_function_metadata>> callers;
@@ -223,7 +245,7 @@ class overloaded_function {
   public:
     SQInteger call(HSQUIRRELVM vm) {
         SQInteger nargs = sq_gettop(vm);
-        return callers[nargs]->get_caller()(vm);
+        return callers[nargs]->get_caller_impl()(vm);
     }
 
   public:

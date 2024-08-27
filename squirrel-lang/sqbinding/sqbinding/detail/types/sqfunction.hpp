@@ -215,6 +215,15 @@ template <class Return, class... Args> class NativeClosure<Return(Args...)> : pu
         closure->pNativeClosure()->_nparamscheck = 0;
         return closure;
     }
+
+    static inline std::shared_ptr<NativeClosure> Create(std::shared_ptr<cpp_function_metadata> func, detail::VM vm) {
+        auto ud = detail::make_userdata(vm, func);
+        std::shared_ptr<NativeClosure> closure =
+            std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), func->get_static_caller(), 1), vm);
+        closure->pNativeClosure()->_outervalues[0] = ud;
+        closure->pNativeClosure()->_nparamscheck = 0;
+        return closure;
+    }
 };
 
 template <class Return, class... Args> class NativeClosure<Return(Args...) const> : public NativeClosureBase {
@@ -250,19 +259,20 @@ template <class Return, class... Args> class NativeClosure<Return(Args...) const
         closure->pNativeClosure()->_nparamscheck = 0;
         return closure;
     }
+
+    static inline std::shared_ptr<NativeClosure> Create(std::shared_ptr<cpp_function_metadata> func, detail::VM vm) {
+        auto ud = detail::make_userdata(vm, func);
+        std::shared_ptr<NativeClosure> closure =
+            std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), func->get_static_caller(), 1), vm);
+        closure->pNativeClosure()->_outervalues[0] = ud;
+        closure->pNativeClosure()->_nparamscheck = 0;
+        return closure;
+    }
 };
 
 template <typename Func> static auto CreateNativeClosure(Func &&func, detail::VM vm) {
-    if (detail::function_traits<Func>::value == detail::CppFuntionType::LambdaLike ||
-        detail::function_traits<Func>::value == detail::CppFuntionType::VanillaFunctionPointer) {
-        return detail::NativeClosure<detail::function_signature_t<Func>>::template Create<detail::cpp_function<2>,
-                                                                                          Func>(
-            std::forward<Func>(func), vm, detail::cpp_function<2>::caller);
-    } else {
-        return detail::NativeClosure<detail::function_signature_t<Func>>::template Create<detail::cpp_function<1>,
-                                                                                          Func>(
-            std::forward<Func>(func), vm, detail::cpp_function<1>::caller);
-    }
+    auto wrapper = to_cpp_function(std::forward<Func>(func));
+    return detail::NativeClosure<detail::function_signature_t<Func>>::template Create(wrapper, vm);
 }
 
 } // namespace detail

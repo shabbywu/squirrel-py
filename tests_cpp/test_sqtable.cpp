@@ -64,5 +64,7 @@ void test_call_sqnativeclosure(detail::GenericVM vm) {
 
 void main(){
     auto vm = detail::GenericVM();
+    test_call_sqclosure(vm);
+    test_call_sqnativeclosure(vm);
     std::cin.get();
 }
