@@ -137,18 +137,8 @@ class Table : public std::enable_shared_from_this<Table> {
 
   public:
     // bindFunc to current table
-    template <class Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
-        set(funcname,
-            detail::NativeClosure<detail::function_signature_t<Func>>::template Create<detail::cpp_function<2>, Func>(
-                std::forward<Func>(func), holder->GetVM(), detail::cpp_function<2>::caller));
-    }
-
-    /// bindFunc a cpp_function from a class method (non-const, no ref-qualifier)
-    template <typename Return, typename Class, typename... Args>
-    void bindFunc(std::string funcname, Return (Class::*func)(Args...), bool withenv = false) {
-        using Func = Return(Class *, Args...);
-        set(funcname, detail::NativeClosure<Func>::template Create<detail::cpp_function<1>>(
-                          func, holder->GetVM(), detail::cpp_function<1>::caller));
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+        set(funcname, detail::CreateNativeClosure(std::forward<Func>(func), holder->GetVM()));
     }
 };
 } // namespace detail
