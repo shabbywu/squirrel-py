@@ -11,8 +11,9 @@ namespace python {
 class Class : public detail::Class, public std::enable_shared_from_this<Class> {
   public:
     // bindFunc to current class
-    template <typename Func> void bindFunc(std::string funcname, Func func, bool withenv = false) {
-        set<std::string, Func>(funcname, func);
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+        // TODO: 实装支持 withenv
+        set(funcname, std::forward<Func>(func));
     }
 
   public:

@@ -12,7 +12,13 @@ class Instance : public detail::Instance, std::enable_shared_from_this<Instance>
   public:
     // link to a existed pInstance in vm stack
     Instance(::SQInstance *pInstance, detail::VM vm) : detail::Instance(pInstance, vm) {};
-
+  public:
+    // bindFunc to current table
+    // FIXME: 让 bindfunc 只支持绑定 python 方法?
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+        // TODO: 实装支持 withenv
+        set(funcname, std::forward<Func>(func));
+    }
   public:
     void bind_this_if_need(PyValue &v);
     // Python API
