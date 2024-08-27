@@ -9,6 +9,8 @@
 #include <sqbinding/detail/types/sqclass.hpp>
 #include <sqbinding/detail/vm/vm.hpp>
 
+using namespace sqbinding;
+
 class A {
     int i = 1;
 
@@ -31,15 +33,23 @@ class A {
 };
 
 void main() {
-    auto vm = sqbinding::detail::GenericVM();
+    auto vm = detail::GenericVM();
     std::cout << "[*] step: binding cpp method" << std::endl;
     {
-        sqbinding::detail::ClassDef<A> class_a(vm.GetVM(), "A");
+        detail::ClassDef<A> class_a(vm.GetVM(), "A");
         class_a.bindFunc("static_method", &A::static_method)
             .bindFunc("nonconst_method", &A::nonconst_method)
-            // .bindFunc("const_method", &A::const_method)
+            .bindFunc("const_method", &A::const_method)
             .defProperty("field", &A::field);
         // class_a.set(std::string("attribute"), 2);
+    }
+
+    {
+        auto method = &A::const_method;
+
+        std::cout << "type: "
+                  << typeid(detail::NativeClosure<detail::function_signature_t<decltype(method)>>).name()
+                  << std::endl;
     }
 
     std::cout << "=========" << std::endl;
@@ -57,8 +67,8 @@ void main() {
         std::cout << "[*] calling A::nonconst_method" << std::endl;
         vm.ExecuteString("a.nonconst_method()");
 
-        // std::cout << "[*] calling A::const_method" << std::endl;
-        // vm.ExecuteString("a.const_method()");
+        std::cout << "[*] calling A::const_method" << std::endl;
+        vm.ExecuteString("a.const_method()");
 
         std::cout << "[*] calling A::nonconst_method via pointer from vm" << std::endl;
         A *a_ptr = vm.getroottable()->get<std::string, A *>(std::string("a"));

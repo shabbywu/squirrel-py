@@ -111,18 +111,8 @@ class Class : public std::enable_shared_from_this<Class> {
 
   public:
     // bindFunc to current class
-    template <class Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
-        set(funcname,
-            detail::NativeClosure<detail::function_signature_t<Func>>::template Create<detail::cpp_function<2>, Func>(
-                std::forward<Func>(func), holder->GetVM(), detail::cpp_function<2>::caller));
-    }
-
-    /// bindFunc a cpp_function from a class method (non-const, no ref-qualifier)
-    template <typename Return, typename TClass, typename... Args>
-    void bindFunc(std::string funcname, Return (TClass::*func)(Args...), bool withenv = false) {
-        using Func = Return(TClass *, Args...);
-        set(funcname, detail::NativeClosure<Func>::template Create<detail::cpp_function<1>>(
-                          func, holder->GetVM(), detail::cpp_function<1>::caller));
+    template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+        set(funcname, detail::CreateNativeClosure(std::forward<Func>(func), holder->GetVM()));
     }
 };
 } // namespace detail
@@ -215,14 +205,6 @@ template <class C, class Base = void> class ClassDef {
     template <class Func> ClassDef<C, Base> &bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         if (!holder->closed)
             holder->bindFunc<Func>(funcname, std::forward<Func>(func), withenv);
-        return *this;
-    }
-
-    /// bindFunc a cpp_function from a class method (non-const, no ref-qualifier)
-    template <typename Return, typename Class, typename... Args>
-    ClassDef<C, Base> &bindFunc(std::string funcname, Return (Class::*func)(Args...), bool withenv = false) {
-        if (!holder->closed)
-            holder->bindFunc<Return, Class, Args...>(funcname, func, withenv);
         return *this;
     }
 };
