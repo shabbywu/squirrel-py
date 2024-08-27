@@ -9,8 +9,14 @@
 
 namespace sqbinding {
 namespace detail {
-template <int paramsbase> class cpp_function {
+class cpp_function_metadata {
   public:
+    virtual std::function<SQInteger(HSQUIRRELVM)> get_caller() = 0;
+    virtual int get_nargs() = 0;
+};
+
+template <int paramsbase> class cpp_function : cpp_function_metadata {
+  protected:
     struct Holder {
         /// Storage for the wrapped function pointer and captured data, if any
         void *data[3] = {};
@@ -33,8 +39,17 @@ template <int paramsbase> class cpp_function {
         }
     };
 
-  public:
+  protected:
     std::shared_ptr<Holder> holder;
+    int nargs;
+
+  public:
+    virtual std::function<SQInteger(HSQUIRRELVM)> get_caller() {
+        return holder->caller;
+    }
+    virtual int get_nargs() {
+        return nargs;
+    }
 
   public:
     cpp_function(std::nullptr_t) {
@@ -45,6 +60,7 @@ template <int paramsbase> class cpp_function {
     // NOLINTNEXTLINE(google-explicit-constructor)
     cpp_function(Return (*func)(Args...)) {
         initialize<false>(func, func);
+        nargs = sizeof...(Args);
     }
 
     /// Construct a cpp_function from a class method (non-const, no ref-qualifier)
@@ -54,6 +70,7 @@ template <int paramsbase> class cpp_function {
         initialize<true>(
             std::function([f](Class *c, Args... args) -> Return { return (c->*f)(std::forward<Args>(args)...); }),
             (Return(*)(Class *, Args...)) nullptr);
+        nargs = sizeof...(Args);
     }
 
     /// Construct a cpp_function from a class method (non-const, lvalue ref-qualifier)
@@ -65,6 +82,7 @@ template <int paramsbase> class cpp_function {
         initialize<true>(
             std::function([f](Class *c, Args... args) -> Return { return (c->*f)(std::forward<Args>(args)...); }),
             (Return(*)(Class *, Args...)) nullptr);
+        nargs = sizeof...(Args);
     }
 
     /// Construct a cpp_function from a class method (const, no ref-qualifier)
@@ -74,6 +92,7 @@ template <int paramsbase> class cpp_function {
         initialize<true>(
             std::function([f](const Class *c, Args... args) -> Return { return (c->*f)(std::forward<Args>(args)...); }),
             (Return(*)(const Class *, Args...)) nullptr);
+        nargs = sizeof...(Args);
     }
 
     /// Construct a cpp_function from a class method (const, lvalue ref-qualifier)
@@ -85,6 +104,7 @@ template <int paramsbase> class cpp_function {
         initialize<true>(
             std::function([f](const Class *c, Args... args) -> Return { return (c->*f)(std::forward<Args>(args)...); }),
             (Return(*)(const Class *, Args...)) nullptr);
+        nargs = sizeof...(Args);
     }
 
     /// Construct a cpp_function from a lambda function (possibly with internal state)
@@ -93,9 +113,10 @@ template <int paramsbase> class cpp_function {
     cpp_function(Func &&func) {
         // initialize(std::forward<Func>(func), (typename function_traits<Func>::type*)nullptr);
         initialize<true>(std::function(std::forward<Func>(func)), (function_signature_t<Func> *)nullptr);
+        nargs = function_traits<std::remove_reference_t<Func>>::nargs;
     }
 
-  public:
+  private:
     /// Special internal constructor for functors, lambda functions, etc.
     template <bool functor, class Func, typename Return, typename... Args>
     void initialize(Func &&f, Return (*signature)(Args...)) {
@@ -116,7 +137,7 @@ template <int paramsbase> class cpp_function {
         holder->caller = build_caller<Func, Return, Args...>(std::forward<Func>(f));
     }
 
-  public:
+  private:
     template <class Func, typename Return, typename... Args>
     std::function<SQInteger(HSQUIRRELVM)> build_caller(
         Func &&f, Return (*signature)(Args...) = nullptr,
@@ -189,5 +210,30 @@ template <int paramsbase> class cpp_function {
         return ud_holder->GetInstance().holder->caller(vm);
     }
 };
+
+class overloaded_function {
+  private:
+    std::map<SQInteger, std::shared_ptr<cpp_function_metadata>> callers;
+
+  public:
+    void add_caller(std::shared_ptr<cpp_function_metadata> caller) {
+        callers[caller->get_nargs()] = caller;
+    }
+
+  public:
+    SQInteger call(HSQUIRRELVM vm) {
+        SQInteger nargs = sq_gettop(vm);
+        return callers[nargs]->get_caller()(vm);
+    }
+
+  public:
+    static SQInteger caller(HSQUIRRELVM vm) {
+        using Holder = detail::StackObjectHolder<overloaded_function>;
+        Holder *ud_holder;
+        sq_getuserdata(vm, -1, (void **)&ud_holder, NULL);
+        return ud_holder->GetInstance().call(vm);
+    }
+};
+
 } // namespace detail
 } // namespace sqbinding

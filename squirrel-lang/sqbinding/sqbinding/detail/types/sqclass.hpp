@@ -212,19 +212,12 @@ template <class C, class Base = void> class ClassDef {
 
   public:
     // bindFunc to current class
-    template <class Func> ClassDef<C, Base> &bindFunc(std::string funcname, Func &&func, bool withenv = false) {
+    template <class Func> auto &bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         if (!holder->closed)
-            holder->bindFunc<Func>(funcname, func, withenv);
+            holder->bindFunc<Func>(funcname, std::forward<Func>(func), withenv);
         return *this;
     }
 
-    /// bindFunc a cpp_function from a class method (non-const, no ref-qualifier)
-    template <typename Return, typename Class, typename... Args>
-    ClassDef<C, Base> &bindFunc(std::string funcname, Return (Class::*func)(Args...), bool withenv = false) {
-        if (!holder->closed)
-            holder->bindFunc<Return, Class, Args...>(funcname, func, withenv);
-        return *this;
-    }
 };
 } // namespace detail
 } // namespace sqbinding

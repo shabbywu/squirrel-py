@@ -11,8 +11,8 @@
 
 using namespace sqbinding;
 
-void main(){
-    auto vm = detail::GenericVM();
+
+void test_call_sqclosure(detail::GenericVM vm) {
     auto context = vm.ExecuteString<detail::Table>(R"(
         local rt = getroottable();
         local context = {
@@ -48,6 +48,9 @@ void main(){
     {
         std::cerr << "Exception:: " << e.what() << '\n';
     }
+}
+
+void test_call_sqnativeclosure(detail::GenericVM vm) {
     std::cout << "=========" << std::endl;
     try {
         auto rt = vm.getroottable();
@@ -57,5 +60,9 @@ void main(){
     {
         std::cerr << "Exception:: " << e.what() << '\n';
     }
+}
+
+void main(){
+    auto vm = detail::GenericVM();
     std::cin.get();
 }

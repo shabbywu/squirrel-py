@@ -136,7 +136,7 @@ namespace sqbinding {
 namespace detail {
 template <class T> class NativeClosure;
 
-template <class Return, class... Args> class NativeClosure<Return(Args...)> : ClosureBase {
+template <class Return, class... Args> class NativeClosure<Return(Args...)> : public ClosureBase {
     using Holder = SQObjectPtrHolder<::SQNativeClosure *>;
 
   public:
@@ -212,54 +212,54 @@ template <class Return, class... Args> class NativeClosure<Return(Args...)> : Cl
 
 namespace detail {
 // cast SQObject to NativeClosure
-template <class Return, class... Args> class GenericCast<NativeClosure<Return(Args...)>(HSQOBJECT &)> {
+template <class Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &)> {
   public:
-    static NativeClosure<Return(Args...)> cast(VM vm, HSQOBJECT &obj) {
+    static NativeClosure<Func> cast(VM vm, HSQOBJECT &obj) {
 #ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast HSQOBJECT to " << typeid(NativeClosure<Return(Args...)> &).name() << std::endl;
+        std::cout << "[TRACING] cast HSQOBJECT to " << typeid(NativeClosure<Func> &).name() << std::endl;
 #endif
-        return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+        return NativeClosure<Func>(_nativeclosure(obj), vm);
     }
 };
 
-template <class Return, class... Args> class GenericCast<NativeClosure<Return(Args...)>(HSQOBJECT &&)> {
+template <class Func> class GenericCast<NativeClosure<Func>(HSQOBJECT &&)> {
   public:
-    static NativeClosure<Return(Args...)> cast(VM vm, HSQOBJECT &&obj) {
+    static NativeClosure<Func> cast(VM vm, HSQOBJECT &&obj) {
 #ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast HSQOBJECT to " << typeid(NativeClosure<Return(Args...)> &).name() << std::endl;
+        std::cout << "[TRACING] cast HSQOBJECT to " << typeid(NativeClosure<Func> &).name() << std::endl;
 #endif
-        return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+        return NativeClosure<Func>(_nativeclosure(obj), vm);
     }
 };
 
 // cast SQObjectPtr to NativeClosure
-template <class Return, class... Args> class GenericCast<NativeClosure<Return(Args...)>(SQObjectPtr &)> {
+template <class Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &)> {
   public:
-    static NativeClosure<Return(Args...)> cast(VM vm, SQObjectPtr &obj) {
+    static NativeClosure<Func> cast(VM vm, SQObjectPtr &obj) {
 #ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to " << typeid(NativeClosure<Return(Args...)> &).name() << std::endl;
+        std::cout << "[TRACING] cast SQObjectPtr to " << typeid(NativeClosure<Func> &).name() << std::endl;
 #endif
-        return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+        return NativeClosure<Func>(_nativeclosure(obj), vm);
     }
 };
 
-template <class Return, class... Args> class GenericCast<NativeClosure<Return(Args...)>(SQObjectPtr &&)> {
+template <class Func> class GenericCast<NativeClosure<Func>(SQObjectPtr &&)> {
   public:
-    static NativeClosure<Return(Args...)> cast(VM vm, SQObjectPtr &&obj) {
+    static NativeClosure<Func> cast(VM vm, SQObjectPtr &&obj) {
 #ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to " << typeid(NativeClosure<Return(Args...)> &).name() << std::endl;
+        std::cout << "[TRACING] cast SQObjectPtr to " << typeid(NativeClosure<Func> &).name() << std::endl;
 #endif
-        return NativeClosure<Return(Args...)>(_nativeclosure(obj), vm);
+        return NativeClosure<Func>(_nativeclosure(obj), vm);
     }
 };
 
 // cast NativeClosure to SQObjectPtr
-template <class Return, class... Args>
-class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Return(Args...)>> &)> {
+template <class Func>
+class GenericCast<SQObjectPtr(std::shared_ptr<NativeClosure<Func>> &)> {
   public:
-    static SQObjectPtr cast(VM vm, std::shared_ptr<NativeClosure<Return(Args...)>> &obj) {
+    static SQObjectPtr cast(VM vm, std::shared_ptr<NativeClosure<Func>> &obj) {
 #ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast " << typeid(NativeClosure<Return(Args...)> &).name() << " to SQObjectPtr"
+        std::cout << "[TRACING] cast " << typeid(NativeClosure<Func> &).name() << " to SQObjectPtr"
                   << std::endl;
 #endif
         return SQObjectPtr(obj->pNativeClosure());
