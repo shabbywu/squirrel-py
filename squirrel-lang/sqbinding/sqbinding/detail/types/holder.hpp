@@ -1,4 +1,5 @@
 #pragma once
+#include "sqbinding/detail/common/cast_impl.hpp"
 #include "squirrel.h"
 #include "sqvm.hpp"
 #include <string>

@@ -1,5 +1,5 @@
-#include <pybind11/pybind11.h>
 #include "sqbinding/detail/common/errors.hpp"
+#include <pybind11/pybind11.h>
 
 namespace py = pybind11;
 
