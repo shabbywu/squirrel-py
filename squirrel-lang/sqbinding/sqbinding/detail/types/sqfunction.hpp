@@ -206,17 +206,7 @@ template <class Return, class... Args> class NativeClosure<Return(Args...)> : pu
     }
 
   public:
-    template <class Wrapper, class Func>
-    static std::shared_ptr<NativeClosure> Create(Func &&func, detail::VM vm, SQFUNCTION caller) {
-        auto pair = detail::make_stack_object<Wrapper>(vm, func);
-        std::shared_ptr<NativeClosure> closure =
-            std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), caller, 1), vm);
-        closure->pNativeClosure()->_outervalues[0] = pair.second;
-        closure->pNativeClosure()->_nparamscheck = 0;
-        return closure;
-    }
-
-    static inline std::shared_ptr<NativeClosure> Create(std::shared_ptr<cpp_function_metadata> func, detail::VM vm) {
+    static inline std::shared_ptr<NativeClosure> Create(std::shared_ptr<generic_function> func, detail::VM vm) {
         auto ud = detail::make_userdata(vm, func);
         std::shared_ptr<NativeClosure> closure =
             std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), func->get_static_caller(), 1), vm);
@@ -250,17 +240,7 @@ template <class Return, class... Args> class NativeClosure<Return(Args...) const
     }
 
   public:
-    template <class Wrapper, class Func>
-    static std::shared_ptr<NativeClosure> Create(Func &&func, detail::VM vm, SQFUNCTION caller) {
-        auto pair = detail::make_stack_object<Wrapper>(vm, func);
-        std::shared_ptr<NativeClosure> closure =
-            std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), caller, 1), vm);
-        closure->pNativeClosure()->_outervalues[0] = pair.second;
-        closure->pNativeClosure()->_nparamscheck = 0;
-        return closure;
-    }
-
-    static inline std::shared_ptr<NativeClosure> Create(std::shared_ptr<cpp_function_metadata> func, detail::VM vm) {
+    static inline std::shared_ptr<NativeClosure> Create(std::shared_ptr<generic_function> func, detail::VM vm) {
         auto ud = detail::make_userdata(vm, func);
         std::shared_ptr<NativeClosure> closure =
             std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), func->get_static_caller(), 1), vm);

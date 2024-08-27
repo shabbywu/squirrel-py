@@ -135,10 +135,30 @@ class Table : public std::enable_shared_from_this<Table> {
         return true;
     }
 
+  protected:
+    std::map<std::string, std::shared_ptr<detail::generic_function>> functions;
+
   public:
     // bindFunc to current table
     template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
-        set(funcname, detail::CreateNativeClosure(std::forward<Func>(func), holder->GetVM()));
+        auto p = functions.find(funcname);
+        if (p == functions.end()) {
+            auto wrapper = to_cpp_function(std::forward<Func>(func));
+            functions[funcname] = wrapper;
+            set(funcname,
+                detail::NativeClosure<detail::function_signature_t<Func>>::template Create(wrapper, holder->GetVM()));
+        } else {
+            if (auto overloaded = dynamic_cast<detail::overloaded_function *>(p->second.get())) {
+                overloaded->add_caller(std::forward<Func>(func));
+            } else {
+                auto wrapper = std::make_shared<detail::overloaded_function>();
+                wrapper->add_caller(p->second);
+                wrapper->add_caller(std::forward<Func>(func));
+                functions[funcname] = wrapper;
+                set(funcname, detail::NativeClosure<detail::function_signature_t<Func>>::template Create(
+                                  wrapper, holder->GetVM()));
+            }
+        }
     }
 };
 } // namespace detail

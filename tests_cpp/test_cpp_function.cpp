@@ -71,8 +71,7 @@ void test_function_signature() {
 void test_cast_function_to_cpp_function() {
     // testcase for cast function to cpp_function
     {
-        auto wrapper =
-            detail::cpp_function<1>(std::function([]() { std::cout << "Hello lambda" << std::endl; }));
+        auto wrapper = detail::cpp_function<1>(std::function([]() { std::cout << "Hello lambda" << std::endl; }));
         wrapper.operator()<void>();
     }
     {
@@ -136,10 +135,35 @@ void test_call_non_class_function_in_vm() {
     }
 }
 
+void test_overload_func() {
+    auto vm = detail::GenericVM();
+    int global_args = 1;
+    // step: bind cpp function to squirrel
+    {
+        using namespace detail;
+        vm.bindFunc("func", []() { return 0; });
+        vm.bindFunc("func", [](int i) { return i; });
+        vm.bindFunc("func", [](int i, int j) { return i + j; });
+    }
+
+    try {
+        vm.ExecuteString("print(\"func(): \" + func() + \"\\n\");");
+        vm.ExecuteString("print(\"func(1): \" + func(1) + \"\\n\");");
+        vm.ExecuteString("print(\"func(1, 2): \" + func(1, 2) + \"\\n\");");
+    }
+    catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
+}
+
 void main() {
     test_function_signature();
+    std::cout << "============" << std::endl;
     test_cast_function_to_cpp_function();
+    std::cout << "============" << std::endl;
     test_call_non_class_function_in_vm();
+    std::cout << "============" << std::endl;
+    test_overload_func();
     // Note：class_function test in test_cpp_class.cpp
     std::cin.get();
 }

@@ -9,7 +9,8 @@
 
 namespace sqbinding {
 namespace detail {
-class cpp_function_metadata {
+class generic_function {
+  protected:
     using Caller = SQInteger(HSQUIRRELVM);
 
   public:
@@ -18,7 +19,7 @@ class cpp_function_metadata {
     virtual int get_nargs() = 0;
 };
 
-template <int paramsbase> class cpp_function : public cpp_function_metadata {
+template <int paramsbase> class cpp_function : public generic_function {
   protected:
     struct Holder {
         /// Storage for the wrapped function pointer and captured data, if any
@@ -47,7 +48,6 @@ template <int paramsbase> class cpp_function : public cpp_function_metadata {
     int nargs;
 
   public:
-    using Caller = SQInteger(HSQUIRRELVM);
     virtual std::function<Caller> get_caller_impl() {
         return holder->caller;
     }
@@ -218,11 +218,11 @@ template <int paramsbase> class cpp_function : public cpp_function_metadata {
     }
 };
 
-template <int stackbase, typename Func> static std::shared_ptr<cpp_function_metadata> to_cpp_function(Func &&func) {
+template <int stackbase, typename Func> static std::shared_ptr<generic_function> to_cpp_function(Func &&func) {
     return std::make_shared<cpp_function<stackbase>>(std::forward<Func>(func));
 }
 
-template <typename Func> static std::shared_ptr<cpp_function_metadata> to_cpp_function(Func &&func) {
+template <typename Func> static std::shared_ptr<generic_function> to_cpp_function(Func &&func) {
     if (detail::function_traits<Func>::value == detail::CppFuntionType::LambdaLike ||
         detail::function_traits<Func>::value == detail::CppFuntionType::VanillaFunctionPointer) {
         return to_cpp_function<2, Func>(std::forward<Func>(func));
@@ -233,18 +233,37 @@ template <typename Func> static std::shared_ptr<cpp_function_metadata> to_cpp_fu
 
 } // namespace detail
 namespace detail {
-class overloaded_function {
+class overloaded_function : public generic_function {
   private:
-    std::map<SQInteger, std::shared_ptr<cpp_function_metadata>> callers;
+    std::map<SQInteger, std::shared_ptr<generic_function>> callers;
 
   public:
-    void add_caller(std::shared_ptr<cpp_function_metadata> caller) {
+    template <typename Func>
+    void add_caller(Func&& func) {
+        // TODO: rewrite with emplace
+        auto caller = to_cpp_function(std::forward<Func>(func));
+        callers[caller->get_nargs()] = caller;
+    }
+
+    void add_caller(std::shared_ptr<generic_function> caller) {
         callers[caller->get_nargs()] = caller;
     }
 
   public:
+    virtual std::function<Caller> get_caller_impl() {
+        return std::function([this](HSQUIRRELVM vm) { return call(vm); });
+    }
+    virtual Caller *get_static_caller() {
+        return &overloaded_function::caller;
+    }
+    virtual int get_nargs() {
+        return -1;
+    }
+
+  public:
     SQInteger call(HSQUIRRELVM vm) {
-        SQInteger nargs = sq_gettop(vm);
+        // FIXME: 2 硬编码会导致不支持类函数重载
+        SQInteger nargs = sq_gettop(vm) - 2;
         return callers[nargs]->get_caller_impl()(vm);
     }
 
