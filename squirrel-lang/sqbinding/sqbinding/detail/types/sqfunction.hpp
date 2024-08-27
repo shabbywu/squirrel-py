@@ -252,7 +252,7 @@ template <class Return, class... Args> class NativeClosure<Return(Args...) const
 
 template <typename Func> static auto CreateNativeClosure(Func &&func, detail::VM vm) {
     auto wrapper = to_cpp_function(std::forward<Func>(func));
-    return detail::NativeClosure<detail::function_signature_t<Func>>::template Create(wrapper, vm);
+    return detail::NativeClosure<detail::function_signature_t<Func>>::Create(wrapper, vm);
 }
 
 } // namespace detail

@@ -103,9 +103,9 @@ class Class : public std::enable_shared_from_this<Class> {
         auto fget = detail::to_cpp_function<1>([=](TClass *self) -> P { return self->*pm; });
         auto fset = detail::to_cpp_function<1>([=](TClass *self, P value) { self->*pm = value; });
         getDelegate()->set(property + ".fget",
-                           detail::NativeClosure<P(TClass *)>::template Create(fget, holder->GetVM()));
+                           detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM()));
         getDelegate()->set(property + ".fset",
-                           detail::NativeClosure<void(TClass *, P)>::template Create(fset, holder->GetVM()));
+                           detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM()));
     }
 
   public:

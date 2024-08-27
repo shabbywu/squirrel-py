@@ -146,7 +146,7 @@ class Table : public std::enable_shared_from_this<Table> {
             auto wrapper = to_cpp_function(std::forward<Func>(func));
             functions[funcname] = wrapper;
             set(funcname,
-                detail::NativeClosure<detail::function_signature_t<Func>>::template Create(wrapper, holder->GetVM()));
+                detail::NativeClosure<detail::function_signature_t<Func>>::Create(wrapper, holder->GetVM()));
         } else {
             if (auto overloaded = dynamic_cast<detail::overloaded_function *>(p->second.get())) {
                 overloaded->add_caller(std::forward<Func>(func));
@@ -155,7 +155,7 @@ class Table : public std::enable_shared_from_this<Table> {
                 wrapper->add_caller(p->second);
                 wrapper->add_caller(std::forward<Func>(func));
                 functions[funcname] = wrapper;
-                set(funcname, detail::NativeClosure<detail::function_signature_t<Func>>::template Create(
+                set(funcname, detail::NativeClosure<detail::function_signature_t<Func>>::Create(
                                   wrapper, holder->GetVM()));
             }
         }
