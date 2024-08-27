@@ -7,6 +7,7 @@
 #include "sqbinding/detail/common/template_setter.hpp"
 #include "sqvm.hpp"
 #include "holder.hpp"
+#include "sqtable.hpp"
 
 
 namespace sqbinding { namespace detail {
