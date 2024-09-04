@@ -102,10 +102,8 @@ class Class : public std::enable_shared_from_this<Class> {
     template <typename TClass, typename P> void defProperty(std::string property, P TClass::*pm) {
         auto fget = detail::to_cpp_function<1>([=](TClass *self) -> P { return self->*pm; });
         auto fset = detail::to_cpp_function<1>([=](TClass *self, P value) { self->*pm = value; });
-        getDelegate()->set(property + ".fget",
-                           detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM()));
-        getDelegate()->set(property + ".fset",
-                           detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM()));
+        getDelegate()->set(property + ".fget", detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM()));
+        getDelegate()->set(property + ".fset", detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM()));
     }
 
   public:
@@ -119,23 +117,24 @@ class Class : public std::enable_shared_from_this<Class> {
 
 namespace sqbinding {
 namespace detail {
-class ClassRegistry;
-static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
 
 class ClassRegistry {
-  private:
+  public:
+    static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
+
+  public:
     std::map<size_t, std::shared_ptr<Class>> class_map;
 
   public:
-    ClassRegistry(VM vm) {
+    ClassRegistry() {
     }
 
   public:
     static std::shared_ptr<ClassRegistry> getInstance(VM vm) {
-        auto k = (void *)(*vm);
+        auto k = (void *)(vm.vm());
         auto i = instances.find(k);
         if (i == instances.end()) {
-            auto ptr = std::make_shared<ClassRegistry>(vm);
+            auto ptr = std::make_shared<ClassRegistry>();
             instances[k] = ptr;
             return ptr;
         }
@@ -159,6 +158,9 @@ class ClassRegistry {
         class_map[typeid(C).hash_code()] = clazz;
     }
 };
+
+std::map<void *, std::shared_ptr<ClassRegistry>> ClassRegistry::instances;
+
 } // namespace detail
 } // namespace sqbinding
 

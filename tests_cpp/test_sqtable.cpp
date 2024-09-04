@@ -1,16 +1,15 @@
+#include <concepts>
+#include <functional>
 #include <iostream>
 #include <string>
 #include <type_traits>
-#include <concepts>
-#include <functional>
 // #define TRACE_CONTAINER_GC
 // #define TRACE_OBJECT_CAST
-#include <sqbinding/detail/vm/vm.hpp>
-#include <sqbinding/detail/types/sqfunction.hpp>
 #include <sqbinding/detail/common/cast_object.hpp>
+#include <sqbinding/detail/types/sqfunction.hpp>
+#include <sqbinding/detail/vm/vm.hpp>
 
 using namespace sqbinding;
-
 
 void test_call_sqclosure(detail::GenericVM vm) {
     auto context = vm.ExecuteString<detail::Table>(R"(
@@ -34,18 +33,17 @@ void test_call_sqclosure(detail::GenericVM vm) {
     )");
 
     std::cout << "=========" << std::endl;
-    try
-    {
+    try {
         context.get<std::string, detail::Closure<void(void)>>("staticFunc")();
         context.get<std::string, detail::Closure<void(void)>>("increseValue")();
         std::cout << context.get<std::string, int>("value") << std::endl;
 
         auto increseValue = context.get<std::string, detail::Closure<void(void)>>("increseValue");
-        auto bound = increseValue.get<std::string, detail::NativeClosure<decltype(increseValue)(SQObjectPtr)>>("bindenv")(anotherContext.holder->GetSQObjectPtr());
+        auto bound = increseValue.get<std::string, detail::NativeClosure<decltype(increseValue)(SQObjectPtr)>>(
+            "bindenv")(anotherContext.holder->GetSQObjectPtr());
         bound();
     }
-    catch(const std::exception& e)
-    {
+    catch (const std::exception &e) {
         std::cerr << "Exception:: " << e.what() << '\n';
     }
 }
@@ -56,15 +54,16 @@ void test_call_sqnativeclosure(detail::GenericVM vm) {
         auto rt = vm.getroottable();
         rt->get<std::string, detail::NativeClosure<void(std::string)>>("print")("test\n");
     }
-    catch (const std::exception &e)
-    {
+    catch (const std::exception &e) {
         std::cerr << "Exception:: " << e.what() << '\n';
     }
 }
 
-void main(){
-    auto vm = detail::GenericVM();
-    test_call_sqclosure(vm);
-    test_call_sqnativeclosure(vm);
+void main() {
+    {
+        auto vm = detail::GenericVM();
+        test_call_sqclosure(vm);
+        test_call_sqnativeclosure(vm);
+    }
     std::cin.get();
 }

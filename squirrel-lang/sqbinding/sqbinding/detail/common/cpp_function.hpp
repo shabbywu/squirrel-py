@@ -11,11 +11,12 @@ namespace sqbinding {
 namespace detail {
 class generic_function {
   protected:
-    using Caller = SQInteger(HSQUIRRELVM);
+    using Caller = SQInteger(VM);
+    using StaticCaller = SQInteger(HSQUIRRELVM);
 
   public:
     virtual std::function<Caller> get_caller_impl() = 0;
-    virtual Caller *get_static_caller() = 0;
+    virtual StaticCaller *get_static_caller() = 0;
     virtual int get_nargs() = 0;
 };
 
@@ -29,7 +30,7 @@ template <int paramsbase> class cpp_function : public generic_function {
         void (*free_data)(Holder *ptr) = nullptr;
 
         /// Pointer to squirrel caller
-        std::function<SQInteger(HSQUIRRELVM)> caller = nullptr;
+        std::function<Caller> caller = nullptr;
 
         bool functor = false;
 
@@ -54,7 +55,7 @@ template <int paramsbase> class cpp_function : public generic_function {
     virtual int get_nargs() {
         return nargs;
     }
-    virtual Caller *get_static_caller() {
+    virtual StaticCaller *get_static_caller() {
         return &cpp_function::caller;
     }
 
@@ -146,14 +147,13 @@ template <int paramsbase> class cpp_function : public generic_function {
 
   private:
     template <class Func, typename Return, typename... Args>
-    std::function<SQInteger(HSQUIRRELVM)> build_caller(
+    std::function<Caller> build_caller(
         Func &&f, Return (*signature)(Args...) = nullptr,
         typename std::enable_if_t<std::is_void_v<Return>, Return> * = nullptr) {
-        return std::function([f, this](HSQUIRRELVM vm) -> SQInteger {
+        return std::function([f, this](detail::VM vm) -> SQInteger {
             // 索引从 1 开始, 且位置 1 是 this(env)
             // 参数从索引 2 开始
-            auto vm_ = detail::VM(vm);
-            auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm_);
+            auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm);
             try {
                 if (holder->functor) {
                     auto func = (std::function<Return(Args...)> *)holder->data[0];
@@ -164,21 +164,20 @@ template <int paramsbase> class cpp_function : public generic_function {
                 }
             }
             catch (const std::exception &e) {
-                return sq_throwerror(vm, e.what());
+                return sq_throwerror(*vm, e.what());
             }
             return 0;
         });
     }
 
     template <class Func, typename Return, typename... Args>
-    std::function<SQInteger(HSQUIRRELVM)> build_caller(
+    std::function<Caller> build_caller(
         Func &&f, Return (*signature)(Args...) = nullptr,
         typename std::enable_if_t<!std::is_void_v<Return>, Return> * = nullptr) {
-        return std::function([f, this](HSQUIRRELVM vm) -> SQInteger {
+        return std::function([f, this](detail::VM vm) -> SQInteger {
             // 索引从 1 开始, 且位置 1 是 this(env)
             // 参数从索引 2 开始
-            auto vm_ = detail::VM(vm);
-            auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm_);
+            auto args = detail::load_args<paramsbase, std::tuple<Args...>>::load(vm);
             try {
                 if (holder->functor) {
                     auto func = (std::function<Return(Args...)> *)holder->data[0];
@@ -191,7 +190,7 @@ template <int paramsbase> class cpp_function : public generic_function {
                 }
             }
             catch (const std::exception &e) {
-                return sq_throwerror(vm, e.what());
+                return sq_throwerror(*vm, e.what());
             }
 
             return 1;
@@ -214,7 +213,7 @@ template <int paramsbase> class cpp_function : public generic_function {
         using Holder = detail::StackObjectHolder<cpp_function>;
         Holder *ud_holder;
         sq_getuserdata(vm, -1, (void **)&ud_holder, NULL);
-        return ud_holder->GetInstance().holder->caller(vm);
+        return ud_holder->GetInstance().holder->caller(ud_holder->vm);
     }
 };
 
@@ -251,9 +250,9 @@ class overloaded_function : public generic_function {
 
   public:
     virtual std::function<Caller> get_caller_impl() {
-        return std::function([this](HSQUIRRELVM vm) { return call(vm); });
+        return std::function([this](detail::VM vm) { return call(vm); });
     }
-    virtual Caller *get_static_caller() {
+    virtual StaticCaller *get_static_caller() {
         return &overloaded_function::caller;
     }
     virtual int get_nargs() {
@@ -261,9 +260,9 @@ class overloaded_function : public generic_function {
     }
 
   public:
-    SQInteger call(HSQUIRRELVM vm) {
+    SQInteger call(detail::VM vm) {
         // FIXME: 2 硬编码会导致不支持类函数重载
-        SQInteger nargs = sq_gettop(vm) - 2;
+        SQInteger nargs = sq_gettop(*vm) - 2;
         return callers[nargs]->get_caller_impl()(vm);
     }
 
@@ -272,7 +271,7 @@ class overloaded_function : public generic_function {
         using Holder = detail::StackObjectHolder<overloaded_function>;
         Holder *ud_holder;
         sq_getuserdata(vm, -1, (void **)&ud_holder, NULL);
-        return ud_holder->GetInstance().call(vm);
+        return ud_holder->GetInstance().call(ud_holder->vm);
     }
 };
 

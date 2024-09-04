@@ -6,8 +6,8 @@
 namespace sqbinding {
 namespace detail {
 class VM {
-    class Holder {
-      public:
+  public:
+    struct Holder {
         Holder(HSQUIRRELVM vm, bool should_close = false) : vm(vm), should_close(should_close) {
         }
         ~Holder() {
@@ -25,18 +25,37 @@ class VM {
 #endif
             }
         }
-
-      public:
         HSQUIRRELVM vm = nullptr;
         bool should_close;
     };
 
   public:
     std::shared_ptr<Holder> holder;
+    static int ref_count;
 
   public:
     VM() = default;
     VM(HSQUIRRELVM vm, bool should_close = false) : holder(std::make_shared<Holder>(vm, should_close)) {
+        ref_count++;
+    }
+
+    VM(const VM &other) {
+        this->holder = other.holder;
+        ref_count++;
+        std::cout << "VM(const): ref_count = " << ref_count << std::endl;
+    };
+
+    VM &operator=(const VM &other) {
+        this->holder = other.holder;
+        ref_count++;
+        std::cout << "VM=: ref_count = " << ref_count << std::endl;
+        return *this;
+    };
+    ~VM() {
+        if (holder) {
+            ref_count--;
+        }
+        std::cout << "~VM: ref_count = " << ref_count << std::endl;
     }
 
   public:
@@ -50,5 +69,28 @@ class VM {
         return holder->vm;
     }
 };
+int VM::ref_count = 0;
+
+class WeakVM: public VM {
+  public:
+    std::weak_ptr<VM::Holder> holder;
+    WeakVM(const VM &other) {
+        this->holder = other.holder;
+    };
+
+    WeakVM &operator=(const VM &other) = delete;
+
+  public:
+    HSQUIRRELVM &vm() {
+        return holder.lock()->vm;
+    }
+    SQObjectPtr &roottable() {
+        return holder.lock()->vm->_roottable;
+    }
+    HSQUIRRELVM &operator*() {
+        return holder.lock()->vm;
+    }
+};
+
 } // namespace detail
 } // namespace sqbinding

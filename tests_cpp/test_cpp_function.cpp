@@ -164,6 +164,7 @@ void main() {
     test_call_non_class_function_in_vm();
     std::cout << "============" << std::endl;
     test_overload_func();
+    std::cout << "============" << std::endl;
     // Note：class_function test in test_cpp_class.cpp
     std::cin.get();
 }

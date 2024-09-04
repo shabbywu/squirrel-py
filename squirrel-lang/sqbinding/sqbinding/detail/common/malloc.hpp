@@ -5,11 +5,11 @@
 namespace sqbinding {
 namespace detail {
 template <class T, class... Args> struct StackObjectHolder {
-    StackObjectHolder(Args &...args) : instance(std::make_shared<T>(args...)) {
+    StackObjectHolder(detail::VM vm, Args &...args) : vm(vm), instance(std::make_shared<T>(args...)) {
     }
-    StackObjectHolder(std::shared_ptr<T> obj) : instance(obj) {
+    StackObjectHolder(detail::VM vm, std::shared_ptr<T> obj) : vm(vm), instance(obj) {
     }
-    StackObjectHolder(T *obj) : instance(std::shared_ptr<T>(obj)) {
+    StackObjectHolder(detail::VM vm, T *obj) : vm(vm), instance(std::shared_ptr<T>(obj)) {
     }
     ~StackObjectHolder() {
 #ifdef TRACE_CONTAINER_GC
@@ -19,6 +19,7 @@ template <class T, class... Args> struct StackObjectHolder {
             free_data(this);
         }
     }
+    detail::VM vm;
     std::shared_ptr<T> instance;
 
     T &GetInstance() {
@@ -32,7 +33,7 @@ template <class T, class... Args> struct StackObjectHolder {
 template <class T, class... Args> static std::pair<T *, SQUserData *> make_stack_object(VM vm, Args &...args) {
     using Holder = StackObjectHolder<T, Args...>;
     SQUserPointer ptr = sq_newuserdata(*vm, sizeof(Holder));
-    Holder *holder = new (ptr) Holder(args...);
+    Holder *holder = new (ptr) Holder(vm, args...);
 
     SQRELEASEHOOK hook = [](SQUserPointer ptr, SQInteger) -> SQInteger {
 #ifdef TRACE_CONTAINER_GC
@@ -54,7 +55,7 @@ template <class T, class... Args> static std::pair<T *, SQUserData *> make_stack
 template <class T> static SQUserData *make_userdata(VM vm, std::shared_ptr<T> obj) {
     using Holder = StackObjectHolder<T>;
     SQUserPointer ptr = sq_newuserdata(*vm, sizeof(Holder));
-    Holder *holder = new (ptr) Holder(obj);
+    Holder *holder = new (ptr) Holder(vm, obj);
 
     SQRELEASEHOOK hook = [](SQUserPointer ptr, SQInteger) -> SQInteger {
 #ifdef TRACE_CONTAINER_GC
@@ -75,7 +76,7 @@ template <class T> static SQUserData *make_userdata(VM vm, std::shared_ptr<T> ob
 template <class T> static SQUserData *make_userdata(VM vm, T *obj) {
     using Holder = StackObjectHolder<T>;
     SQUserPointer ptr = sq_newuserdata(*vm, sizeof(Holder));
-    Holder *holder = new (ptr) Holder(obj);
+    Holder *holder = new (ptr) Holder(vm, obj);
 
     SQRELEASEHOOK hook = [](SQUserPointer ptr, SQInteger) -> SQInteger {
 #ifdef TRACE_CONTAINER_GC
