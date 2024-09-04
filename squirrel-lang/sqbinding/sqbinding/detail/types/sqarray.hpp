@@ -1,5 +1,6 @@
 #pragma once
 #include "holder.hpp"
+#include "sqbinding/detail/cast/cast_any.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
@@ -73,9 +74,9 @@ class Array {
     std::shared_ptr<Holder> holder;
 
   public:
-    Array(VM vm) : holder(std::make_shared<Holder>(SQArray::Create(_ss(*vm), 0), vm)) {
+    Array(detail::VM vm) : holder(std::make_shared<Holder>(SQArray::Create(_ss(*vm), 0), vm)) {
     }
-    Array(::SQArray *pArray, VM vm) : holder(std::make_shared<Holder>(pArray, vm)) {
+    Array(::SQArray *pArray, detail::VM vm) : holder(std::make_shared<Holder>(pArray, vm)) {
     }
 
     SQUnsignedInteger getRefCount() {
@@ -98,7 +99,7 @@ class Array {
   public:
     SQOBJECTPTR_SETTER_TEMPLATE
     void set(SQObjectPtr &sqkey, SQObjectPtr &sqval) {
-        VM &vm = holder->GetVM();
+        detail::VM &vm = holder->GetVM();
         SQObjectPtr &self = holder->GetSQObjectPtr();
 
         sq_pushobject(*vm, self);
@@ -109,29 +110,9 @@ class Array {
     }
 
   public:
-    template <typename TK, typename TV> TV get(TK &idx) {
-        TV r;
-        if (get(idx, r)) {
-            return r;
-        }
-        VM &vm = holder->vm;
-        auto sqidx = GenericCast<SQObjectPtr(TK &)>::cast(vm, idx);
-        throw sqbinding::index_error(sqobject_to_string(sqidx));
-    }
-
-    template <typename TK, typename TV> bool get(TK &idx, TV &r) {
-        VM &vm = holder->vm;
-        auto sqidx = GenericCast<SQObjectPtr(TK &)>::cast(vm, idx);
-        SQObjectPtr ptr;
-        if (!get(sqidx, ptr)) {
-            return false;
-        }
-        r = GenericCast<TV(SQObjectPtr &)>::cast(vm, ptr);
-        return true;
-    }
-
+    SQOBJECTPTR_GETTER_TEMPLATE
     bool get(SQObjectPtr &idx, SQObjectPtr &ret) {
-        VM &vm = holder->GetVM();
+        detail::VM &vm = holder->GetVM();
         SQObjectPtr &self = holder->GetSQObjectPtr();
         if (!(*vm)->Get(self, idx, ret, false, DONT_FALL_BACK)) {
             return false;
@@ -140,83 +121,20 @@ class Array {
     }
 
   public:
-    template <typename Type> void append(Type &obj) {
-        VM &vm = holder->vm;
-        auto sqobj = GenericCast<SQObjectPtr(Type &)>::cast(vm, obj);
+    template <typename Type> void append(Type &&obj) {
+        detail::VM &vm = holder->vm;
+        SQObjectPtr sqobj = detail::generic_cast<Type, SQObjectPtr>(vm, std::forward<Type>(obj));
         pArray()->Append(std::move(sqobj));
     }
 
-    template <typename Type> std::remove_reference_t<Type> pop(Type &obj) {
-        VM &vm = holder->vm;
+    template <typename Type> Type pop() {
+        detail::VM &vm = holder->vm;
         if (pArray()->Size() < 1) {
             throw sqbinding::index_error("can't pop empty array");
         }
         SQObjectPtr sqval = pArray()->Top();
         pArray()->Pop();
-        return GenericCast<Type(SQObjectPtr &)>::cast(vm, sqval);
-    }
-};
-} // namespace detail
-
-namespace detail {
-// cast SQObject to array
-template <> class GenericCast<detail::Array(HSQOBJECT &)> {
-  public:
-    static detail::Array cast(VM vm, HSQOBJECT &obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast HSQOBJECT to detail::Array" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_ARRAY)
-            return detail::Array(_array(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-template <> class GenericCast<detail::Array(HSQOBJECT &&)> {
-  public:
-    static detail::Array cast(VM vm, HSQOBJECT &&obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast HSQOBJECT to detail::Array" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_ARRAY)
-            return detail::Array(_array(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-// cast SQObjectPtr to array
-template <> class GenericCast<detail::Array(SQObjectPtr &)> {
-  public:
-    static detail::Array cast(VM vm, SQObjectPtr &obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to detail::Array" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_ARRAY)
-            return detail::Array(_array(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-template <> class GenericCast<detail::Array(SQObjectPtr &&)> {
-  public:
-    static detail::Array cast(VM vm, SQObjectPtr &&obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to detail::Array" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_ARRAY)
-            return detail::Array(_array(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-// cast Array to SQObjectPtr
-template <> class GenericCast<SQObjectPtr(detail::Array &)> {
-  public:
-    static SQObjectPtr cast(VM vm, detail::Array &obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast detail::Array to SQObjectPtr" << std::endl;
-#endif
-        return obj.pArray();
+        return detail::generic_cast<SQObjectPtr, Type>(vm, std::forward<SQObjectPtr>(sqval));
     }
 };
 } // namespace detail

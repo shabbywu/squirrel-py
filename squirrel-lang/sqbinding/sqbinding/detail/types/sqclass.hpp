@@ -1,6 +1,5 @@
 #pragma once
 #include "holder.hpp"
-#include "sqbinding/detail/common/cast_def.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
 #include "sqbinding/detail/common/template_setter.hpp"
@@ -84,7 +83,7 @@ class Class : public std::enable_shared_from_this<Class> {
             auto _set = [this](std::string property, SQObjectPtr value) {
                 SQObjectPtr setter;
                 if (!_delegate->get(property + ".fset", setter)) {
-                    _delegate->set(property, value);
+                    _delegate->set(std::forward<std::string>(property), std::forward<SQObjectPtr>(value));
                     return;
                 }
                 ::sq_pushobject(holder->GetSQVM(), setter);
@@ -102,14 +101,14 @@ class Class : public std::enable_shared_from_this<Class> {
     template <typename TClass, typename P> void defProperty(std::string property, P TClass::*pm) {
         auto fget = detail::to_cpp_function<1>([=](TClass *self) -> P { return self->*pm; });
         auto fset = detail::to_cpp_function<1>([=](TClass *self, P value) { self->*pm = value; });
-        getDelegate()->set(property + ".fget", detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM()));
-        getDelegate()->set(property + ".fset", detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM()));
+        getDelegate()->set(std::move(property + ".fget"), std::move(detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM())));
+        getDelegate()->set(std::move(property + ".fset"), std::move(detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM())));
     }
 
   public:
     // bindFunc to current class
     template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
-        set(funcname, detail::CreateNativeClosure(std::forward<Func>(func), holder->GetVM()));
+        set(std::move(funcname), std::move(detail::CreateNativeClosure(std::forward<Func>(func), holder->GetVM())));
     }
 };
 } // namespace detail
@@ -185,7 +184,7 @@ template <class C, class Base = void> class ClassDef {
     ClassDef(VM vm, const std::string &name) : holder(nullptr), name(name) {
         auto base = ClassRegistry::getInstance(vm)->find_class_object<Base>();
         holder = std::make_shared<Class>(::SQClass::Create(_ss(*vm), base ? base->pClass() : nullptr), vm, false);
-        holder->set(std::string("classname"), name);
+        holder->set(std::move(std::string("classname")), std::forward<std::string>(this->name));
         ClassRegistry::getInstance(vm)->register_class<C>(holder);
     }
 

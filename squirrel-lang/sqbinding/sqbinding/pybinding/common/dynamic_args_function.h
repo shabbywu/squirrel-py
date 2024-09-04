@@ -136,7 +136,7 @@ template <int paramsbase> class dynamic_args_function {
             auto vm_ = detail::VM(vm);
             auto args = detail::load_args<paramsbase, py::list>::load(vm_);
             Return v = this->operator()<Return>(args);
-            detail::generic_stack_push(vm, v);
+            detail::generic_stack_push(vm, std::forward<Return>(v));
             return 1;
         });
     }

@@ -239,3 +239,7 @@ PyValue sqbinding::python::sqobject_topython(SQObjectPtr &object, detail::VM vm)
         return py::none();
     }
 }
+
+PyValue sqbinding::python::sqobject_topython(SQObjectPtr &&object, detail::VM vm) {
+    return sqobject_topython(object, vm);
+}

@@ -3,13 +3,17 @@
 #include <iostream>
 #include <string>
 #include <type_traits>
+
 // #define TRACE_CONTAINER_GC
 // #define TRACE_OBJECT_CAST
-#include <sqbinding/detail/common/cast_object.hpp>
+#include <sqbinding/detail/cast.hpp>
+#include <sqbinding/detail/types/holder.hpp>
 #include <sqbinding/detail/types/sqfunction.hpp>
 #include <sqbinding/detail/vm/vm.hpp>
 
 using namespace sqbinding;
+
+class A {};
 
 void main() {
     {
@@ -28,7 +32,11 @@ void main() {
         catch (const std::exception &e) {
             std::cerr << e.what() << '\n';
         }
+        SQObjectPtr a;
+        std::shared_ptr<detail::SQObjectPtrHolder<::SQObjectPtr>> p =
+            std::make_shared<detail::SQObjectPtrHolder<::SQObjectPtr>>(a, vm.GetVM());
     }
+
     std::cout << "=========" << std::endl;
     std::cin.get();
 }

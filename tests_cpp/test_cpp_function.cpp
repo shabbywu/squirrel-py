@@ -6,10 +6,10 @@
 // #define TRACE_CONTAINER_GC
 // #define TRACE_OBJECT_CAST
 #include "sqbinding/detail/common/cpp_function.hpp"
-#include <sqbinding/detail/common/cast_object.hpp>
+#include <sqbinding/detail/cast.hpp>
 #include <sqbinding/detail/common/type_traits.hpp>
-#include <sqbinding/detail/types/sqclass.hpp>
 #include <sqbinding/detail/types/sqfunction.hpp>
+#include <sqbinding/detail/types/sqclass.hpp>
 #include <sqbinding/detail/vm/vm.hpp>
 
 using namespace sqbinding;

@@ -1,5 +1,5 @@
 #pragma once
-#include "sqbinding/detail/common/cast_impl.hpp"
+#include "sqbinding/detail/cast/cast_string.hpp"
 #include "squirrel.h"
 #include "sqvm.hpp"
 #include <string>
@@ -8,10 +8,11 @@ namespace sqbinding {
 namespace detail {
 template <class Type> class SQObjectPtrHolder {
   public:
-    SQObjectPtrHolder(Type obj, VM vm) : vm(vm) {
-        this->ptr = obj;
+    SQObjectPtrHolder(Type obj, VM vm) : ptr(obj), vm(vm) {
         sq_addref(*vm, &ptr);
     }
+
+
     ~SQObjectPtrHolder() {
 #ifdef TRACE_CONTAINER_GC
         std::cout << "GC::Release " << typeid(Type).name() << ": " << sqobject_to_string(ptr) << std::endl;

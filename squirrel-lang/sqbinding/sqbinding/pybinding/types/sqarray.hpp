@@ -13,7 +13,7 @@ class ArrayIterator : public detail::ArrayIterator {
     using detail::ArrayIterator::ArrayIterator;
     PyValue operator*() const {
         SQObjectPtr ret = detail::ArrayIterator::operator*();
-        return detail::GenericCast<PyValue(SQObjectPtr &)>::cast(holder->GetVM(), ret);
+        return detail::generic_cast<SQObjectPtr, PyValue>(holder->GetVM(), std::forward<SQObjectPtr>(ret));
     }
     PyValue __next__() {
         if (idx < 0) {
@@ -40,10 +40,10 @@ class Array : public detail::Array, public std::enable_shared_from_this<Array> {
 
     // Python Interface
     PyValue __getitem__(int idx) {
-        return get<int, PyValue>(idx);
+        return get<int, PyValue>(std::forward<int>(idx));
     }
     PyValue __setitem__(int idx, PyValue val) {
-        set<int, PyValue>(idx, val);
+        set<int, PyValue>(std::forward<int>(idx), std::forward<PyValue>(val));
         return val;
     }
     ArrayIterator __iter__() {

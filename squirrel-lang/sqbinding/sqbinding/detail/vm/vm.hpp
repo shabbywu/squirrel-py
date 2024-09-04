@@ -3,7 +3,6 @@
 #include <iostream>
 #include <memory.h>
 
-#include "sqbinding/detail/common/cast_impl.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/types/sqfunction.hpp"
 #include "sqbinding/detail/types/sqobject.hpp"
@@ -120,8 +119,8 @@ class VMProxy {
             throw sqbinding::value_error("invalid sourcecode, failed to compile");
         }
 
-        ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
-        SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env &)>::cast(GetVM(), env);
+        ClosureType closure{_closure(vm->Top()), GetVM()};
+        SQObjectPtr pthis = detail::generic_cast<Env, SQObjectPtr>(GetVM(), std::forward<Env>(env));
         closure.bindThis(pthis);
         return closure();
     }
@@ -135,7 +134,7 @@ class VMProxy {
             throw sqbinding::value_error("invalid sourcecode, failed to compile");
         }
 
-        ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
+        ClosureType closure{_closure(vm->Top()), GetVM()};
         return closure();
     }
 
@@ -150,8 +149,8 @@ class VMProxy {
             throw std::runtime_error(GetLastError());
         }
 
-        ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
-        SQObjectPtr pthis = detail::GenericCast<SQObjectPtr(Env &)>::cast(GetVM(), env);
+        ClosureType closure{_closure(vm->Top()), GetVM()};
+        SQObjectPtr pthis = detail::generic_cast<Env, SQObjectPtr>(GetVM(), std::forward<Env>(env));
         closure.bindThis(pthis);
         return closure();
     }
@@ -166,7 +165,7 @@ class VMProxy {
             throw std::runtime_error(GetLastError());
         }
 
-        ClosureType closure = ClosureType{_closure(vm->Top()), GetVM()};
+        ClosureType closure{_closure(vm->Top()), GetVM()};
         return closure();
     }
 

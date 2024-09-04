@@ -69,7 +69,7 @@ class SQPythonObject {
 
             try {
                 auto funcName = _val.attr("__name__").cast<py::str>();
-                closure->pNativeClosure()->_name = pyvalue_tosqobject(funcName, vm);
+                closure.pNativeClosure()->_name = pyvalue_tosqobject(funcName, vm);
             }
             catch (const std::exception &e) {
             }

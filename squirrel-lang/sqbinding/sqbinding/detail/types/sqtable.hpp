@@ -1,7 +1,7 @@
 #pragma once
 
 #include "holder.hpp"
-#include "sqbinding/detail/common/cast_impl.hpp"
+#include "sqbinding/detail/cast/cast_any.hpp"
 #include "sqbinding/detail/common/cpp_function.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
@@ -145,8 +145,8 @@ class Table : public std::enable_shared_from_this<Table> {
         if (p == functions.end()) {
             auto wrapper = to_cpp_function(std::forward<Func>(func));
             functions[funcname] = wrapper;
-            set(funcname,
-                detail::NativeClosure<detail::function_signature_t<Func>>::Create(wrapper, holder->GetVM()));
+            set(std::forward<std::string>(funcname),
+                std::move(detail::NativeClosure<detail::function_signature_t<Func>>::Create(wrapper, holder->GetVM())));
         } else {
             if (auto overloaded = dynamic_cast<detail::overloaded_function *>(p->second.get())) {
                 overloaded->add_caller(std::forward<Func>(func));
@@ -155,73 +155,11 @@ class Table : public std::enable_shared_from_this<Table> {
                 wrapper->add_caller(p->second);
                 wrapper->add_caller(std::forward<Func>(func));
                 functions[funcname] = wrapper;
-                set(funcname, detail::NativeClosure<detail::function_signature_t<Func>>::Create(
-                                  wrapper, holder->GetVM()));
+                set(std::forward<std::string>(funcname),
+                    std::move(
+                        detail::NativeClosure<detail::function_signature_t<Func>>::Create(wrapper, holder->GetVM())));
             }
         }
-    }
-};
-} // namespace detail
-
-namespace detail {
-// cast SQObject to Table
-template <> class GenericCast<detail::Table(HSQOBJECT &)> {
-  public:
-    static detail::Table cast(VM vm, HSQOBJECT &obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast HSQOBJECT to detail::Table" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_TABLE)
-            return detail::Table(_table(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-template <> class GenericCast<detail::Table(HSQOBJECT &&)> {
-  public:
-    static detail::Table cast(VM vm, HSQOBJECT &&obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to detail::Table" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_TABLE)
-            return detail::Table(_table(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-// cast SQObjectPtr to Table
-template <> class GenericCast<detail::Table(SQObjectPtr &)> {
-  public:
-    static detail::Table cast(VM vm, SQObjectPtr &obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to detail::Table" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_TABLE)
-            return detail::Table(_table(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-template <> class GenericCast<detail::Table(SQObjectPtr &&)> {
-  public:
-    static detail::Table cast(VM vm, SQObjectPtr &&obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast SQObjectPtr to detail::Table" << std::endl;
-#endif
-        if (obj._type == tagSQObjectType::OT_TABLE)
-            return detail::Table(_table(obj), vm);
-        throw sqbinding::value_error("unsupported value");
-    }
-};
-
-// cast Table to SQObjectPtr
-template <> class GenericCast<SQObjectPtr(detail::Table &)> {
-  public:
-    static SQObjectPtr cast(VM vm, detail::Table &obj) {
-#ifdef TRACE_OBJECT_CAST
-        std::cout << "[TRACING] cast detail::Table to SQObjectPtr" << std::endl;
-#endif
-        return obj.pTable();
     }
 };
 } // namespace detail

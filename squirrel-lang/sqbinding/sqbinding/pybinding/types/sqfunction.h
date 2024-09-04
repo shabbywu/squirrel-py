@@ -5,6 +5,7 @@
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/call_setup.hpp"
 #include "sqbinding/detail/types/sqfunction.hpp"
+#include "sqbinding/pybinding/common/stack_operation.h"
 #include "sqbinding/pybinding/common/dynamic_args_function.h"
 #include "definition.h"
 
@@ -20,7 +21,7 @@ namespace sqbinding {
                 PyValue get(PyValue key) {
                     detail::VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();
-                    auto v = detail::Closure<PyValue (py::args)>::get<PyValue, PyValue>(key);
+                    auto v = detail::Closure<PyValue (py::args)>::get<PyValue, PyValue>(std::forward<PyValue>(key));
                     bind_this_if_need(v);
                     return v;
                 }
@@ -57,7 +58,7 @@ namespace sqbinding {
                 PyValue get(PyValue key) {
                     detail::VM& vm = holder->GetVM();
                     SQObjectPtr& self = holder->GetSQObjectPtr();
-                    auto v = BaseNativeClosure::get<PyValue, PyValue>(key);
+                    auto v = BaseNativeClosure::get<PyValue, PyValue>(std::forward<PyValue>(key));
                     bind_this_if_need(v);
                     return v;
                 }
@@ -72,11 +73,11 @@ namespace sqbinding {
                 }
             public:
                 template<class Wrapper, class Func>
-                static std::shared_ptr<NativeClosure> Create(Func&& func, detail::VM vm, SQFUNCTION caller) {
+                static NativeClosure Create(Func&& func, detail::VM vm, SQFUNCTION caller) {
                     auto pair = detail::make_stack_object<Wrapper>(vm, func);
-                    std::shared_ptr<NativeClosure> closure = std::make_shared<NativeClosure>(SQNativeClosure::Create(_ss(*vm), caller, 1), vm);
-                    closure->pNativeClosure()->_outervalues[0] = pair.second;
-                    closure->pNativeClosure()->_nparamscheck = 0;
+                    NativeClosure closure(SQNativeClosure::Create(_ss(*vm), caller, 1), vm);
+                    closure.pNativeClosure()->_outervalues[0] = pair.second;
+                    closure.pNativeClosure()->_nparamscheck = 0;
                     return closure;
                 }
         };

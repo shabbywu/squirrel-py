@@ -1,6 +1,7 @@
 #include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/pybinding/types/container.h"
 #include "sqbinding/pybinding/types/definition.h"
+#include <squirrel.h>
 
 namespace py = pybind11;
 
@@ -120,8 +121,22 @@ void register_squirrel_type(py::module_ &m) {
         .def("__getitem__", &sqbinding::python::Array::__getitem__, py::arg("idx"), py::return_value_policy::move)
         .def("__setitem__", &sqbinding::python::Array::__setitem__, py::arg("idx"), py::arg("val"),
              py::return_value_policy::reference)
-        .def("append", &sqbinding::python::Array::append<PyValue>, py::arg("val"))
-        .def("pop", &sqbinding::python::Array::pop<PyValue>, py::return_value_policy::reference_internal)
+        .def(
+            "append",
+            [](sqbinding::python::Array *self, PyValue item) {
+                SQObjectPtr p = sqbinding::detail::generic_cast<PyValue, SQObjectPtr>(self->holder->GetVM(),
+                                                                                      std::forward<PyValue>(item));
+                // return self->append<SQObjectPtr>(std::forward<SQObjectPtr>(p));
+            },
+            py::arg("val"))
+        .def(
+            "pop",
+            [](sqbinding::python::Array *self) {
+                auto p = self->pop<SQObjectPtr>();
+                return sqbinding::detail::generic_cast<SQObjectPtr, PyValue>(self->holder->GetVM(),
+                                                                             std::forward<SQObjectPtr>(p));
+            },
+            py::return_value_policy::reference_internal)
         .def("__len__", &sqbinding::python::Array::__len__);
 
     py::class_<SQObjectPtr>(m, "__SQObjectPtr");

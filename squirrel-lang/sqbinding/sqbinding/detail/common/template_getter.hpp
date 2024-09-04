@@ -28,11 +28,11 @@ static inline void bindThisIfNeed(TV &obj, SQObjectPtr &env,
         SQObjectPtr ptr;                                                                                               \
         VM &vm = holder->GetVM();                                                                                      \
         if (get(key, ptr)) {                                                                                           \
-            auto v = GenericCast<TV(SQObjectPtr &)>::cast(vm, ptr);                                                    \
+            auto v = generic_cast<SQObjectPtr, TV>(vm, std::forward<SQObjectPtr>(ptr));                                \
             bindThisIfNeed(v, holder->GetSQObjectPtr());                                                               \
             return v;                                                                                                  \
         }                                                                                                              \
-        auto sqkey = GenericCast<SQObjectPtr(TK &)>::cast(vm, key);                                                    \
+        SQObjectPtr sqkey = generic_cast<TK, SQObjectPtr>(vm, std::forward<TK>(key));                                  \
         throw sqbinding::key_error(sqobject_to_string(sqkey) + " does not exists");                                    \
     }                                                                                                                  \
                                                                                                                        \
@@ -40,34 +40,34 @@ static inline void bindThisIfNeed(TV &obj, SQObjectPtr &env,
         SQObjectPtr ptr;                                                                                               \
         VM &vm = holder->GetVM();                                                                                      \
         if (get(key, ptr)) {                                                                                           \
-            auto v = GenericCast<TV(SQObjectPtr &)>::cast(vm, ptr);                                                    \
+            auto v = generic_cast<SQObjectPtr, TV>(vm, std::forward<SQObjectPtr>(ptr));                                \
             bindThisIfNeed(v, holder->GetSQObjectPtr());                                                               \
             return v;                                                                                                  \
         }                                                                                                              \
-        auto sqkey = GenericCast<SQObjectPtr(TK &)>::cast(vm, key);                                                    \
+        SQObjectPtr sqkey = generic_cast<TK, SQObjectPtr>(vm, std::forward<TK>(key));                                  \
         throw sqbinding::key_error(sqobject_to_string(sqkey) + " does not exists");                                    \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TK, typename TV> bool get(TK &key, TV &v) {                                                     \
         VM &vm = holder->GetVM();                                                                                      \
-        auto sqkey = GenericCast<SQObjectPtr(TK &)>::cast(vm, key);                                                    \
+        auto sqkey = generic_cast<TK, SQObjectPtr>(vm, std::forward<TK>(key));                                         \
         SQObjectPtr ptr;                                                                                               \
         if (!get(sqkey, ptr)) {                                                                                        \
             return false;                                                                                              \
         }                                                                                                              \
-        v = GenericCast<TV(SQObjectPtr &)>::cast(vm, ptr);                                                             \
+        v = generic_cast<SQObjectPtr, TV>(vm, std::forward<SQObjectPtr>(ptr));                                         \
         bindThisIfNeed(v, holder->GetSQObjectPtr());                                                                   \
         return true;                                                                                                   \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TK, typename TV> bool get(TK &&key, TV &v) {                                                    \
         VM &vm = holder->GetVM();                                                                                      \
-        auto sqkey = GenericCast<SQObjectPtr(TK &)>::cast(vm, key);                                                    \
+        auto sqkey = generic_cast<TK, SQObjectPtr>(vm, std::forward<TK>(key));                                         \
         SQObjectPtr ptr;                                                                                               \
         if (!get(sqkey, ptr)) {                                                                                        \
             return false;                                                                                              \
         }                                                                                                              \
-        v = GenericCast<TV(SQObjectPtr &)>::cast(vm, ptr);                                                             \
+        v = generic_cast<SQObjectPtr, TV>(vm, std::forward<SQObjectPtr>(ptr));                                         \
         bindThisIfNeed(v, holder->GetSQObjectPtr());                                                                   \
         return true;                                                                                                   \
     }

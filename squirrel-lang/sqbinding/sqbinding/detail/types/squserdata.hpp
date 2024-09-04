@@ -1,7 +1,6 @@
 #pragma once
 
 #include "holder.hpp"
-#include "sqbinding/detail/common/cast_impl.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/stack_operation.hpp"
@@ -13,7 +12,7 @@
 
 namespace sqbinding {
 namespace detail {
-template <class T> class UserData : public std::enable_shared_from_this<UserData> {
+template <class T> class UserData {
     using Holder = SQObjectPtrHolder<::SQUserData *>;
 
   public:

@@ -17,7 +17,7 @@ class Instance : public detail::Instance, std::enable_shared_from_this<Instance>
     // FIXME: 让 bindfunc 只支持绑定 python 方法?
     template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         // TODO: 实装支持 withenv
-        set(funcname, std::forward<Func>(func));
+        set<std::string, Func>(std::forward<std::string>(funcname), std::forward<Func>(func));
     }
   public:
     void bind_this_if_need(PyValue &v);
@@ -25,7 +25,7 @@ class Instance : public detail::Instance, std::enable_shared_from_this<Instance>
     PyValue get(PyValue key) {
         detail::VM &vm = holder->GetVM();
         SQObjectPtr &self = holder->GetSQObjectPtr();
-        auto v = detail::Instance::get<PyValue, PyValue>(key);
+        PyValue v = detail::Instance::get<PyValue, PyValue>(std::forward<PyValue>(key));
         bind_this_if_need(v);
         return v;
     }
@@ -34,7 +34,7 @@ class Instance : public detail::Instance, std::enable_shared_from_this<Instance>
         return get(key);
     }
     PyValue __setitem__(PyValue key, PyValue val) {
-        set<PyValue, PyValue>(key, val);
+        set<PyValue, PyValue>(std::forward<PyValue>(key), std::forward<PyValue>(val));
         return val;
     }
     py::list keys() {
@@ -45,7 +45,7 @@ class Instance : public detail::Instance, std::enable_shared_from_this<Instance>
         while (idx < table->_numofnodes) {
             auto n = &table->_nodes[idx++];
             if (sq_type(n->key) != tagSQObjectType::OT_NULL) {
-                keys.append(sqobject_topython(n->key, vm));
+                keys.append(detail::generic_cast<SQObjectPtr, PyValue>(vm, std::forward<SQObjectPtr>(n->key)));
             }
         }
         return keys;

@@ -4,6 +4,7 @@
 #include "sqbinding/detail/common/malloc.hpp"
 #include "sqbinding/detail/common/type_traits.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
+#include <map>
 #include <functional>
 #include <memory>
 
@@ -182,11 +183,11 @@ template <int paramsbase> class cpp_function : public generic_function {
                 if (holder->functor) {
                     auto func = (std::function<Return(Args...)> *)holder->data[0];
                     Return v = std::apply(*func, args);
-                    generic_stack_push(vm, v);
+                    generic_stack_push(vm, std::forward<Return>(v));
                 } else {
                     auto func = (Return(*)(Args...))holder->data[0];
                     Return v = std::apply(*func, args);
-                    generic_stack_push(vm, v);
+                    generic_stack_push(vm, std::forward<Return>(v));
                 }
             }
             catch (const std::exception &e) {

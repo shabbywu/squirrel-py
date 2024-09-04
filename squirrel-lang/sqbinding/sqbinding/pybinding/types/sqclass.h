@@ -13,7 +13,7 @@ class Class : public detail::Class, public std::enable_shared_from_this<Class> {
     // bindFunc to current class
     template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         // TODO: 实装支持 withenv
-        set(funcname, std::forward<Func>(func));
+        set<std::string, Func>(std::forward<std::string>(funcname), std::forward<Func>(func));
     }
 
   public:
@@ -21,10 +21,10 @@ class Class : public detail::Class, public std::enable_shared_from_this<Class> {
     Class(::SQClass *pClass, detail::VM vm) : detail::Class(pClass, vm) {
     }
     void bind_this_if_need(PyValue &v);
-    PyValue get(PyValue key) {
+    PyValue get(PyValue& key) {
         detail::VM &vm = holder->GetVM();
         SQObjectPtr &self = holder->GetSQObjectPtr();
-        auto v = detail::Class::get<PyValue, PyValue>(key);
+        auto v = detail::Class::get<PyValue, PyValue>(std::forward<PyValue>(key));
         bind_this_if_need(v);
         return v;
     }
@@ -38,7 +38,7 @@ class Class : public detail::Class, public std::enable_shared_from_this<Class> {
         return std::move(get(key));
     }
     PyValue __setitem__(PyValue key, PyValue val) {
-        set(key, val);
+        set(std::forward<PyValue>(key), std::forward<PyValue>(val));
         return val;
     }
     py::list keys() {

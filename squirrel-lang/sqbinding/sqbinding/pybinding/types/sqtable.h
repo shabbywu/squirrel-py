@@ -14,8 +14,11 @@ class TableIterator : public detail::TableIterator {
     using detail::TableIterator::TableIterator;
     PyValue __next__() {
         auto ret = *((*this)++);
-        return py::make_tuple(detail::GenericCast<PyValue(SQObjectPtr &)>::cast(holder->GetVM(), std::get<0>(ret)),
-                              detail::GenericCast<PyValue(SQObjectPtr &)>::cast(holder->GetVM(), std::get<1>(ret)));
+        auto vm = holder->GetVM();
+        return py::make_tuple(
+            detail::generic_cast<SQObjectPtr, PyValue>(vm, std::forward<SQObjectPtr>(std::get<0>(ret))),
+            detail::generic_cast<SQObjectPtr, PyValue>(vm, std::forward<SQObjectPtr>(std::get<1>(ret)))
+        );
     }
 };
 class Table : public detail::Table, public std::enable_shared_from_this<Table> {
@@ -30,7 +33,7 @@ class Table : public detail::Table, public std::enable_shared_from_this<Table> {
     // FIXME: 让 bindfunc 只支持绑定 python 方法?
     template <typename Func> void bindFunc(std::string funcname, Func &&func, bool withenv = false) {
         // TODO: 实装支持 withenv
-        set(funcname, std::forward<Func>(func));
+        set<std::string, Func>(std::forward<std::string>(funcname), std::forward<Func>(func));
     }
     void bind_this_if_need(PyValue &v);
 
@@ -39,7 +42,7 @@ class Table : public detail::Table, public std::enable_shared_from_this<Table> {
     PyValue get(PyValue &key) {
         detail::VM &vm = holder->GetVM();
         SQObjectPtr &self = holder->GetSQObjectPtr();
-        auto v = detail::Table::get<PyValue, PyValue>(key);
+        PyValue v = detail::Table::get<PyValue, PyValue>(std::forward<PyValue>(key));
         bind_this_if_need(v);
         return v;
     }
@@ -47,7 +50,7 @@ class Table : public detail::Table, public std::enable_shared_from_this<Table> {
         detail::VM &vm = holder->vm;
         py::list keys;
         for (auto [k, _] : __iter__()) {
-            keys.append(detail::GenericCast<PyValue(SQObjectPtr &)>::cast(holder->GetVM(), k));
+            keys.append(detail::generic_cast<SQObjectPtr, PyValue>(vm, std::forward<SQObjectPtr>(k)));
         }
         return keys;
     }
@@ -62,7 +65,7 @@ class Table : public detail::Table, public std::enable_shared_from_this<Table> {
         return get(key);
     }
     PyValue __setitem__(PyValue key, PyValue val) {
-        set(key, val);
+        set(std::forward<PyValue>(key), std::forward<PyValue>(val));
         return val;
     }
     void __delitem__(PyValue key) {

@@ -5,13 +5,13 @@
 #include <type_traits>
 // #define TRACE_CONTAINER_GC
 // #define TRACE_OBJECT_CAST
-#include <sqbinding/detail/common/cast_object.hpp>
-#include <sqbinding/detail/types/sqfunction.hpp>
+#include <sqbinding/detail/cast.hpp>
+#include <sqbinding/detail/types.hpp>
 #include <sqbinding/detail/vm/vm.hpp>
 
 using namespace sqbinding;
 
-void test_call_sqclosure(detail::GenericVM vm) {
+void test_get_and_call_sqclosure(detail::GenericVM vm) {
     auto context = vm.ExecuteString<detail::Table>(R"(
         local rt = getroottable();
         local context = {
@@ -48,7 +48,7 @@ void test_call_sqclosure(detail::GenericVM vm) {
     }
 }
 
-void test_call_sqnativeclosure(detail::GenericVM vm) {
+void test_get_and_call_sqnativeclosure(detail::GenericVM vm) {
     std::cout << "=========" << std::endl;
     try {
         auto rt = vm.getroottable();
@@ -59,11 +59,18 @@ void test_call_sqnativeclosure(detail::GenericVM vm) {
     }
 }
 
+void test_setter(detail::GenericVM vm) {
+    auto rt = vm.getroottable();
+    rt->set(std::string(""), std::string(""));
+    rt->bindFunc("test", []() {});
+}
+
 void main() {
     {
         auto vm = detail::GenericVM();
-        test_call_sqclosure(vm);
-        test_call_sqnativeclosure(vm);
+        test_get_and_call_sqclosure(vm);
+        test_get_and_call_sqnativeclosure(vm);
+        test_setter(vm);
     }
     std::cin.get();
 }

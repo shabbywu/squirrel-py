@@ -1,5 +1,4 @@
 #pragma once
-#include "cast_def.hpp"
 #include "sqbinding/detail/types/sqvm.hpp"
 #include "stack_operation.hpp"
 #include <functional>
@@ -10,13 +9,13 @@ namespace detail {
 inline void sq_call_setup_arg(VM vm) {
 }
 
-template <class Arg, class... Args> inline void sq_call_setup_arg(VM vm, Arg head, Args... tail) {
-    generic_stack_push(vm, head);
+template <class Arg, class... Args> inline void sq_call_setup_arg(VM vm, Arg&& head, Args&&... tail) {
+    generic_stack_push(vm, std::forward<Arg>(head));
     sq_call_setup_arg(vm, tail...);
 }
 
 template <class... Args>
-inline void sq_call_setup(VM vm, const HSQOBJECT &closure, const HSQOBJECT &table, Args... args) {
+inline void sq_call_setup(VM vm, const HSQOBJECT &closure, const HSQOBJECT &table, Args&&... args) {
     sq_pushobject(*vm, closure);
     sq_pushobject(*vm, table);
     sq_call_setup_arg(vm, args...);
