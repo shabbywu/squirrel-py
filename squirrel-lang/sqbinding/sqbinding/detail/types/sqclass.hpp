@@ -12,6 +12,7 @@ namespace sqbinding {
 namespace detail {
 class Class : public std::enable_shared_from_this<Class> {
     using Holder = SQObjectPtrHolder<::SQClass *>;
+    using ErrNotFound = sqbinding::key_error;
 
   public:
     std::shared_ptr<Holder> holder;
@@ -101,8 +102,10 @@ class Class : public std::enable_shared_from_this<Class> {
     template <typename TClass, typename P> void defProperty(std::string property, P TClass::*pm) {
         auto fget = detail::to_cpp_function<1>([=](TClass *self) -> P { return self->*pm; });
         auto fset = detail::to_cpp_function<1>([=](TClass *self, P value) { self->*pm = value; });
-        getDelegate()->set(std::move(property + ".fget"), std::move(detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM())));
-        getDelegate()->set(std::move(property + ".fset"), std::move(detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM())));
+        getDelegate()->set(std::move(property + ".fget"),
+                           std::move(detail::NativeClosure<P(TClass *)>::Create(fget, holder->GetVM())));
+        getDelegate()->set(std::move(property + ".fset"),
+                           std::move(detail::NativeClosure<void(TClass *, P)>::Create(fset, holder->GetVM())));
     }
 
   public:
@@ -121,8 +124,8 @@ class ClassRegistry;
 static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
 
 class ClassRegistry {
-  // public:
-  //   static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
+    // public:
+    //   static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
 
   public:
     std::map<size_t, std::shared_ptr<Class>> class_map;

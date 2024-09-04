@@ -14,6 +14,7 @@ namespace sqbinding {
 namespace detail {
 template <class T> class UserData {
     using Holder = SQObjectPtrHolder<::SQUserData *>;
+    using ErrNotFound = sqbinding::key_error;
 
   public:
     std::shared_ptr<Holder> holder;

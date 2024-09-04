@@ -10,6 +10,7 @@ namespace sqbinding {
 namespace detail {
 class Instance : public std::enable_shared_from_this<Instance> {
     using Holder = SQObjectPtrHolder<::SQInstance *>;
+        using ErrNotFound = sqbinding::key_error;
 
   public:
     std::shared_ptr<Holder> holder;

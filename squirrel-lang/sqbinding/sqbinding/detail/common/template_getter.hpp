@@ -33,7 +33,7 @@ static inline void bindThisIfNeed(TV &obj, SQObjectPtr &env,
             return v;                                                                                                  \
         }                                                                                                              \
         SQObjectPtr sqkey = generic_cast<TK, SQObjectPtr>(vm, std::forward<TK>(key));                                  \
-        throw sqbinding::key_error(sqobject_to_string(sqkey) + " does not exists");                                    \
+        throw ErrNotFound(sqobject_to_string(sqkey) + " does not exists");                                    \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TK, typename TV> TV get(TK &&key) {                                                             \
@@ -45,7 +45,7 @@ static inline void bindThisIfNeed(TV &obj, SQObjectPtr &env,
             return v;                                                                                                  \
         }                                                                                                              \
         SQObjectPtr sqkey = generic_cast<TK, SQObjectPtr>(vm, std::forward<TK>(key));                                  \
-        throw sqbinding::key_error(sqobject_to_string(sqkey) + " does not exists");                                    \
+        throw ErrNotFound(sqobject_to_string(sqkey) + " does not exists");                                    \
     }                                                                                                                  \
                                                                                                                        \
     template <typename TK, typename TV> bool get(TK &key, TV &v) {                                                     \

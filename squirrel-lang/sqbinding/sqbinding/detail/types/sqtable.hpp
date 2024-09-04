@@ -1,7 +1,6 @@
 #pragma once
 
 #include "holder.hpp"
-#include "sqbinding/detail/cast/cast_any.hpp"
 #include "sqbinding/detail/common/cpp_function.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
@@ -83,7 +82,7 @@ class TableIterator
 
 class Table : public std::enable_shared_from_this<Table> {
     using Holder = SQObjectPtrHolder<::SQTable *>;
-
+    using ErrNotFound = sqbinding::key_error;
   public:
     std::shared_ptr<Holder> holder;
 

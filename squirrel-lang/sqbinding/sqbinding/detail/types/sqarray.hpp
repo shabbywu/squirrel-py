@@ -1,6 +1,5 @@
 #pragma once
 #include "holder.hpp"
-#include "sqbinding/detail/cast/cast_any.hpp"
 #include "sqbinding/detail/common/errors.hpp"
 #include "sqbinding/detail/common/format.hpp"
 #include "sqbinding/detail/common/template_getter.hpp"
@@ -69,6 +68,7 @@ class ArrayIterator : public std::iterator<std::input_iterator_tag, SQInteger, S
 
 class Array {
     using Holder = SQObjectPtrHolder<::SQArray *>;
+    using ErrNotFound = sqbinding::index_error;
 
   public:
     std::shared_ptr<Holder> holder;

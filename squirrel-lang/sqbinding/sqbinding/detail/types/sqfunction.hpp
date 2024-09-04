@@ -14,6 +14,7 @@ template <class T> class Closure;
 
 template <class Return, class... Args> class Closure<Return(Args...)> : public ClosureBase {
     using Holder = SQObjectPtrHolder<::SQClosure *>;
+    using ErrNotFound = sqbinding::key_error;
     using FuncSignautre = Return(Args...);
 
   public:
@@ -84,6 +85,7 @@ namespace detail {
 class NativeClosureBase : public ClosureBase {
   protected:
     using Holder = SQObjectPtrHolder<::SQNativeClosure *>;
+    using ErrNotFound = sqbinding::key_error;
 
   public:
     NativeClosureBase(::SQNativeClosure *pNativeClosure, VM vm)

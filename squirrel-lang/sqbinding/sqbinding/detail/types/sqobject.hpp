@@ -8,6 +8,7 @@ namespace detail {
 class ObjectPtr {
   public:
     using Holder = SQObjectPtrHolder<::SQObjectPtr>;
+        using ErrNotFound = sqbinding::key_error;
 
   public:
     ObjectPtr(::SQObjectPtr &pObject, VM vm) : holder(std::make_shared<Holder>(pObject, vm)) {};
