@@ -48,14 +48,14 @@ class StringReaderCtx {
 namespace detail {
 class VMProxy {
   public:
-    std::shared_ptr<detail::VM> holder;
+    detail::VM vm;
     std::shared_ptr<detail::Table> roottable;
 
   public:
     VMProxy() = delete;
     VMProxy(HSQUIRRELVM vm) : VMProxy(vm, false) {
     }
-    VMProxy(HSQUIRRELVM vm, bool should_close) : holder(std::make_shared<detail::VM>(vm, should_close)) {
+    VMProxy(HSQUIRRELVM vm, bool should_close) : vm(vm, should_close) {
     }
     ~VMProxy() {
 #ifdef TRACE_CONTAINER_GC
@@ -66,10 +66,10 @@ class VMProxy {
 
   public:
     HSQUIRRELVM &GetSQVM() {
-        return **holder;
+        return *vm;
     }
     detail::VM &GetVM() {
-        return *holder;
+        return vm;
     }
     std::shared_ptr<detail::Table> &getroottable() {
         if (roottable == nullptr) {
