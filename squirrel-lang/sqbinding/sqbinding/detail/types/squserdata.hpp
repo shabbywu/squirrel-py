@@ -24,7 +24,7 @@ template <class T> class UserData {
     UserData(::SQUserData *pUserData, VM vm) : holder(std::make_shared<Holder>(pUserData, vm)) {
     }
     UserData(::SQUserData *pUserData, sqbinding::detail::Table delegate, VM vm)
-        : holder(std::make_shared<Holder>(pUserData, vm), delegate(delegate)) {
+        : holder(std::make_shared<Holder>(pUserData, vm), delegate(std::make_shared<detail::Table>(delegate.pTable(), vm))) {
     }
 
     SQUnsignedInteger getRefCount() {

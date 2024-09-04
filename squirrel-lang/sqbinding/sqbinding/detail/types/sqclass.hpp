@@ -61,8 +61,8 @@ class Class : public std::enable_shared_from_this<Class> {
     }
 
   private:
-    std::shared_ptr<Table> _delegate;
-    std::shared_ptr<Table> getDelegate() {
+    std::shared_ptr<detail::Table> _delegate;
+    std::shared_ptr<detail::Table> getDelegate() {
         if (_delegate == nullptr) {
             _delegate = std::make_shared<Table>(holder->GetVM());
             auto _get = [this](std::string property) -> SQObjectPtr {
