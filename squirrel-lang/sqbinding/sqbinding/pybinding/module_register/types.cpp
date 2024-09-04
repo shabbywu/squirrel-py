@@ -1,6 +1,7 @@
 #include "sqbinding/pybinding/common/cast.h"
 #include "sqbinding/pybinding/types/container.h"
 #include "sqbinding/pybinding/types/definition.h"
+#include "sqbinding/pybinding/common/stack_operation.h"
 #include <squirrel.h>
 
 namespace py = pybind11;

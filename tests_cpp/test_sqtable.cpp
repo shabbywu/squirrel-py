@@ -23,7 +23,10 @@ void test_get_and_call_sqclosure(detail::GenericVM vm) {
                 value += 1;
                 print("call contextFunc: " + value + "\n");
             }
-            function badcase(boolean) {
+            function badcase1(boolean) {
+                return boolean;
+            }
+            function badcase2(float) {
                 return boolean;
             }
         };
@@ -39,7 +42,8 @@ void test_get_and_call_sqclosure(detail::GenericVM vm) {
     try {
         context.get<std::string, detail::Closure<void(void)>>("staticFunc")();
         context.get<std::string, detail::Closure<void(void)>>("increseValue")();
-        context.get<std::string, detail::Closure<bool(bool)>>("badcase")(true);
+        context.get<std::string, detail::Closure<bool(bool)>>("badcase1")(true);
+        context.get<std::string, detail::Closure<float(float)>>("badcase2")(true);
         std::cout << context.get<std::string, int>("value") << std::endl;
 
         auto increseValue = context.get<std::string, detail::Closure<void(void)>>("increseValue");

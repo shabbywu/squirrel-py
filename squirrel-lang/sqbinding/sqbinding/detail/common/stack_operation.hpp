@@ -6,7 +6,7 @@ namespace sqbinding {
 namespace detail {
 class stack_guard {
   public:
-    stack_guard(VM v): vm(v) {
+    stack_guard(VM v) : vm(v) {
         top = sq_gettop(*vm);
     }
     ~stack_guard() {
@@ -23,7 +23,7 @@ class stack_guard {
     }
 };
 
-template <class Arg> inline void generic_stack_push(VM vm, Arg&& arg) {
+template <class Arg> inline void generic_stack_push(VM vm, Arg &&arg) {
     sq_pushobject(*vm, generic_cast<Arg, SQObjectPtr>(vm, std::forward<Arg>(arg)));
 }
 

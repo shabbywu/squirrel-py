@@ -25,6 +25,5 @@ template <> inline void generic_stack_push<py::args &>(VM vm, py::args &args) {
         sq_pushobject(*vm, std::move(var));
     }
 }
-
 } // namespace detail
 } // namespace sqbinding

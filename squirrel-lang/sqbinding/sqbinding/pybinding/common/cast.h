@@ -45,5 +45,6 @@ static ToType generic_cast(detail::VM vm, FromType &&from) {
 
 
 
+
 } // namespace detail
 } // namespace sqbinding

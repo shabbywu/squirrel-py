@@ -49,12 +49,12 @@ template <class Return, class... Args> class Closure<Return(Args...)> : public C
 
   public:
     Return operator()(Args... args) {
-        VM &vm = holder->GetVM();
+        detail::VM &vm = holder->GetVM();
         stack_guard stack_guard(vm);
         if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-            sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, args...);
+            sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, std::forward<Args>(args)...);
         } else {
-            sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, args...);
+            sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, std::forward<Args>(args)...);
         }
         return sq_call<Return>(vm, stack_guard.offset() - 1);
     }
@@ -150,9 +150,9 @@ template <class Return, class... Args> class NativeClosure<Return(Args...)> : pu
         VM vm = holder->GetVM();
         stack_guard stack_guard(vm);
         if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-            sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, args...);
+            sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, std::forward<Args>(args)...);
         } else {
-            sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, args...);
+            sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, std::forward<Args>(args)...);
         }
         return sq_call<Return>(vm, stack_guard.offset() - 1);
     }
@@ -186,9 +186,9 @@ template <class Return, class... Args> class NativeClosure<Return(Args...) const
         VM vm = holder->GetVM();
         stack_guard stack_guard(vm);
         if (sq_type(pthis) != tagSQObjectType::OT_NULL) {
-            sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, args...);
+            sq_call_setup(vm, holder->GetSQObjectPtr(), pthis, std::forward<Args>(args)...);
         } else {
-            sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, args...);
+            sq_call_setup(vm, holder->GetSQObjectPtr(), (*vm)->_roottable, std::forward<Args>(args)...);
         }
         return sq_call<Return>(vm, stack_guard.offset() - 1);
     }

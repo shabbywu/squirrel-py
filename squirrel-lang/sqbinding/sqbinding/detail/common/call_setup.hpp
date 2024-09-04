@@ -10,15 +10,15 @@ inline void sq_call_setup_arg(VM vm) {
 }
 
 template <class Arg, class... Args> inline void sq_call_setup_arg(VM vm, Arg&& head, Args&&... tail) {
-    generic_stack_push(vm, std::forward<Arg>(head));
-    sq_call_setup_arg(vm, tail...);
+    generic_stack_push<Arg>(vm, std::forward<Arg>(head));
+    sq_call_setup_arg(vm, std::forward<Args>(tail)...);
 }
 
 template <class... Args>
 inline void sq_call_setup(VM vm, const HSQOBJECT &closure, const HSQOBJECT &table, Args&&... args) {
     sq_pushobject(*vm, closure);
     sq_pushobject(*vm, table);
-    sq_call_setup_arg(vm, args...);
+    sq_call_setup_arg(vm, std::forward<Args>(args)...);
 }
 
 template <class Return> inline Return sq_call(VM vm, int params_count) {
