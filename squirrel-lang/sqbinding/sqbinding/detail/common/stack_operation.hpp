@@ -7,8 +7,7 @@ namespace sqbinding {
 namespace detail {
 class stack_guard {
   public:
-    stack_guard(VM v) {
-        vm = v;
+    stack_guard(VM v): vm(v) {
         top = sq_gettop(*vm);
     }
     ~stack_guard() {

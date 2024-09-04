@@ -118,9 +118,12 @@ class Class : public std::enable_shared_from_this<Class> {
 namespace sqbinding {
 namespace detail {
 
+class ClassRegistry;
+static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
+
 class ClassRegistry {
-  public:
-    static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
+  // public:
+  //   static std::map<void *, std::shared_ptr<ClassRegistry>> instances;
 
   public:
     std::map<size_t, std::shared_ptr<Class>> class_map;
@@ -159,7 +162,7 @@ class ClassRegistry {
     }
 };
 
-std::map<void *, std::shared_ptr<ClassRegistry>> ClassRegistry::instances;
+// std::map<void *, std::shared_ptr<ClassRegistry>> ClassRegistry::instances;
 
 } // namespace detail
 } // namespace sqbinding

@@ -31,32 +31,17 @@ class VM {
 
   public:
     std::shared_ptr<Holder> holder;
-    static int ref_count;
 
   public:
     VM() = default;
     VM(HSQUIRRELVM vm, bool should_close = false) : holder(std::make_shared<Holder>(vm, should_close)) {
-        ref_count++;
     }
 
     VM(const VM &other) {
         this->holder = other.holder;
-        ref_count++;
-        std::cout << "VM(const): ref_count = " << ref_count << std::endl;
     };
 
-    VM &operator=(const VM &other) {
-        this->holder = other.holder;
-        ref_count++;
-        std::cout << "VM=: ref_count = " << ref_count << std::endl;
-        return *this;
-    };
-    ~VM() {
-        if (holder) {
-            ref_count--;
-        }
-        std::cout << "~VM: ref_count = " << ref_count << std::endl;
-    }
+    VM &operator=(const VM &other) = delete;
 
   public:
     HSQUIRRELVM &vm() {
@@ -69,9 +54,8 @@ class VM {
         return holder->vm;
     }
 };
-int VM::ref_count = 0;
 
-class WeakVM: public VM {
+class WeakVM : public VM {
   public:
     std::weak_ptr<VM::Holder> holder;
     WeakVM(const VM &other) {

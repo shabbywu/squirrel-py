@@ -45,49 +45,47 @@ void test() {
     }
 
     std::cout << "=========" << std::endl;
-    // try {
-    //     auto rt = vm.getroottable();
-    //     A a1;
-    //     A a2;
-    //     a1.field = 10086;
-    //     a2.field = 999;
-    //     rt->set(std::string("a"), &a1);
-    //     vm.ExecuteString("print(\"typeof a = \" + typeof a + \"\\n\"); ");
-    //     std::cout << "[*] calling A::static_method" << std::endl;
-    //     vm.ExecuteString("a.static_method()");
+    try {
+        auto rt = vm.getroottable();
+        A a1;
+        A a2;
+        a1.field = 10086;
+        a2.field = 999;
+        rt->set(std::string("a"), &a1);
+        vm.ExecuteString("print(\"typeof a = \" + typeof a + \"\\n\"); ");
+        std::cout << "[*] calling A::static_method" << std::endl;
+        vm.ExecuteString("a.static_method()");
 
-    //     std::cout << "[*] calling A::nonconst_method" << std::endl;
-    //     vm.ExecuteString("a.nonconst_method()");
+        std::cout << "[*] calling A::nonconst_method" << std::endl;
+        vm.ExecuteString("a.nonconst_method()");
 
-    //     std::cout << "[*] calling A::const_method" << std::endl;
-    //     vm.ExecuteString("a.const_method()");
+        std::cout << "[*] calling A::const_method" << std::endl;
+        vm.ExecuteString("a.const_method()");
 
-    //     std::cout << "[*] calling A::nonconst_method via pointer from vm" << std::endl;
-    //     A *a_ptr = vm.getroottable()->get<std::string, A *>(std::string("a"));
-    //     a_ptr->nonconst_method();
+        std::cout << "[*] calling A::nonconst_method via pointer from vm" << std::endl;
+        A *a_ptr = vm.getroottable()->get<std::string, A *>(std::string("a"));
+        a_ptr->nonconst_method();
 
-    //     std::cout << "[*] accessing a.field " << std::endl;
-    //     vm.ExecuteString("print(\"a.field=\" + a.field + \"\\n\")");
-    //     vm.ExecuteString("a.field = 222");
-    //     vm.ExecuteString("print(\"a.field=\" + a.field + \"\\n\")");
-    //     std::cout << a1.field << std::endl;
+        std::cout << "[*] accessing a.field " << std::endl;
+        vm.ExecuteString("print(\"a.field=\" + a.field + \"\\n\")");
+        vm.ExecuteString("a.field = 222");
+        vm.ExecuteString("print(\"a.field=\" + a.field + \"\\n\")");
+        std::cout << a1.field << std::endl;
 
-    //     std::cout << "[*] newslot a.attribute " << std::endl;
-    //     vm.ExecuteString("a.attribute = 3;");
-    //     vm.ExecuteString("print(\"a.attribute=\" + a.attribute + \"\\n\")");
+        std::cout << "[*] newslot a.attribute " << std::endl;
+        vm.ExecuteString("a.attribute = 3;");
+        vm.ExecuteString("print(\"a.attribute=\" + a.attribute + \"\\n\")");
 
-    //     rt->set(std::string("a2"), &a2);
-    //     std::cout << "[*] accessing a2.field " << std::endl;
-    //     vm.ExecuteString("print(\"a2.field=\" + a2.field + \"\\n\")");
+        rt->set(std::string("a2"), &a2);
+        std::cout << "[*] accessing a2.field " << std::endl;
+        vm.ExecuteString("print(\"a2.field=\" + a2.field + \"\\n\")");
 
-    //     std::cout << "[*] accessing a2.attribute " << std::endl;
-    //     vm.ExecuteString("print(\"a2.attribute=\" + a2.attribute + \"\\n\")");
-    // }
-    // catch (const std::exception &e) {
-    //     std::cerr << e.what() << '\n';
-    // }
-    detail::ClassRegistry::instances.clear();
-    _sleep(1000);
+        std::cout << "[*] accessing a2.attribute " << std::endl;
+        vm.ExecuteString("print(\"a2.attribute=\" + a2.attribute + \"\\n\")");
+    }
+    catch (const std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
     std::cout << "=========" << std::endl;
 }
 
