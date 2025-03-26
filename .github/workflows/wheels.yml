@@ -30,9 +30,10 @@ jobs:
     - name: Check metadata
       run: pipx run twine check dist/*
 
-    - uses: actions/upload-artifact@v3
+    - uses: actions/upload-artifact@v4
       with:
         path: dist/*.tar.gz
+        name: sdist
 
 
   build_wheels:
@@ -66,9 +67,10 @@ jobs:
       shell: bash
 
     - name: Upload wheels
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         path: wheelhouse/*.whl
+        name: wheelhouse
 
 
   upload_all:
@@ -84,7 +86,6 @@ jobs:
 
     - uses: actions/download-artifact@v3
       with:
-        name: artifact
         path: dist
 
     - uses: pypa/gh-action-pypi-publish@v1.8.14
