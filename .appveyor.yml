@@ -5,17 +5,17 @@ skip_branch_with_pr: true
 init:
 - cmd: set PATH=C:\Python37;C:\Python37\Scripts;%PATH%
 - cmd: set VCPKG_ROOT=c:/tools/vcpkg
-- cmd: set CMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake
+- cmd: set CMAKE_ARGS='-DCMAKE_TOOLCHAIN_FILE=c:/tools/vcpkg/scripts/buildsystems/vcpkg.cmake'
 install:
 - cd C:\Tools\vcpkg
 - git pull
 - .\bootstrap-vcpkg.bat
 - cd %APPVEYOR_BUILD_FOLDER%
-- ps: python -m pip install --disable-pip-version-check --upgrade --no-warn-script-location pip build virtualenv wheel squirrel-lang pytest
+- ps: python -m pip install --disable-pip-version-check --upgrade --no-warn-script-location pip build virtualenv wheel pytest
 build_script:
 - ps: |
     python -m pip install .
 test_script:
-- ps: pytest tests/test_find.py tests/test_vm.py
+- ps: pytest tests
 cache:
 - c:\tools\vcpkg\installed\
