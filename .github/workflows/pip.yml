@@ -41,6 +41,8 @@ jobs:
 
     - name: Build and install
       run: pip install --verbose ".[test]"
+      env:
+        CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
     - name: Test
       run: make test
