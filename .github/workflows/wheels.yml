@@ -61,6 +61,7 @@ jobs:
       env:
         CIBW_SKIP: pp* *_i686 *musllinux*
         MACOSX_DEPLOYMENT_TARGET: 10.14
+        CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
     - name: Verify clean directory
       run: git diff --exit-code
@@ -70,7 +71,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         path: wheelhouse/*.whl
-        name: wheelhouse
+        name: wheelhouse-${{ matrix.os }}
 
 
   upload_all:
@@ -84,11 +85,12 @@ jobs:
       with:
         python-version: "3.x"
 
-    - uses: actions/download-artifact@v3
+    - uses: actions/download-artifact@v4
       with:
         path: dist
+        merge-multiple: true
 
-    - uses: pypa/gh-action-pypi-publish@v1.8.14
+    - uses: pypa/gh-action-pypi-publish@v1.12.4
       with:
         user: __token__
         password: ${{ secrets.pypi_password }}
