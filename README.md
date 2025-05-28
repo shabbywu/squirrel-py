@@ -22,7 +22,7 @@ PySquirrel is intended to be a comprehensive binding of Squirrel 3 for Python.
 [travis-link]:             https://travis-ci.org/shabbywu/squirrel-py
 [travis-badge]:            https://travis-ci.org/shabbywu/squirrel-py.svg?branch=master&status=passed
 [appveyor-link]:           https://ci.appveyor.com/project/shabbywu/squirrel-py
-[appveyor-badge]:          https://ci.appveyor.com/api/projects/status/f04io15t7o63916y
+[appveyor-badge]:          https://ci.appveyor.com/api/projects/status/0ns7hel71jbl7fxg
 
 An project built with [pybind11](https://github.com/pybind/pybind11).
 This requires Python 3.7+; for older versions of Python, check the commit
