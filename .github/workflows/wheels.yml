@@ -1,5 +1,8 @@
 name: Wheels
 
+permissions:
+  packages: write
+
 on:
   workflow_dispatch:
     inputs:
