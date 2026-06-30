@@ -52,7 +52,7 @@ jobs:
       with:
         submodules: 'true'
 
-    - uses: lukka/get-cmake@latest
+    - uses: lukka/get-cmake@v3.31.6
       if: matrix.os != 'ubuntu-latest'
     - name: Setup anew (or from cache) vcpkg (and does not build any package)
       if: matrix.os != 'ubuntu-latest'
