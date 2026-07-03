@@ -1,17 +1,16 @@
-PySquirrel - A Python binding for Squirrel programming language.
-==============
+# PySquirrel - A Python binding for Squirrel programming language
+
 Squirrel is a high level imperative, object-oriented programming language, designed to be a light-weight scripting language that fits in the size, memory bandwidth, and real-time requirements of applications like video games.
 PySquirrel is intended to be a comprehensive binding of Squirrel 3 for Python.
 
-
 ![github-stars][stars-badge]
 
-|      CI              | status |
-|----------------------|--------|
-| Linux/macOS Travis   | [![Travis-CI][travis-badge]][travis-link] |
-| MSVC 2022            | [![AppVeyor][appveyor-badge]][appveyor-link] |
-| pip builds           | [![Pip Actions Status][actions-pip-badge]][actions-pip-link] |
-| [cibuildwheel][]   | [![Wheels Actions Status][actions-wheels-badge]][actions-wheels-link] |
+| CI | status |
+| --- | --- |
+| Linux/macOS Travis | [![Travis-CI][travis-badge]][travis-link] |
+| MSVC 2022 | [![AppVeyor][appveyor-badge]][appveyor-link] |
+| pip builds | [![Pip Actions Status][actions-pip-badge]][actions-pip-link] |
+| [cibuildwheel][] | [![Wheels Actions Status][actions-wheels-badge]][actions-wheels-link] |
 
 [cibuildwheel]:          https://cibuildwheel.readthedocs.io
 [stars-badge]:             https://img.shields.io/github/stars/shabbywu/squirrel-py?style=social
@@ -28,21 +27,17 @@ An project built with [pybind11](https://github.com/pybind/pybind11).
 This requires Python 3.7+; for older versions of Python, check the commit
 history.
 
-Installation
-------------
+## Installation
 
- - `pip install squirrel-lang`
+`pip install squirrel-lang`
 
-
-License
--------
+## License
 
 pybind11 is provided under a BSD-style license that can be found in the LICENSE
 file. By using, distributing, or contributing to this project, you agree to the
 terms and conditions of this license.
 
-Test call
----------
+## Test call
 
 ```python
 from squirrel import SQVM
