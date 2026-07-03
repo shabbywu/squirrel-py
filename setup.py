@@ -62,6 +62,14 @@ class CMakeBuild(build_ext):
         # In this example, we pass in the version to C++. You might not need to.
         cmake_args += [f"-DVERSION_INFO={__version__}"]
 
+        try:
+            import pybind11  # type: ignore
+        except ImportError:
+            pybind11_dir = None
+        else:
+            pybind11_dir = pybind11.get_cmake_dir()
+            cmake_args += [f"-Dpybind11_DIR={pybind11_dir}"]
+
         if self.compiler.compiler_type != "msvc":
             # Using Ninja-build since it a) is available as a wheel and b)
             # multithreads automatically. MSVC would require all variables be
