@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>squirrel-py Pyodide</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f5f3ee;
+        --panel-strong: #1e293b;
+        --text: #172033;
+        --muted: #64748b;
+        --line: #d8dee8;
+        --accent: #0f766e;
+        --accent-strong: #115e59;
+        --code: #111827;
+        --code-text: #dbeafe;
+        --warn: #b45309;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      .shell {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-height: 100vh;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px clamp(16px, 4vw, 40px);
+        border-bottom: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.82);
+        backdrop-filter: blur(12px);
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 20px;
+        line-height: 1.2;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      .status {
+        min-width: 180px;
+        color: var(--muted);
+        font-size: 14px;
+        text-align: right;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+        min-height: 0;
+      }
+
+      .editor,
+      .result {
+        min-width: 0;
+        min-height: 0;
+        padding: clamp(16px, 3vw, 32px);
+      }
+
+      .editor {
+        display: grid;
+        grid-template-rows: auto minmax(320px, 1fr);
+        gap: 14px;
+      }
+
+      .toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        appearance: none;
+        min-height: 38px;
+        padding: 0 14px;
+        border: 1px solid var(--accent);
+        border-radius: 6px;
+        background: var(--accent);
+        color: #ffffff;
+        font: inherit;
+        font-weight: 650;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: transparent;
+        color: var(--accent-strong);
+      }
+
+      button:disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+      }
+
+      textarea,
+      pre {
+        width: 100%;
+        margin: 0;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      textarea {
+        min-height: 320px;
+        height: 100%;
+        resize: none;
+        padding: 18px;
+        background: #fbfdff;
+        color: var(--text);
+        tab-size: 4;
+      }
+
+      .result {
+        display: grid;
+        grid-template-rows: auto minmax(320px, 1fr);
+        gap: 14px;
+        background: var(--panel-strong);
+        color: #e5edf8;
+      }
+
+      .result h2 {
+        margin: 0;
+        font-size: 15px;
+        line-height: 38px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+
+      pre {
+        min-height: 320px;
+        overflow: auto;
+        padding: 18px;
+        background: var(--code);
+        color: var(--code-text);
+        white-space: pre-wrap;
+      }
+
+      .warning {
+        color: var(--warn);
+      }
+
+      @media (max-width: 820px) {
+        header,
+        .toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .status {
+          min-width: 0;
+          text-align: left;
+        }
+
+        main {
+          grid-template-columns: 1fr;
+        }
+
+        .editor,
+        .result {
+          min-height: 50vh;
+        }
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0f172a;
+          --panel-strong: #172033;
+          --text: #e5edf8;
+          --muted: #94a3b8;
+          --line: #334155;
+          --accent: #14b8a6;
+          --accent-strong: #5eead4;
+          --code: #020617;
+          --code-text: #dbeafe;
+          --warn: #f59e0b;
+        }
+
+        header {
+          background: rgba(15, 23, 42, 0.84);
+        }
+
+        textarea {
+          background: #111827;
+          color: var(--text);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <header>
+        <h1>squirrel-py Pyodide</h1>
+        <div id="status" class="status">Loading Pyodide</div>
+      </header>
+      <main>
+        <section class="editor" aria-label="Python code">
+          <div class="toolbar">
+            <div class="actions">
+              <button id="run" type="button" disabled>Run</button>
+              <button id="reset" class="secondary" type="button">Reset</button>
+            </div>
+          </div>
+          <textarea id="code" spellcheck="false"></textarea>
+        </section>
+        <section class="result" aria-label="Output">
+          <h2>Output</h2>
+          <pre id="output">Initializing runtime...</pre>
+        </section>
+      </main>
+    </div>
+
+    <script>
+      const DEFAULT_PYODIDE_INDEX_URL =
+        "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/";
+
+      const exampleCode = `from squirrel import SQVM
+
+vm = SQVM()
+vm.execute("""
+sq <- {
+function say () {
+    return "hello world"
+}
+}
+""")
+
+sq = vm.get_roottable()["sq"]
+print(sq.say())`;
+
+      const runner = `
+import contextlib
+import io
+import traceback
+
+_buffer = io.StringIO()
+try:
+    with contextlib.redirect_stdout(_buffer):
+        exec(USER_CODE, globals())
+except Exception:
+    traceback.print_exc(file=_buffer)
+_buffer.getvalue()
+`;
+
+      const codeEl = document.getElementById("code");
+      const outputEl = document.getElementById("output");
+      const runButton = document.getElementById("run");
+      const resetButton = document.getElementById("reset");
+      const statusEl = document.getElementById("status");
+
+      let pyodide;
+
+      codeEl.value = exampleCode;
+
+      function setStatus(text, isWarning = false) {
+        statusEl.textContent = text;
+        statusEl.classList.toggle("warning", isWarning);
+      }
+
+      function printOutput(text) {
+        outputEl.textContent = text || "\n";
+      }
+
+      async function loadManifest() {
+        const response = await fetch("./wheel.json", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("wheel.json was not found");
+        }
+        return response.json();
+      }
+
+      async function init() {
+        try {
+          const manifest = await loadManifest();
+          const indexURL = manifest.pyodideIndexURL || DEFAULT_PYODIDE_INDEX_URL;
+          const wheelURL = new URL(manifest.wheel, window.location.href).href;
+
+          const script = document.createElement("script");
+          script.src = new URL("pyodide.js", indexURL).href;
+          document.head.appendChild(script);
+          await new Promise((resolve, reject) => {
+            script.onload = resolve;
+            script.onerror = () => reject(new Error("Pyodide script failed"));
+          });
+
+          pyodide = await loadPyodide({ indexURL });
+          setStatus("Installing wheel");
+          await pyodide.loadPackage("micropip");
+          const micropip = pyodide.pyimport("micropip");
+          await micropip.install(wheelURL);
+
+          setStatus("Ready");
+          runButton.disabled = false;
+          printOutput("Ready");
+        } catch (error) {
+          setStatus("Setup failed", true);
+          printOutput(String(error && error.stack ? error.stack : error));
+        }
+      }
+
+      async function runCode() {
+        if (!pyodide) {
+          return;
+        }
+        runButton.disabled = true;
+        setStatus("Running");
+        try {
+          pyodide.globals.set("USER_CODE", codeEl.value);
+          const result = await pyodide.runPythonAsync(runner);
+          printOutput(result);
+          setStatus("Ready");
+        } catch (error) {
+          setStatus("Run failed", true);
+          printOutput(String(error && error.stack ? error.stack : error));
+        } finally {
+          runButton.disabled = false;
+        }
+      }
+
+      runButton.addEventListener("click", runCode);
+      resetButton.addEventListener("click", () => {
+        codeEl.value = exampleCode;
+        printOutput("Ready");
+      });
+
+      init();
+    </script>
+  </body>
+</html>

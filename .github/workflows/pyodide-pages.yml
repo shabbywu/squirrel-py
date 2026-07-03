@@ -1,0 +1,79 @@
+name: Pyodide Pages
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/pyodide-pages.yml"
+      - "CMakeLists.txt"
+      - "setup.py"
+      - "pyproject.toml"
+      - "docs/**"
+      - "squirrel-lang/**"
+      - "libs/SQUIRREL32/**"
+      - "libs/squall/**"
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: "true"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: Install build tools
+        run: python -m pip install --upgrade pip cmake ninja pybind11 pyodide-build==0.36.0 pyodide-py==314.0.2
+
+      - name: Build Pyodide wheel
+        run: pyodide build . -o wheelhouse
+
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site/wheels
+          cp docs/index.html _site/index.html
+          cp wheelhouse/*.whl _site/wheels/
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          wheels = sorted(Path("_site/wheels").glob("*.whl"))
+          if len(wheels) != 1:
+              raise SystemExit(f"expected one wheel, found {len(wheels)}")
+
+          manifest = {
+              "pyodideIndexURL": "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/",
+              "wheel": f"wheels/{wheels[0].name}",
+          }
+          Path("_site/wheel.json").write_text(json.dumps(manifest, indent=2) + "\n")
+          PY
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

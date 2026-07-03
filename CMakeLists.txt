@@ -3,13 +3,15 @@
 cmake_minimum_required(VERSION 3.13)
 
 # Enable VCPKG if it is available and no toolchain was provided.
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{VCPKG_ROOT})
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE
+   AND NOT DEFINED ENV{PYODIDE}
+   AND DEFINED ENV{VCPKG_ROOT})
   set(_vcpkg_root "$ENV{VCPKG_ROOT}")
   if(_vcpkg_root MATCHES "^~/(.*)")
     set(_vcpkg_root "$ENV{HOME}/${CMAKE_MATCH_1}")
   endif()
   set(_vcpkg_toolchain "${_vcpkg_root}/scripts/buildsystems/vcpkg.cmake")
-elseif(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
+elseif(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND NOT DEFINED ENV{PYODIDE})
   find_program(_vcpkg_executable NAMES vcpkg)
   if(_vcpkg_executable)
     get_filename_component(_vcpkg_executable "${_vcpkg_executable}" REALPATH)
@@ -22,11 +24,15 @@ elseif(NOT DEFINED CMAKE_TOOLCHAIN_FILE)
   endif()
 endif()
 
-if(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND EXISTS "${_vcpkg_toolchain}")
+if(NOT DEFINED CMAKE_TOOLCHAIN_FILE
+   AND NOT DEFINED ENV{PYODIDE}
+   AND EXISTS "${_vcpkg_toolchain}")
   set(CMAKE_TOOLCHAIN_FILE
       "${_vcpkg_toolchain}"
       CACHE FILEPATH "")
-elseif(NOT DEFINED CMAKE_TOOLCHAIN_FILE AND DEFINED ENV{VCPKG_ROOT})
+elseif(NOT DEFINED CMAKE_TOOLCHAIN_FILE
+       AND NOT DEFINED ENV{PYODIDE}
+       AND DEFINED ENV{VCPKG_ROOT})
   if(NOT EXISTS "${_vcpkg_toolchain}")
     message(
       WARNING
