@@ -31,11 +31,30 @@ history.
 
 `pip install squirrel-lang`
 
-## License
+## Installing from source
 
-pybind11 is provided under a BSD-style license that can be found in the LICENSE
-file. By using, distributing, or contributing to this project, you agree to the
-terms and conditions of this license.
+Initialize the vendored native sources first:
+
+```bash
+git submodule update --init --recursive
+```
+
+The build uses vcpkg automatically when `VCPKG_ROOT` is set or `vcpkg` is on
+`PATH`. Without vcpkg, install the Python build helpers first:
+
+```bash
+python -m pip install cmake pybind11
+python -m pip install .
+```
+
+Legacy `python setup.py install` is also supported for local installs, but
+`python -m pip install .` is the recommended path.
+
+Debug trace macros are disabled by default. Enable them explicitly when needed:
+
+```bash
+TRACE_CONTAINER_GC=1 TRACE_OBJECT_CAST=1 python -m pip install .
+```
 
 ## Test call
 
