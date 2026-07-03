@@ -44,6 +44,7 @@ jobs:
         run: |
           for variant in sq32 sq305; do
             rm -rf build .pyodide_build
+            mkdir -p "wheelhouse/$variant"
             SQUIRREL_PY_VARIANT="$variant" pyodide build . -o "wheelhouse/$variant"
           done
         env:
