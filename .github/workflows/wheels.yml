@@ -1,6 +1,7 @@
 name: Wheels
 
 permissions:
+  contents: write
   packages: write
 
 on:
@@ -40,12 +41,17 @@ jobs:
 
 
   build_wheels:
-    name: Wheels on ${{ matrix.os }}
+    name: Wheels (${{ matrix.squirrel.label }}) on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2022, macos-latest]
+        squirrel:
+          - variant: sq32
+            label: Squirrel 3.2.x
+          - variant: sq305
+            label: Squirrel 3.0.5
 
     steps:
     - uses: actions/checkout@v4
@@ -57,6 +63,9 @@ jobs:
     - uses: pypa/cibuildwheel@v4.1.0
       env:
         CIBW_SKIP: pp* *_i686 *musllinux* cp3??t-*
+        CIBW_ENVIRONMENT: >-
+          SQUIRREL_PY_VARIANT=${{ matrix.squirrel.variant }}
+          CMAKE_POLICY_VERSION_MINIMUM=3.5
         MACOSX_DEPLOYMENT_TARGET: 10.14
         CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
@@ -68,14 +77,66 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         path: wheelhouse/*.whl
-        name: wheelhouse-${{ matrix.os }}
+        name: native-wheelhouse-${{ matrix.squirrel.variant }}-${{ matrix.os }}
 
+  build_pyodide:
+    name: Pyodide Wheels (${{ matrix.squirrel.label }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        squirrel:
+          - variant: sq32
+            label: Squirrel 3.2.x
+          - variant: sq305
+            label: Squirrel 3.0.5
 
-  upload_all:
-    name: Upload if release
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: 'true'
+
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.14"
+
+    - name: Install build tools
+      run: python -m pip install --upgrade pip cmake ninja pybind11 pyodide-build==0.36.0 pyodide-py==314.0.2
+
+    - name: Build Pyodide wheel
+      run: pyodide build . -o "wheelhouse/${SQUIRREL_PY_VARIANT}"
+      env:
+        SQUIRREL_PY_VARIANT: ${{ matrix.squirrel.variant }}
+        CMAKE_POLICY_VERSION_MINIMUM: 3.5
+
+    - name: Upload Pyodide wheels
+      uses: actions/upload-artifact@v4
+      with:
+        path: wheelhouse/${{ matrix.squirrel.variant }}/*.whl
+        name: pyodide-wheelhouse-${{ matrix.squirrel.variant }}
+
+  upload_release_assets:
+    name: Upload release assets
+    needs: [build_wheels, build_pyodide, build_sdist]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'published'
+
+    steps:
+    - uses: actions/download-artifact@v4
+      with:
+        path: dist
+        merge-multiple: true
+
+    - name: Upload packages to release
+      run: gh release upload "${{ github.event.release.tag_name }}" dist/* --repo "${{ github.repository }}" --clobber
+      env:
+        GH_TOKEN: ${{ github.token }}
+
+  publish_pypi:
+    name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published' || ${{ inputs.do-publish == 'true'}}
+    if: github.event_name == 'workflow_dispatch' && inputs.do-publish
 
     steps:
     - uses: actions/setup-python@v4
@@ -84,8 +145,14 @@ jobs:
 
     - uses: actions/download-artifact@v4
       with:
+        pattern: native-wheelhouse-*
         path: dist
         merge-multiple: true
+
+    - uses: actions/download-artifact@v4
+      with:
+        name: sdist
+        path: dist
 
     - uses: pypa/gh-action-pypi-publish@v1.12.4
       with:

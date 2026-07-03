@@ -65,6 +65,39 @@
         text-align: right;
       }
 
+      .header-tools {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 16px;
+        flex-wrap: wrap;
+      }
+
+      .version-switch {
+        display: flex;
+        min-height: 38px;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+      }
+
+      .version-switch button {
+        min-height: 36px;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        color: var(--accent-strong);
+      }
+
+      .version-switch button + button {
+        border-left: 1px solid var(--line);
+      }
+
+      .version-switch button[aria-pressed="true"] {
+        background: var(--accent);
+        color: #ffffff;
+      }
+
       main {
         display: grid;
         grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
@@ -182,6 +215,11 @@
           text-align: left;
         }
 
+        .header-tools {
+          align-items: flex-start;
+          justify-content: flex-start;
+        }
+
         main {
           grid-template-columns: 1fr;
         }
@@ -221,7 +259,17 @@
     <div class="shell">
       <header>
         <h1>squirrel-py Pyodide</h1>
-        <div id="status" class="status">Loading Pyodide</div>
+        <div class="header-tools">
+          <div class="version-switch" role="group" aria-label="Squirrel version">
+            <button type="button" data-sq-version="sq32" aria-pressed="true">
+              3.2.x
+            </button>
+            <button type="button" data-sq-version="sq305" aria-pressed="false">
+              3.0.5
+            </button>
+          </div>
+          <div id="status" class="status">Loading Pyodide</div>
+        </div>
       </header>
       <main>
         <section class="editor" aria-label="Python code">
@@ -244,7 +292,7 @@
       const DEFAULT_PYODIDE_INDEX_URL =
         "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/";
 
-      const exampleCode = `from squirrel import SQVM
+      const exampleCode = `from squirrel import SQVM, SQUIRREL_VERSION
 
 vm = SQVM()
 vm.execute("""
@@ -252,11 +300,16 @@ sq <- {
 function say () {
     return "hello world"
 }
+function version () {
+    return _version_
+}
 }
 """)
 
 sq = vm.get_roottable()["sq"]
-print(sq.say())`;
+print(sq.say())
+print(f"Squirrel _version_: {sq.version()}")
+print(f"Python SQUIRREL_VERSION: {SQUIRREL_VERSION}")`;
 
       const runner = `
 import contextlib
@@ -277,8 +330,14 @@ _buffer.getvalue()
       const runButton = document.getElementById("run");
       const resetButton = document.getElementById("reset");
       const statusEl = document.getElementById("status");
+      const versionButtons = [
+        ...document.querySelectorAll("[data-sq-version]"),
+      ];
 
       let pyodide;
+      let selectedVersion =
+        new URLSearchParams(window.location.search).get("sq") || "sq32";
+      let currentVersionLabel = "3.2.x";
 
       codeEl.value = exampleCode;
 
@@ -291,6 +350,58 @@ _buffer.getvalue()
         outputEl.textContent = text || "\n";
       }
 
+      function normalizeManifest(manifest) {
+        if (manifest.versions) {
+          return manifest;
+        }
+        return {
+          ...manifest,
+          defaultVersion: "sq32",
+          versions: {
+            sq32: {
+              label: "3.2.x",
+              wheel: manifest.wheel,
+            },
+          },
+        };
+      }
+
+      function resolveVersion(manifest) {
+        const versions = manifest.versions || {};
+        if (versions[selectedVersion]) {
+          return selectedVersion;
+        }
+        if (manifest.defaultVersion && versions[manifest.defaultVersion]) {
+          selectedVersion = manifest.defaultVersion;
+          return selectedVersion;
+        }
+        const firstVersion = Object.keys(versions)[0];
+        if (!firstVersion) {
+          throw new Error("wheel manifest does not define any versions");
+        }
+        selectedVersion = firstVersion;
+        return selectedVersion;
+      }
+
+      function syncVersionButtons(manifest) {
+        const versions = manifest.versions || {};
+        for (const button of versionButtons) {
+          const version = button.dataset.sqVersion;
+          const isSelected = version === selectedVersion;
+          button.disabled = !versions[version];
+          button.setAttribute("aria-pressed", isSelected ? "true" : "false");
+        }
+      }
+
+      function switchVersion(version) {
+        if (version === selectedVersion) {
+          return;
+        }
+        const url = new URL(window.location.href);
+        url.searchParams.set("sq", version);
+        window.location.assign(url.href);
+      }
+
       async function loadManifest() {
         const response = await fetch("./wheel.json", { cache: "no-store" });
         if (!response.ok) {
@@ -301,9 +412,24 @@ _buffer.getvalue()
 
       async function init() {
         try {
-          const manifest = await loadManifest();
-          const indexURL = manifest.pyodideIndexURL || DEFAULT_PYODIDE_INDEX_URL;
-          const wheelURL = new URL(manifest.wheel, window.location.href).href;
+          const manifest = normalizeManifest(await loadManifest());
+          const version = resolveVersion(manifest);
+          const versionConfig = manifest.versions[version];
+          syncVersionButtons(manifest);
+
+          currentVersionLabel = versionConfig.label || version;
+          if (!versionConfig.wheel) {
+            throw new Error(`wheel manifest is missing ${version} wheel`);
+          }
+          setStatus(`Loading ${currentVersionLabel}`);
+          const indexURL =
+            versionConfig.pyodideIndexURL ||
+            manifest.pyodideIndexURL ||
+            DEFAULT_PYODIDE_INDEX_URL;
+          const wheelURL = new URL(
+            versionConfig.wheel,
+            window.location.href,
+          ).href;
 
           const script = document.createElement("script");
           script.src = new URL("pyodide.js", indexURL).href;
@@ -314,14 +440,14 @@ _buffer.getvalue()
           });
 
           pyodide = await loadPyodide({ indexURL });
-          setStatus("Installing wheel");
+          setStatus(`Installing ${currentVersionLabel}`);
           await pyodide.loadPackage("micropip");
           const micropip = pyodide.pyimport("micropip");
           await micropip.install(wheelURL);
 
-          setStatus("Ready");
+          setStatus(`Ready (${currentVersionLabel})`);
           runButton.disabled = false;
-          printOutput("Ready");
+          printOutput(`Ready (${currentVersionLabel})`);
         } catch (error) {
           setStatus("Setup failed", true);
           printOutput(String(error && error.stack ? error.stack : error));
@@ -333,12 +459,12 @@ _buffer.getvalue()
           return;
         }
         runButton.disabled = true;
-        setStatus("Running");
+        setStatus(`Running (${currentVersionLabel})`);
         try {
           pyodide.globals.set("USER_CODE", codeEl.value);
           const result = await pyodide.runPythonAsync(runner);
           printOutput(result);
-          setStatus("Ready");
+          setStatus(`Ready (${currentVersionLabel})`);
         } catch (error) {
           setStatus("Run failed", true);
           printOutput(String(error && error.stack ? error.stack : error));
@@ -350,7 +476,12 @@ _buffer.getvalue()
       runButton.addEventListener("click", runCode);
       resetButton.addEventListener("click", () => {
         codeEl.value = exampleCode;
-        printOutput("Ready");
+        printOutput(`Ready (${currentVersionLabel})`);
+      });
+      versionButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          switchVersion(button.dataset.sqVersion);
+        });
       });
 
       init();

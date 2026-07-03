@@ -13,6 +13,7 @@ on:
       - "docs/**"
       - "squirrel-lang/**"
       - "libs/SQUIRREL32/**"
+      - "libs/SQUIRREL305/**"
       - "libs/squall/**"
 
 permissions:
@@ -39,25 +40,41 @@ jobs:
       - name: Install build tools
         run: python -m pip install --upgrade pip cmake ninja pybind11 pyodide-build==0.36.0 pyodide-py==314.0.2
 
-      - name: Build Pyodide wheel
-        run: pyodide build . -o wheelhouse
+      - name: Build Pyodide wheels
+        run: |
+          for variant in sq32 sq305; do
+            rm -rf build .pyodide_build
+            SQUIRREL_PY_VARIANT="$variant" pyodide build . -o "wheelhouse/$variant"
+          done
+        env:
+          CMAKE_POLICY_VERSION_MINIMUM: 3.5
 
       - name: Prepare Pages artifact
         run: |
-          mkdir -p _site/wheels
+          mkdir -p _site/wheels/sq32 _site/wheels/sq305
           cp docs/index.html _site/index.html
-          cp wheelhouse/*.whl _site/wheels/
+          cp wheelhouse/sq32/*.whl _site/wheels/sq32/
+          cp wheelhouse/sq305/*.whl _site/wheels/sq305/
           python - <<'PY'
           import json
           from pathlib import Path
 
-          wheels = sorted(Path("_site/wheels").glob("*.whl"))
-          if len(wheels) != 1:
-              raise SystemExit(f"expected one wheel, found {len(wheels)}")
+          versions = {
+              "sq32": {"label": "3.2.x"},
+              "sq305": {"label": "3.0.5"},
+          }
+          for version in versions:
+              wheels = sorted(Path(f"_site/wheels/{version}").glob("*.whl"))
+              if len(wheels) != 1:
+                  raise SystemExit(
+                      f"expected one {version} wheel, found {len(wheels)}"
+                  )
+              versions[version]["wheel"] = f"wheels/{version}/{wheels[0].name}"
 
           manifest = {
               "pyodideIndexURL": "https://cdn.jsdelivr.net/pyodide/v314.0.2/full/",
-              "wheel": f"wheels/{wheels[0].name}",
+              "defaultVersion": "sq32",
+              "versions": versions,
           }
           Path("_site/wheel.json").write_text(json.dumps(manifest, indent=2) + "\n")
           PY

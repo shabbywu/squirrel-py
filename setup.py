@@ -17,6 +17,48 @@ from setuptools.command.install import install
 
 __version__ = "0.2.1"
 
+_SQUIRREL_VARIANTS = {
+    "sq32": {
+        "package_name": "squirrel-lang",
+        "squirrel305": "0",
+    },
+    "sq305": {
+        "package_name": "squirrel-lang-sq305",
+        "squirrel305": "1",
+    },
+}
+
+
+def _get_squirrel_variant() -> Optional[str]:
+    variant = os.environ.get("SQUIRREL_PY_VARIANT")
+    if not variant:
+        return None
+
+    variant = variant.strip().lower()
+    if variant not in _SQUIRREL_VARIANTS:
+        supported = ", ".join(sorted(_SQUIRREL_VARIANTS))
+        raise RuntimeError(
+            f"Unsupported SQUIRREL_PY_VARIANT={variant!r}; expected one of: "
+            f"{supported}."
+        )
+    return variant
+
+
+_SQUIRREL_VARIANT = _get_squirrel_variant()
+
+
+def _get_package_name() -> str:
+    package_name = os.environ.get("SQUIRREL_PY_PACKAGE_NAME")
+    if package_name:
+        package_name = package_name.strip()
+        if package_name:
+            return package_name
+
+    if _SQUIRREL_VARIANT:
+        return _SQUIRREL_VARIANTS[_SQUIRREL_VARIANT]["package_name"]
+
+    return "squirrel-lang"
+
 # Convert distutils Windows platform specifiers to CMake -A arguments
 PLAT_TO_CMAKE = {
     "win32": "Win32",
@@ -71,6 +113,14 @@ def _append_env_flag(cmake_args: List[str], name: str) -> None:
 
     value = 1 if _env_flag_enabled(name) else 0
     cmake_args += [f"-D{name}={value}"]
+
+
+def _append_squirrel_variant(cmake_args: List[str]) -> None:
+    if not _SQUIRREL_VARIANT or _has_cmake_define(cmake_args, "SQUIRREL305"):
+        return
+
+    squirrel305 = _SQUIRREL_VARIANTS[_SQUIRREL_VARIANT]["squirrel305"]
+    cmake_args += [f"-DSQUIRREL305={squirrel305}"]
 
 
 def _is_pyodide_build() -> bool:
@@ -206,6 +256,7 @@ class CMakeBuild(build_ext):
 
         _append_env_flag(cmake_args, "TRACE_CONTAINER_GC")
         _append_env_flag(cmake_args, "TRACE_OBJECT_CAST")
+        _append_squirrel_variant(cmake_args)
 
         # In this example, we pass in the version to C++. You might not need to.
         cmake_args += [f"-DVERSION_INFO={__version__}"]
@@ -301,7 +352,7 @@ class Install(install):
 
 
 setup(
-    name="squirrel-lang",
+    name=_get_package_name(),
     version=__version__,
     author="shabbywu",
     author_email="shabbywu@qq.com",
