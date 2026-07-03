@@ -119,12 +119,15 @@ class CMakeBuild(build_ext):
         if not build_temp.exists():
             build_temp.mkdir(parents=True)
 
-        subprocess.run(
-            ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
-        )
-        subprocess.run(
-            ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
-        )
+        try:
+            subprocess.run(
+                ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
+            )
+            subprocess.run(
+                ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
+            )
+        except subprocess.CalledProcessError as e:
+            raise RuntimeError("Failed to build extension, ensure cmake is installed") from e
 
 
 setup(
