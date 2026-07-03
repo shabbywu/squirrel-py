@@ -24,6 +24,15 @@ An project built with [pybind11](https://github.com/pybind/pybind11).
 This requires Python 3.7+; for older versions of Python, check the commit
 history.
 
+## Browser demo
+
+Try squirrel-py directly in the browser with the Pyodide demo:
+
+https://shabbywu.github.io/squirrel-py/
+
+The demo loads a WebAssembly wheel and runs the same `SQVM` example without a
+local Python install.
+
 ## Installation
 
 `pip install squirrel-lang`
