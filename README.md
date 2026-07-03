@@ -7,7 +7,6 @@ PySquirrel is intended to be a comprehensive binding of Squirrel 3 for Python.
 
 | CI | status |
 | --- | --- |
-| Linux/macOS Travis | [![Travis-CI][travis-badge]][travis-link] |
 | MSVC 2022 | [![AppVeyor][appveyor-badge]][appveyor-link] |
 | pip builds | [![Pip Actions Status][actions-pip-badge]][actions-pip-link] |
 | [cibuildwheel][] | [![Wheels Actions Status][actions-wheels-badge]][actions-wheels-link] |
@@ -18,8 +17,6 @@ PySquirrel is intended to be a comprehensive binding of Squirrel 3 for Python.
 [actions-pip-badge]:       https://github.com/shabbywu/squirrel-py/workflows/Pip/badge.svg
 [actions-wheels-link]:     https://github.com/shabbywu/squirrel-py/actions/workflows/wheels.yml
 [actions-wheels-badge]:    https://github.com/shabbywu/squirrel-py/workflows/Wheels/badge.svg
-[travis-link]:             https://travis-ci.org/shabbywu/squirrel-py
-[travis-badge]:            https://travis-ci.org/shabbywu/squirrel-py.svg?branch=master&status=passed
 [appveyor-link]:           https://ci.appveyor.com/project/shabbywu/squirrel-py
 [appveyor-badge]:          https://ci.appveyor.com/api/projects/status/0ns7hel71jbl7fxg?svg=true
 
