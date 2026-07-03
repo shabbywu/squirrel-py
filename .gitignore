@@ -13,6 +13,7 @@ __pycache__/
 build/
 develop-eggs/
 dist/
+wheelhouse/
 downloads/
 eggs/
 .eggs/
@@ -45,6 +46,9 @@ htmlcov/
 .coverage
 .coverage.*
 .cache
+.pyodide-xbuildenv*/
+.pyodide_build/
+.venv-pyodide/
 nosetests.xml
 coverage.xml
 *.cover
@@ -72,6 +76,8 @@ instance/
 
 # Sphinx documentation
 docs/_build/
+docs/wheel.json
+docs/wheels/
 
 # PyBuilder
 .pybuilder/

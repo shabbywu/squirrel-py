@@ -43,6 +43,22 @@ def _split_cmake_args(value: str) -> List[str]:
     return shlex.split(value, posix=os.name != "nt")
 
 
+def _extract_include_dirs(value: str) -> List[str]:
+    include_dirs = []
+    args = _split_cmake_args(value)
+    index = 0
+    while index < len(args):
+        arg = args[index]
+        if arg == "-I" and index + 1 < len(args):
+            include_dirs.append(args[index + 1])
+            index += 2
+            continue
+        if arg.startswith("-I") and len(arg) > 2:
+            include_dirs.append(arg[2:])
+        index += 1
+    return include_dirs
+
+
 # Trace macros are debug-only. Pass an explicit 0 by default so an old CMake
 # cache cannot keep TRACE_* enabled after the environment variable is removed.
 def _env_flag_enabled(name: str) -> bool:
@@ -55,6 +71,18 @@ def _append_env_flag(cmake_args: List[str], name: str) -> None:
 
     value = 1 if _env_flag_enabled(name) else 0
     cmake_args += [f"-D{name}={value}"]
+
+
+def _is_pyodide_build() -> bool:
+    return bool(os.environ.get("PYODIDE"))
+
+
+def _find_pyodide_python_include() -> Optional[str]:
+    for env_name in ("CFLAGS", "CPPFLAGS"):
+        for include_dir in _extract_include_dirs(os.environ.get(env_name, "")):
+            if "python" in include_dir.lower():
+                return include_dir
+    return None
 
 
 def _vcpkg_toolchain_from_root(root: Union[str, os.PathLike]) -> Optional[Path]:
@@ -86,6 +114,9 @@ def _find_vcpkg_toolchain() -> Optional[Path]:
 
 
 def _configure_vcpkg(cmake_args: List[str]) -> bool:
+    if _is_pyodide_build():
+        return False
+
     existing_toolchain = _get_cmake_define(cmake_args, "CMAKE_TOOLCHAIN_FILE")
     if existing_toolchain:
         return Path(existing_toolchain).name == "vcpkg.cmake"
@@ -178,6 +209,13 @@ class CMakeBuild(build_ext):
 
         # In this example, we pass in the version to C++. You might not need to.
         cmake_args += [f"-DVERSION_INFO={__version__}"]
+
+        if _is_pyodide_build():
+            pyodide_python_include = _find_pyodide_python_include()
+            if pyodide_python_include:
+                cmake_args += [
+                    f"-DPYODIDE_PYTHON_INCLUDE_DIR={pyodide_python_include}"
+                ]
 
         _require_cmake()
 
