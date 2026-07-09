@@ -18,7 +18,9 @@ else()
   target_link_libraries(sqbinding PUBLIC pybind11::pybind11 squirrel_static
                                          sqstdlib_static)
 endif()
-target_compile_options(sqbinding PUBLIC -fPIC)
+if(NOT MSVC)
+  target_compile_options(sqbinding PUBLIC -fPIC)
+endif()
 target_include_directories(
   sqbinding PUBLIC ${squirrel_dir}/include ${squirrel_dir}/squirrel
                    ${squall_dir} ${CMAKE_CURRENT_LIST_DIR})

@@ -164,6 +164,11 @@ def _find_vcpkg_toolchain() -> Optional[Path]:
 
 
 def _configure_vcpkg(cmake_args: List[str]) -> bool:
+    if _env_flag_enabled("SQUIRREL_PY_NO_VCPKG"):
+        if not _has_cmake_define(cmake_args, "SQUIRREL_PY_NO_VCPKG"):
+            cmake_args += ["-DSQUIRREL_PY_NO_VCPKG=ON"]
+        return False
+
     if _is_pyodide_build():
         return False
 

@@ -7,6 +7,25 @@ __author__: str
 class StaticVM:
     vm: Any
 
+    def vm_addr(self) -> int:
+        ...
+
+    def root_table(self) -> Any:
+        ...
+
+    def resolve_native_pointer(self, path: str) -> dict[str, Any]:
+        ...
+
+    def get_roottable(self) -> Any:
+        ...
+
+    def execute(
+        self,
+        sourcecode: str,
+        env: Any = None
+    ) -> Any:
+        ...
+
     def bindfunc(
         self,
         funcname: str,

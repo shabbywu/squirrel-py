@@ -43,8 +43,10 @@ file(GLOB MAIN_SOURCE *.cpp *.h)
 
 # 指定编译参数
 add_subdirectory(${squirrel_dir} squirrel)
-target_compile_options(squirrel_static PRIVATE -fPIC)
-target_compile_options(sqstdlib_static PRIVATE -fPIC)
+if(NOT MSVC)
+  target_compile_options(squirrel_static PRIVATE -fPIC)
+  target_compile_options(sqstdlib_static PRIVATE -fPIC)
+endif()
 
 add_subdirectory(sqbinding)
 
