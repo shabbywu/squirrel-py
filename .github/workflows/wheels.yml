@@ -1,8 +1,7 @@
 name: Wheels
 
 permissions:
-  contents: write
-  packages: write
+  contents: read
 
 on:
   workflow_dispatch:
@@ -174,6 +173,8 @@ jobs:
     needs: [build_wheels, build_pyodide, build_sdist]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
+    permissions:
+      contents: write
 
     steps:
     - uses: actions/download-artifact@v4
@@ -195,12 +196,10 @@ jobs:
       github.event_name == 'workflow_dispatch'
     environment:
       name: pypi
+    permissions:
+      id-token: write
 
     steps:
-    - uses: actions/setup-python@v4
-      with:
-        python-version: "3.x"
-
     - uses: actions/download-artifact@v4
       with:
         pattern: native-wheelhouse-*
@@ -212,7 +211,4 @@ jobs:
         name: sdist
         path: dist
 
-    - uses: pypa/gh-action-pypi-publish@v1.12.4
-      with:
-        user: __token__
-        password: ${{ secrets.pypi_password }}
+    - uses: pypa/gh-action-pypi-publish@v1
