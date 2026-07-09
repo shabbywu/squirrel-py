@@ -6,11 +6,6 @@ permissions:
 
 on:
   workflow_dispatch:
-    inputs:
-      do-publish:
-        description: "publish to pypi when build successfully"
-        required: true
-        type: boolean
   release:
     types:
       - published
@@ -20,8 +15,63 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate_release:
+    name: Validate release tag
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate tag and package version
+      shell: bash
+      env:
+        RELEASE_TAG: ${{ github.event.release.tag_name }}
+      run: |
+        set -euo pipefail
+
+        if [[ "${GITHUB_EVENT_NAME}" == "release" ]]; then
+          tag="${RELEASE_TAG}"
+        else
+          if [[ "${GITHUB_REF_TYPE}" != "tag" ]]; then
+            echo "::error::Wheels workflow must run on a tag ref, got ${GITHUB_REF_TYPE} ${GITHUB_REF_NAME}."
+            exit 1
+          fi
+          tag="${GITHUB_REF_NAME}"
+        fi
+
+        if [[ ! "${tag}" =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+          echo "::error::Release tag must match vX.Y.Z, got '${tag}'."
+          exit 1
+        fi
+
+        expected_version="${tag#v}"
+        actual_version="$(python - <<'PY'
+        import ast
+        from pathlib import Path
+
+        module = ast.parse(Path("setup.py").read_text())
+        for node in module.body:
+            if isinstance(node, ast.Assign):
+                for target in node.targets:
+                    if isinstance(target, ast.Name) and target.id == "__version__":
+                        value = ast.literal_eval(node.value)
+                        if not isinstance(value, str):
+                            raise SystemExit("__version__ is not a string literal")
+                        print(value)
+                        raise SystemExit(0)
+        raise SystemExit("__version__ not found in setup.py")
+        PY
+        )"
+
+        if [[ "${actual_version}" != "${expected_version}" ]]; then
+          echo "::error::setup.py __version__ (${actual_version}) must equal tag version (${expected_version})."
+          exit 1
+        fi
+
+        echo "Validated ${tag}: setup.py __version__ is ${actual_version}."
+
   build_sdist:
     name: Build SDist
+    needs: validate_release
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
@@ -42,6 +92,7 @@ jobs:
 
   build_wheels:
     name: Wheels (${{ matrix.squirrel.label }}) on ${{ matrix.os }}
+    needs: validate_release
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -81,6 +132,7 @@ jobs:
 
   build_pyodide:
     name: Pyodide Wheels (${{ matrix.squirrel.label }})
+    needs: validate_release
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -138,7 +190,11 @@ jobs:
     name: Publish to PyPI
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'workflow_dispatch' && inputs.do-publish
+    if: >-
+      (github.event_name == 'release' && github.event.action == 'published') ||
+      github.event_name == 'workflow_dispatch'
+    environment:
+      name: pypi
 
     steps:
     - uses: actions/setup-python@v4

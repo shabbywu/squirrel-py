@@ -15,7 +15,7 @@ from setuptools import Extension, setup
 from setuptools.command.build_ext import build_ext
 from setuptools.command.install import install
 
-__version__ = "0.2.1"
+__version__ = "0.3.0"
 
 _SQUIRREL_VARIANTS = {
     "sq32": {
