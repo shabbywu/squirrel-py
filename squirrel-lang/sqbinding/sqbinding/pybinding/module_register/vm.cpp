@@ -6,12 +6,18 @@
 #include <sqclass.h>
 #include <sqobject.h>
 #include <squserdata.h>
-#include <windows.h>
 #include <cstdint>
 #include <cstring>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+#endif
 
 typedef sqbinding::python::VMProxy StaticVM;
 typedef sqbinding::python::GenericVM GenericVM;
@@ -33,6 +39,7 @@ bool is_readable_pointer(const void *ptr, std::size_t size) {
     if (ptr == nullptr || size == 0) {
         return false;
     }
+#ifdef _WIN32
     MEMORY_BASIC_INFORMATION info{};
     if (VirtualQuery(ptr, &info, sizeof(info)) == 0) {
         return false;
@@ -45,12 +52,18 @@ bool is_readable_pointer(const void *ptr, std::size_t size) {
     const auto region_begin = reinterpret_cast<std::uintptr_t>(info.BaseAddress);
     const auto region_end = region_begin + info.RegionSize;
     return begin >= region_begin && begin + size <= region_end;
+#else
+    (void)ptr;
+    (void)size;
+    return false;
+#endif
 }
 
 bool is_executable_pointer(const void *ptr) {
     if (ptr == nullptr) {
         return false;
     }
+#ifdef _WIN32
     MEMORY_BASIC_INFORMATION info{};
     if (VirtualQuery(ptr, &info, sizeof(info)) == 0) {
         return false;
@@ -59,6 +72,10 @@ bool is_executable_pointer(const void *ptr) {
     return info.State == MEM_COMMIT
         && (protect == PAGE_EXECUTE || protect == PAGE_EXECUTE_READ || protect == PAGE_EXECUTE_READWRITE
             || protect == PAGE_EXECUTE_WRITECOPY);
+#else
+    (void)ptr;
+    return false;
+#endif
 }
 
 template <typename T> bool safe_read_value(const void *source, T &out) {

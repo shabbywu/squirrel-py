@@ -5,7 +5,7 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import Dict, List, Optional, Union
 
 # Available at setup time due to pyproject.toml
 # Keep access to the original install command so legacy setup.py install can
@@ -79,6 +79,110 @@ def _get_cmake_define(cmake_args: List[str], name: str) -> Optional[str]:
         if arg.startswith(prefixes):
             return arg.split("=", 1)[1]
     return None
+
+
+def _get_cmake_option_value(cmake_args: List[str], option: str) -> Optional[str]:
+    for index, arg in enumerate(cmake_args):
+        if arg == option and index + 1 < len(cmake_args):
+            return cmake_args[index + 1]
+        if arg.startswith(option) and len(arg) > len(option):
+            return arg[len(option) :]
+    return None
+
+
+def _normalize_cache_path(value: str) -> str:
+    return os.path.normcase(os.path.abspath(os.path.normpath(value.strip())))
+
+
+def _same_cache_path(left: str, right: str) -> bool:
+    return _normalize_cache_path(left) == _normalize_cache_path(right)
+
+
+def _get_subprocess_env() -> Dict[str, str]:
+    # Rebuilding the Windows environment block drops raw duplicate keys such as
+    # PATH/Path, which can make MSBuild fail before it starts cl.exe.
+    return dict(os.environ)
+
+
+def _read_cmake_cache(cache_file: Path) -> Dict[str, str]:
+    entries = {}
+    try:
+        lines = cache_file.read_text(encoding="utf-8", errors="replace").splitlines()
+    except OSError:
+        return entries
+
+    for line in lines:
+        if not line or line.startswith(("#", "//")) or "=" not in line:
+            continue
+        key_type, value = line.split("=", 1)
+        key = key_type.split(":", 1)[0]
+        entries[key] = value
+    return entries
+
+
+def _remove_stale_cmake_cache(build_temp: Path, reasons: List[str]) -> None:
+    joined_reasons = "; ".join(reasons)
+    print(f"Removing stale CMake cache in {build_temp}: {joined_reasons}")
+
+    cache_file = build_temp / "CMakeCache.txt"
+    if cache_file.exists():
+        cache_file.unlink()
+
+    cmake_files = build_temp / "CMakeFiles"
+    if cmake_files.exists():
+        shutil.rmtree(cmake_files)
+
+
+def _clear_stale_cmake_cache(build_temp: Path, cmake_args: List[str]) -> None:
+    cache_file = build_temp / "CMakeCache.txt"
+    if not cache_file.exists():
+        return
+
+    cache = _read_cmake_cache(cache_file)
+    reasons = []
+
+    expected_platform = (
+        _get_cmake_option_value(cmake_args, "-A")
+        or _get_cmake_define(cmake_args, "CMAKE_GENERATOR_PLATFORM")
+    )
+    cached_platform = cache.get("CMAKE_GENERATOR_PLATFORM")
+    if (
+        expected_platform
+        and cached_platform
+        and expected_platform.lower() != cached_platform.lower()
+    ):
+        reasons.append(
+            f"generator platform changed from {cached_platform} to "
+            f"{expected_platform}"
+        )
+
+    expected_generator = _get_cmake_option_value(cmake_args, "-G")
+    cached_generator = cache.get("CMAKE_GENERATOR")
+    if expected_generator and cached_generator and expected_generator != cached_generator:
+        reasons.append(
+            f"generator changed from {cached_generator} to {expected_generator}"
+        )
+
+    for python_key in ("Python_EXECUTABLE", "PYTHON_EXECUTABLE", "Python3_EXECUTABLE"):
+        cached_python = cache.get(python_key)
+        if cached_python and not _same_cache_path(cached_python, sys.executable):
+            reasons.append(
+                f"{python_key} changed from {cached_python} to {sys.executable}"
+            )
+            break
+
+    expected_toolchain = _get_cmake_define(cmake_args, "CMAKE_TOOLCHAIN_FILE")
+    cached_toolchain = cache.get("CMAKE_TOOLCHAIN_FILE")
+    if expected_toolchain and (
+        not cached_toolchain
+        or not _same_cache_path(cached_toolchain, expected_toolchain)
+    ):
+        reasons.append("CMAKE_TOOLCHAIN_FILE changed")
+    elif cached_toolchain and not expected_toolchain:
+        reasons.append("CMAKE_TOOLCHAIN_FILE was removed")
+
+    if reasons:
+        _remove_stale_cmake_cache(build_temp, reasons)
 
 
 def _split_cmake_args(value: str) -> List[str]:
@@ -335,18 +439,28 @@ class CMakeBuild(build_ext):
                 build_args += [f"-j{self.parallel}"]
 
         build_temp = Path(self.build_temp) / ext.name
+        _clear_stale_cmake_cache(build_temp, cmake_args)
         if not build_temp.exists():
             build_temp.mkdir(parents=True)
 
+        subprocess_env = _get_subprocess_env()
         try:
             subprocess.run(
-                ["cmake", ext.sourcedir, *cmake_args], cwd=build_temp, check=True
+                ["cmake", ext.sourcedir, *cmake_args],
+                cwd=build_temp,
+                check=True,
+                env=subprocess_env,
             )
             subprocess.run(
-                ["cmake", "--build", ".", *build_args], cwd=build_temp, check=True
+                ["cmake", "--build", ".", *build_args],
+                cwd=build_temp,
+                check=True,
+                env=subprocess_env,
             )
         except subprocess.CalledProcessError as e:
-            raise RuntimeError("Failed to build extension, ensure cmake is installed") from e
+            raise RuntimeError(
+                "Failed to build extension with CMake; see the CMake output above."
+            ) from e
 
 
 class Install(install):
