@@ -3,6 +3,7 @@ from typing import Any, Callable
 __version__: str
 __author__: str
 
+SQUIRREL_VERSION: str
 
 class StaticVM:
     vm: Any
